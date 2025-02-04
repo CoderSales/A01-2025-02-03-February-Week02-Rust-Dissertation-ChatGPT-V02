@@ -300,6 +300,356 @@ cargo update
 cargo build
 ✅ Now, your egui_plot and egui setup should work. Let me know if you need further debugging! 🚀
 
+## Request
+
+current file:
+
+## Response
+
+Please upload your current main.rs file so I can analyze it and provide an accurate fix for your import issues. 🚀
+
+## Request
+
+Summary:
+
+This request has 2 files: the modified main.rs and Cargo.toml in triple backtick rust code blocks, and 3 bash rust commands used as well as the output issue which resulted, to do with: "78  |                 let points = PlotPoints::from_values(
+    |                                          ^^^^^^^^^^^ variant or associated item not found in `PlotPoints`" 
+
+Details:
+
+
+current files:
+
+main.rs
+
+```rust
+// load audio with hound:
+use hound;
+
+// playback audio with rodio:
+use rodio::{Decoder, OutputStream, source::Source};
+// use rodio::{Decoder, OutputStream}; // New
+use std::fs::File;
+use std::io::BufReader;
+
+// display waveform in GUI using FFT:
+// use eframe::{egui, egui::plot::{Plot, Line, Values}};
+use egui_plot::{Plot, Line, PlotPoints};
+use rustfft::FftPlanner;
+use rustfft::num_complex::Complex;
+
+use eframe::egui;
+use egui::{CentralPanel, Context};
+
+
+
+struct AudioVisualizer {
+    waveform: Vec<f64>,
+    fft_result: Vec<f64>,
+}
+
+
+
+impl AudioVisualizer {
+    fn new() -> Self {
+        let filename = "example.wav"; // Change this to your WAV file
+
+        // Load WAV file
+        let reader = hound::WavReader::open(filename).expect("Failed to open file");
+        let samples: Vec<f64> = reader
+            .into_samples::<i16>()
+            .filter_map(Result::ok)
+            .map(|s| s as f64)
+            .collect();
+
+        // Compute FFT
+        let fft_result = Self::compute_fft(&samples);
+
+        Self { waveform: samples, fft_result }
+    }
+
+    fn compute_fft(samples: &[f64]) -> Vec<f64> {
+        let len = samples.len().next_power_of_two();
+        let mut planner = FftPlanner::new();
+        let fft = planner.plan_fft_forward(len);
+
+        let mut buffer: Vec<Complex<f64>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+        buffer.resize(len, Complex::new(0.0, 0.0)); // Zero-padding
+
+        fft.process(&mut buffer);
+        buffer.iter().map(|c| c.norm()).collect()
+    }
+}
+
+
+
+impl eframe::App for AudioVisualizer {
+    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+    // fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Audio FFT Visualizer");
+
+            // Plot waveform
+            Plot::new("Waveform").show(ui, |plot_ui| {
+                let points = PlotPoints::from_values(
+                    self.waveform.iter().enumerate()
+                        .map(|(i, &y)| egui_plot::PlotPoint::new(i as f64, y))
+                );
+                plot_ui.line(Line::new(points).name("Waveform"));
+            });
+
+            // Plot FFT
+            Plot::new("FFT").show(ui, |plot_ui| {
+                let points = PlotPoints::from_values(
+                    self.fft_result.iter().enumerate()
+                        .map(|(i, &y)| egui_plot::PlotPoint::new(i as f64, y))
+                );
+                plot_ui.line(Line::new(points).name("FFT"));
+            });
+        });
+    }
+}
+
+
+
+
+fn main() {
+    // 1. load audio test.wav using hound crate:
+    let filename = "test.wav"; // Change this to your WAV file
+    let reader = match hound::WavReader::open(filename) {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Error loading file: {}", e);
+            return;
+        }
+    };
+
+    let spec = reader.spec();
+    println!("Sample Rate: {}", spec.sample_rate);
+    println!("Bits per Sample: {}", spec.bits_per_sample);
+    println!("Channels: {}", spec.channels);
+
+    let samples: Vec<i16> = reader.into_samples::<i16>().filter_map(Result::ok).collect();
+    println!("Loaded {} samples", samples.len());
+    
+    
+    // 2. playback audio test.wav using rodio crate:
+    let filename = "test.wav"; // Change this to your file
+    
+    // Create an audio output stream
+    let (_stream, stream_handle) = OutputStream::try_default().expect("Failed to create output stream");
+    
+    // Open and decode the audio file
+    let file = File::open(filename).expect("Failed to open file");
+    let source = Decoder::new(BufReader::new(file)).expect("Failed to decode audio");
+    
+    // Play the audio
+    stream_handle.play_raw(source.convert_samples()).expect("Failed to play audio");
+    
+    // Prevents premature termination (wait for playback to complete)
+    std::thread::sleep(std::time::Duration::from_secs(12)); // Adjust based on file length
+
+
+    // 3. GUI with (Fast Fourier Transform) FFT Calculation
+
+    let options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "Audio FFT Visualizer",
+        options,
+        Box::new(|_cc| Box::new(AudioVisualizer::new())),
+    );
+
+}
+```
+
+__________________________________________________
+
+Cargo.toml
+
+```rust
+[package]
+name = "main"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hound = "3.5"
+rodio = "0.17"
+egui_plot = "0.24"
+rustfft = "6"
+winapi = { version = "0.3", features = ["winuser"] }
+eframe = { version = "0.24", features = ["persistence", "glow"] }
+```
+
+__________________________________________________
+
+Commands and output:
+
+
+cargo clean
+cargo update
+cargo build
+
+__________________________________________________
+
+Output Issue:
+
+
+warning: unused import: `CentralPanel`
+  --> src/main.rs:17:12
+   |
+17 | use egui::{CentralPanel, Context};
+   |            ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+error[E0599]: no variant or associated item named `from_values` found for enum `PlotPoints` in the current scope
+   --> src/main.rs:69:42
+    |
+69  |                 let points = PlotPoints::from_values(
+    |                                          ^^^^^^^^^^^ variant or associated item not found in `PlotPoints`
+    |
+note: if you're trying to build a new `PlotPoints` consider using one of the following associated functions:
+      PlotPoints::new
+      PlotPoints::from_explicit_callback
+      PlotPoints::from_parametric_callback
+      PlotPoints::from_ys_f32
+      PlotPoints::from_ys_f64
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\egui_plot-0.24.2\src\items\values.rs:187:5
+    |
+187 |       pub fn new(points: Vec<[f64; 2]>) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+199 | /     pub fn from_explicit_callback(
+200 | |         function: impl Fn(f64) -> f64 + 'static,
+201 | |         x_range: impl RangeBounds<f64>,
+202 | |         points: usize,
+203 | |     ) -> Self {
+    | |_____________^
+...
+225 | /     pub fn from_parametric_callback(
+226 | |         function: impl Fn(f64) -> (f64, f64),
+227 | |         t_range: impl RangeBounds<f64>,
+228 | |         points: usize,
+229 | |     ) -> Self {
+    | |_____________^
+...
+255 |       pub fn from_ys_f32(ys: &[f32]) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+264 |       pub fn from_ys_f64(ys: &[f64]) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no variant or associated item named `from_values` found for enum `PlotPoints` in the current scope
+   --> src/main.rs:78:42
+    |
+78  |                 let points = PlotPoints::from_values(
+    |                                          ^^^^^^^^^^^ variant or associated item not found in `PlotPoints`
+    |
+note: if you're trying to build a new `PlotPoints` consider using one of the following associated functions:
+      PlotPoints::new
+      PlotPoints::from_explicit_callback
+      PlotPoints::from_parametric_callback
+      PlotPoints::from_ys_f32
+      PlotPoints::from_ys_f64
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\egui_plot-0.24.2\src\items\values.rs:187:5
+    |
+187 |       pub fn new(points: Vec<[f64; 2]>) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+199 | /     pub fn from_explicit_callback(
+200 | |         function: impl Fn(f64) -> f64 + 'static,
+201 | |         x_range: impl RangeBounds<f64>,
+202 | |         points: usize,
+203 | |     ) -> Self {
+    | |_____________^
+...
+225 | /     pub fn from_parametric_callback(
+226 | |         function: impl Fn(f64) -> (f64, f64),
+227 | |         t_range: impl RangeBounds<f64>,
+228 | |         points: usize,
+229 | |     ) -> Self {
+    | |_____________^
+...
+255 |       pub fn from_ys_f32(ys: &[f32]) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+264 |       pub fn from_ys_f64(ys: &[f64]) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `main` (bin "main") generated 1 warning
+error: could not compile `main` (bin "main") due to 2 previous errors; 1 warning emitted
+
+	
+
+## Response
+
+Fixing the PlotPoints::from_values Error
+Issue:
+The error message:
+
+text
+Copy
+Edit
+error[E0599]: no variant or associated item named `from_values` found for enum `PlotPoints`
+indicates that PlotPoints in egui_plot does not have a method from_values. Instead, it has new.
+
+✅ Fix: Replace from_values with new
+Modify these two lines in main.rs:
+
+Before:
+rust
+Copy
+Edit
+let points = PlotPoints::from_values(
+After:
+rust
+Copy
+Edit
+let points = PlotPoints::new(
+✅ Final Code Fix:
+Modify both sections where you create PlotPoints:
+
+rust
+Copy
+Edit
+// Plot waveform
+Plot::new("Waveform").show(ui, |plot_ui| {
+    let points = PlotPoints::new(
+        self.waveform.iter().enumerate()
+            .map(|(i, &y)| [i as f64, y])
+            .collect()
+    );
+    plot_ui.line(Line::new(points).name("Waveform"));
+});
+
+// Plot FFT
+Plot::new("FFT").show(ui, |plot_ui| {
+    let points = PlotPoints::new(
+        self.fft_result.iter().enumerate()
+            .map(|(i, &y)| [i as f64, y])
+            .collect()
+    );
+    plot_ui.line(Line::new(points).name("FFT"));
+});
+🔄 Final Step: Rebuild
+sh
+Copy
+Edit
+cargo clean
+cargo update
+cargo build
+🚀 This should fix your issue! Let me know if any further debugging is needed.
+
+
+
+
+
+
+
+
+
 
 
 
