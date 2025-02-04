@@ -40,3 +40,26 @@ for the GUI
 rustfft = "6"
 
 for the FFT Calculation
+
+#### rust Code in main.rs
+
+##### struct
+
+Add new struct AudioVisualizer
+
+##### implementations
+
+Add new implementation (impl) of AudioVisualizer struct
+
+Add new implementation (impl) of eframe::App for AudioVisualizer
+
+##### main method additional lines
+
+```rust
+let options = eframe::NativeOptions::default();
+eframe::run_native(
+    "Audio FFT Visualizer",
+    options,
+    Box::new(|_cc| Box::new(AudioVisualizer::new())),
+);
+```
