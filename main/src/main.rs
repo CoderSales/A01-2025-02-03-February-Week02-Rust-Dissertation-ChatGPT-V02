@@ -14,7 +14,8 @@ use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 
 use eframe::egui;
-use egui::{CentralPanel, Context};
+// use egui::{CentralPanel, Context};
+use egui::Context;
 
 
 
@@ -130,11 +131,13 @@ fn main() {
     // 3. GUI with (Fast Fourier Transform) FFT Calculation
 
     let options = eframe::NativeOptions::default();
-    eframe::run_native(
+    if let Err(e) = eframe::run_native(
         "Audio FFT Visualizer",
         options,
         Box::new(|_cc| Box::new(AudioVisualizer::new())),
-    );
+    ) {
+        eprintln!("Error running eframe: {}", e);
+    };
 
 }
 
