@@ -40,6 +40,6 @@ fn main() {
     stream_handle.play_raw(source.convert_samples()).expect("Failed to play audio");
     
     // Prevents premature termination (wait for playback to complete)
-    std::thread::sleep(std::time::Duration::from_secs(5)); // Adjust based on file length
+    std::thread::sleep(std::time::Duration::from_secs(12)); // Adjust based on file length
 }
 
