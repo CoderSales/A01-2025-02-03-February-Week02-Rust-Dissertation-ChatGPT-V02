@@ -29,3 +29,14 @@ rodio = "0.17"
 if Ok(r) then give r (the response)
 
 if Error Err is the result then print Message, error and then return
+
+### GUI
+
+eframe = "0.24"
+egui_plot = "0.24"
+
+for the GUI
+
+rustfft = "6"
+
+for the FFT Calculation
