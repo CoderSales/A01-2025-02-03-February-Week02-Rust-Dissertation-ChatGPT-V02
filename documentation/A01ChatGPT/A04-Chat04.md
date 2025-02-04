@@ -333,14 +333,176 @@ The waveform and FFT refresh as the file is being processed.
 No freezing or waiting until playback finishes.
 This should give you a real-time audio visualization while playing back the test.wav file. 🚀
 
+## Request
 
+### Warning during compile and run time
 
+warning: unused import: `std::time::Duration`
+ --> src/main.rs:3:5
+  |
+3 | use std::time::Duration;
+  |     ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
 
+### Issue
 
+GUI displays total file
 
+### Desired Behaviour
 
+GUI to display only current audio wave packet or sample at a time
 
+## Response
 
+To achieve real-time updating of only the current audio wave packet or sample, you need to:
+
+Fix the Warning
+Remove use std::time::Duration; since it's unused.
+Modify Audio Processing for Real-Time Updates
+Process audio samples in chunks instead of loading the entire file at once.
+Update the GUI with only the most recent chunk of audio.
+Updated Code:
+This version streams the audio while continuously updating the GUI.
+
+rust
+Copy
+Edit
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+use hound;
+use rodio::{Decoder, OutputStream, source::Source};
+use std::fs::File;
+use std::io::BufReader;
+
+use egui_plot::{Plot, Line, PlotPoints};
+use rustfft::FftPlanner;
+use rustfft::num_complex::Complex;
+use eframe::egui;
+
+const CHUNK_SIZE: usize = 1024; // Adjust for smooth visualization
+
+struct AudioVisualizer {
+    waveform: Arc<Mutex<Vec<f64>>>,
+    fft_result: Arc<Mutex<Vec<f64>>>,
+}
+
+impl AudioVisualizer {
+    fn new() -> Self {
+        let waveform = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
+        let fft_result = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
+
+        let waveform_clone = Arc::clone(&waveform);
+        let fft_result_clone = Arc::clone(&fft_result);
+
+        // Spawn thread for real-time processing
+        thread::spawn(move || {
+            let filename = "./test.wav"; 
+            let mut reader = hound::WavReader::open(filename).expect("Failed to open file");
+
+            let mut buffer = vec![0.0; CHUNK_SIZE];
+
+            for chunk in reader.samples::<i16>().filter_map(Result::ok).map(|s| s as f64).collect::<Vec<_>>().chunks(CHUNK_SIZE) {
+                {
+                    let mut waveform_data = waveform_clone.lock().unwrap();
+                    *waveform_data = chunk.to_vec();
+                }
+
+                {
+                    let mut fft_data = fft_result_clone.lock().unwrap();
+                    *fft_data = Self::compute_fft(&chunk.to_vec());
+                }
+
+                std::thread::sleep(std::time::Duration::from_millis(50)); // Adjust for smoother updating
+            }
+        });
+
+        Self { waveform, fft_result }
+    }
+
+    fn compute_fft(samples: &[f64]) -> Vec<f64> {
+        let len = samples.len().next_power_of_two();
+        let mut planner = FftPlanner::new();
+        let fft = planner.plan_fft_forward(len);
+
+        let mut buffer: Vec<Complex<f64>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+        buffer.resize(len, Complex::new(0.0, 0.0)); // Zero-padding
+
+        fft.process(&mut buffer);
+        buffer.iter().map(|c| c.norm()).collect()
+    }
+}
+
+impl eframe::App for AudioVisualizer {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Real-Time Audio FFT Visualizer");
+
+            let waveform_data = self.waveform.lock().unwrap();
+            let fft_data = self.fft_result.lock().unwrap();
+
+            // Plot waveform
+            Plot::new("Waveform").show(ui, |plot_ui| {
+                let points = PlotPoints::new(
+                    waveform_data.iter().enumerate()
+                        .map(|(i, &y)| [i as f64, y])
+                        .collect()
+                );
+                plot_ui.line(Line::new(points).name("Waveform"));
+            });
+
+            // Plot FFT
+            Plot::new("FFT").show(ui, |plot_ui| {
+                let points = PlotPoints::new(
+                    fft_data.iter().enumerate()
+                        .map(|(i, &y)| [i as f64, y])
+                        .collect()
+                );
+                plot_ui.line(Line::new(points).name("FFT"));
+            });
+        });
+
+        // Request repaint for continuous updates
+        ctx.request_repaint();
+    }
+}
+
+fn main() {
+    let filename = "./test.wav";
+    let (_stream, stream_handle) = OutputStream::try_default().expect("Failed to create output stream");
+
+    let file = File::open(filename).expect("Failed to open file");
+    let source = Decoder::new(BufReader::new(file)).expect("Failed to decode audio");
+
+    // Play the audio asynchronously
+    let _ = stream_handle.play_raw(source.convert_samples());
+
+    let options = eframe::NativeOptions::default();
+    if let Err(e) = eframe::run_native(
+        "Real-Time Audio FFT Visualizer",
+        options,
+        Box::new(|_cc| Box::new(AudioVisualizer::new())),
+    ) {
+        eprintln!("Error running eframe: {}", e);
+    };
+}
+Key Changes
+Processes audio in chunks (CHUNK_SIZE)
+
+Avoids displaying the entire file at once.
+Background thread updates GUI in real-time
+
+Uses std::thread::sleep(Duration::from_millis(50)) to simulate real-time updates.
+Displays only the latest waveform sample
+
+GUI shows only the most recent audio packet.
+Expected Behavior
+✅ GUI updates live as the audio plays.
+✅ No more full-file visualization; only current chunk displayed.
+✅ Warning resolved (removed std::time::Duration import).
+
+This should now give a real-time rolling audio visualization while playing back test.wav. 🚀
 
 
 
