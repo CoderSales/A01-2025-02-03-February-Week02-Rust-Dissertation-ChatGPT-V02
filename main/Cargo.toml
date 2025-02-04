@@ -6,3 +6,6 @@ edition = "2021"
 [dependencies]
 hound = "3.5"
 rodio = "0.17"
+eframe = "0.24"
+egui_plot = "0.24"
+rustfft = "6"
