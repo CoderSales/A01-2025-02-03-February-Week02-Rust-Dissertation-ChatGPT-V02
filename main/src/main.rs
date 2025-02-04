@@ -8,9 +8,14 @@ use std::fs::File;
 use std::io::BufReader;
 
 // display waveform in GUI using FFT:
-use eframe::{egui, egui::plot::{Plot, Line, Values}};
+// use eframe::{egui, egui::plot::{Plot, Line, Values}};
+use egui_plot::{Plot, Line, PlotPoints};
 use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
+
+use eframe::egui;
+use egui::{CentralPanel, Context};
+
 
 
 struct AudioVisualizer {
@@ -54,23 +59,28 @@ impl AudioVisualizer {
 
 
 impl eframe::App for AudioVisualizer {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+    // fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Audio FFT Visualizer");
 
             // Plot waveform
             Plot::new("Waveform").show(ui, |plot_ui| {
-                let points: Values = self.waveform.iter().enumerate()
-                    .map(|(i, &y)| [i as f64, y])
-                    .collect::<Vec<_>>().into();
+                let points = PlotPoints::new(
+                    self.waveform.iter().enumerate()
+                        .map(|(i, &y)| [i as f64, y])
+                        .collect()
+                );
                 plot_ui.line(Line::new(points).name("Waveform"));
             });
 
             // Plot FFT
             Plot::new("FFT").show(ui, |plot_ui| {
-                let points: Values = self.fft_result.iter().enumerate()
-                    .map(|(i, &y)| [i as f64, y])
-                    .collect::<Vec<_>>().into();
+                let points = PlotPoints::new(
+                    self.fft_result.iter().enumerate()
+                        .map(|(i, &y)| [i as f64, y])
+                        .collect()
+                );
                 plot_ui.line(Line::new(points).name("FFT"));
             });
         });

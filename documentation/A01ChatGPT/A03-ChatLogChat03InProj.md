@@ -642,7 +642,40 @@ cargo update
 cargo build
 🚀 This should fix your issue! Let me know if any further debugging is needed.
 
+## Request
 
+This time only warnings which seems to be a improvement.
+
+warning: unused import: `CentralPanel`
+  --> src/main.rs:17:12
+   |
+17 | use egui::{CentralPanel, Context};
+   |            ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused `Result` that must be used
+   --> src/main.rs:133:5
+    |
+133 | /     eframe::run_native(
+134 | |         "Audio FFT Visualizer",
+135 | |         options,
+136 | |         Box::new(|_cc| Box::new(AudioVisualizer::new())),
+137 | |     );
+    | |_____^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `#[warn(unused_must_use)]` on by default
+help: use `let _ = ...` to ignore the resulting value
+    |
+133 |     let _ = eframe::run_native(
+    |     +++++++
+
+warning: `main` (bin "main") generated 2 warnings (run `cargo fix --bin "main"` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 37.79s
+
+
+## Response
 
 
 
