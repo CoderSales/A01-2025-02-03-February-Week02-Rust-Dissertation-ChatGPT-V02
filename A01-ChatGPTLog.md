@@ -1,10 +1,12 @@
 # ChatGPT
 
-## Prompt (Model 4o)
+## [Dissertation: Use Rust: build simple audio program](https://chatgpt.com/g/g-p-67a150ea7cf881918f8297bed8c66aa6-dissertation-use-rust-build-simple-audio-program/project)
+
+### Prompt (Model 4o) 
 
 Please give me starting code to load an audio file into Rust.
 
-## Response
+### Response
 
 Steps:
 Add hound to your Cargo.toml dependencies:
