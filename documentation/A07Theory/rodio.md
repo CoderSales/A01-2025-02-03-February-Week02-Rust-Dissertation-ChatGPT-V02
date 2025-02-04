@@ -1,0 +1,12 @@
+# rodio
+
+## Links
+
+____
+
+[rodio rust - Google Search](https://www.google.com/search?q=rodio++rust&num=10&newwindow=1&sca_esv=1e35dc1f4110e681&sxsrf=AHTn8zoOdUvYxEnscfqd8HGwtledoiGqeg%3A1738636832760&ei=IH6hZ4aCLu6HhbIPiM_roQw&ved=0ahUKEwiGkr32_qiLAxXuQ0EAHYjnOsQQ4dUDCBE&uact=5&oq=rodio++rust&gs_lp=Egxnd3Mtd2l6LXNlcnAiC3JvZGlvICBydXN0MgsQABiABBiRAhiKBTIFEAAYgAQyCBAAGBYYChgeMgYQABgWGB4yBhAAGBYYHjIGEAAYFhgeMgsQABiABBiGAxiKBTILEAAYgAQYhgMYigVIyyVQyAJY5yJwBngBkAEAmAFcoAH2A6oBATe4AQPIAQD4AQGYAg2gAqMEwgIKEAAYsAMY1gQYR8ICDRAAGIAEGLADGEMYigXCAg0QLhiABBiwAxhDGIoFwgIHEC4YgAQYCsICChAAGIAEGBQYhwLCAhYQLhiABBgKGJcFGNwEGN4EGN8E2AEBwgIHEAAYgAQYCsICDRAuGIAEGMcBGAoYrwHCAhEQLhiABBiRAhjHARiKBRivAZgDAIgGAZAGCroGBggBEAEYFJIHBDEyLjGgB6U_&sclient=gws-wiz-serp)
+
+[rodio - Rust](https://docs.rs/rodio/latest/rodio/)
+
+____
+
