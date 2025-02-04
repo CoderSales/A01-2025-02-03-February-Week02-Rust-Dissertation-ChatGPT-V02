@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::time::Duration;
 
 use hound;
 use rodio::{Decoder, OutputStream, source::Source};
@@ -11,29 +12,35 @@ use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 use eframe::egui;
 
-const CHUNK_SIZE: usize = 1024; // Adjust for smooth visualization
+const CHUNK_SIZE: usize = 1024;
 
 struct AudioVisualizer {
     waveform: Arc<Mutex<Vec<f64>>>,
     fft_result: Arc<Mutex<Vec<f64>>>,
+    is_playing: Arc<Mutex<bool>>,
 }
 
 impl AudioVisualizer {
     fn new() -> Self {
         let waveform = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
         let fft_result = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
+        let is_playing = Arc::new(Mutex::new(true)); // Flag to track playback
 
         let waveform_clone = Arc::clone(&waveform);
         let fft_result_clone = Arc::clone(&fft_result);
+        let is_playing_clone = Arc::clone(&is_playing);
 
         // Spawn thread for real-time processing
         thread::spawn(move || {
             let filename = "./test.wav"; 
-            let mut reader = hound::WavReader::open(filename).expect("Failed to open file");
+            let reader = hound::WavReader::open(filename).expect("Failed to open file");
 
-            let mut buffer = vec![0.0; CHUNK_SIZE];
+            let samples: Vec<f64> = reader.into_samples::<i16>()
+                .filter_map(Result::ok)
+                .map(|s| s as f64)
+                .collect();
 
-            for chunk in reader.samples::<i16>().filter_map(Result::ok).map(|s| s as f64).collect::<Vec<_>>().chunks(CHUNK_SIZE) {
+            for chunk in samples.chunks(CHUNK_SIZE) {
                 {
                     let mut waveform_data = waveform_clone.lock().unwrap();
                     *waveform_data = chunk.to_vec();
@@ -44,11 +51,14 @@ impl AudioVisualizer {
                     *fft_data = Self::compute_fft(&chunk.to_vec());
                 }
 
-                std::thread::sleep(std::time::Duration::from_millis(50)); // Adjust for smoother updating
+                std::thread::sleep(Duration::from_millis(50));
             }
+
+            // Mark playback as finished
+            *is_playing_clone.lock().unwrap() = false;
         });
 
-        Self { waveform, fft_result }
+        Self { waveform, fft_result, is_playing }
     }
 
     fn compute_fft(samples: &[f64]) -> Vec<f64> {
@@ -71,6 +81,7 @@ impl eframe::App for AudioVisualizer {
 
             let waveform_data = self.waveform.lock().unwrap();
             let fft_data = self.fft_result.lock().unwrap();
+            let is_playing = *self.is_playing.lock().unwrap();
 
             // Plot waveform
             Plot::new("Waveform").show(ui, |plot_ui| {
@@ -91,15 +102,24 @@ impl eframe::App for AudioVisualizer {
                 );
                 plot_ui.line(Line::new(points).name("FFT"));
             });
+
+            // Stop updating if playback finished
+            if !is_playing {
+                ui.label("Playback finished.");
+            }
         });
 
-        // Request repaint for continuous updates
-        ctx.request_repaint();
+        // Request repaint only if still playing
+        if *self.is_playing.lock().unwrap() {
+            ctx.request_repaint();
+        }
     }
 }
 
 fn main() {
     let filename = "./test.wav";
+    
+    // Fix: Use `OutputStream::try_default()` instead of `default_output_device()`
     let (_stream, stream_handle) = OutputStream::try_default().expect("Failed to create output stream");
 
     let file = File::open(filename).expect("Failed to open file");
