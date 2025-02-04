@@ -28,7 +28,7 @@ struct AudioVisualizer {
 
 impl AudioVisualizer {
     fn new() -> Self {
-        let filename = "example.wav"; // Change this to your WAV file
+        let filename = "test.wav"; // Change this to your WAV file
 
         // Load WAV file
         let reader = hound::WavReader::open(filename).expect("Failed to open file");
