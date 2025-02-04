@@ -24,5 +24,8 @@ hound = "3.5"
 
 rodio = "0.17"
 
+#### Match
 
+if Ok(r) then give r (the response)
 
+if Error Err is the result then print Message, error and then return
