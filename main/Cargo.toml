@@ -10,3 +10,4 @@ eframe = "0.24"
 egui_plot = "0.24"
 rustfft = "6"
 winapi = { version = "0.3", features = ["winuser"] }
+eframe = { version = "0.24", features = ["persistence", "glow", "egui_plot"] }
