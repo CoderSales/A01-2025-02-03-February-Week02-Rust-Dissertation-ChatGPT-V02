@@ -741,6 +741,100 @@ This will apply some suggestions automatically.
 
 🚀 Now your build is clean! Let me know if anything else comes up.
 
+## Request
+
+Output
+
+thread 'main' panicked at src/main.rs:33:55:
+Failed to open file: IoError(Os { code: 2, kind: NotFound, message: "The system cannot find the file specified." })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: process didn't exit successfully: `\main\target\debug\main.exe` (exit code: 101)
+
+Notes
+
+Audio File plays but 
+
+No GUI displays
+
+Added updated code
+
+Still runtime error persists:
+
+thread 'main' panicked at src/main.rs:34:55:
+Failed to open file: IoError(Os { code: 2, kind: NotFound, message: "The system cannot find the file specified." })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: process didn't exit successfully: `main\target\debug\main.exe` (exit code: 101)
+
+## Response
+
+✅ Fixing the Runtime Error: File Not Found (Os { code: 2 })
+The error message:
+
+text
+Copy
+Edit
+IoError(Os { code: 2, kind: NotFound, message: "The system cannot find the file specified." })
+indicates that Rust cannot find test.wav or example.wav.
+
+🔍 Fix: Ensure the WAV File Exists
+Check if the file exists in your project directory:
+
+Navigate to the project root (where Cargo.toml is located).
+Run:
+sh
+Copy
+Edit
+ls
+or on Windows:
+powershell
+Copy
+Edit
+dir
+If test.wav is missing, move it into the project folder.
+Explicitly set the correct path in main.rs: Change:
+
+rust
+Copy
+Edit
+let filename = "test.wav";
+To:
+
+rust
+Copy
+Edit
+let filename = "./test.wav";
+or use an absolute path:
+
+rust
+Copy
+Edit
+let filename = "C:\\Users\\steph\\path\\to\\test.wav";
+Verify File Opening Code Update this block to print an error instead of panicking:
+
+rust
+Copy
+Edit
+let filename = "test.wav";
+let reader = match hound::WavReader::open(filename) {
+    Ok(r) => r,
+    Err(e) => {
+        eprintln!("Error loading file: {}", e);
+        return;
+    }
+};
+✅ Final Step: Rebuild and Run
+sh
+Copy
+Edit
+cargo clean
+cargo build
+cargo run
+🚀 Now, the program should run without crashing. Let me know if you need more debugging!
+
+
+
+
+
 
 
 
