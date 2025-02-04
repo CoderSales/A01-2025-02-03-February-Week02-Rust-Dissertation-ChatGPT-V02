@@ -1,6 +1,6 @@
 # ChatGPT
 
-## Prompt
+## Prompt (Model 4o)
 
 Please give me starting code to load an audio file into Rust.
 
