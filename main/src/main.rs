@@ -28,7 +28,7 @@ struct AudioVisualizer {
 
 impl AudioVisualizer {
     fn new() -> Self {
-        let filename = "test.wav"; // Change this to your WAV file
+        let filename = "./test.wav"; // Change this to your WAV file
 
         // Load WAV file
         let reader = hound::WavReader::open(filename).expect("Failed to open file");
@@ -93,7 +93,7 @@ impl eframe::App for AudioVisualizer {
 
 fn main() {
     // 1. load audio test.wav using hound crate:
-    let filename = "test.wav"; // Change this to your WAV file
+    let filename = "./test.wav"; // Change this to your WAV file
     let reader = match hound::WavReader::open(filename) {
         Ok(r) => r,
         Err(e) => {
@@ -112,7 +112,7 @@ fn main() {
     
     
     // 2. playback audio test.wav using rodio crate:
-    let filename = "test.wav"; // Change this to your file
+    let filename = "./test.wav"; // Change this to your file
     
     // Create an audio output stream
     let (_stream, stream_handle) = OutputStream::try_default().expect("Failed to create output stream");
