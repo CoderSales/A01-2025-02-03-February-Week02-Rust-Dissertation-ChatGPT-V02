@@ -207,6 +207,105 @@ The Values::from_values() method explicitly expects an iterator of PlotPoint ins
 PlotPoint::new(x, y) ensures proper conversion of data points.
 After making these changes, recompile and rerun your program to check if the GUI and FFT visualization load correctly.
 
+## Request
+
+error[E0432]: unresolved import `egui_plot::Values`
+  --> src/main.rs:12:29
+   |
+12 | use egui_plot::{Plot, Line, Values};
+   |                             ^^^^^^ no `Values` in the root
+   |
+   = help: consider importing one of these structs instead:
+           std::collections::btree_map::Values
+           std::collections::hash_map::Values
+
+error[E0433]: failed to resolve: use of undeclared crate or module `egui`
+  --> src/main.rs:59:9
+   |
+59 |         egui::CentralPanel::default().show(ctx, |ui| {
+   |         ^^^^ use of undeclared crate or module `egui`
+
+error[E0433]: failed to resolve: use of undeclared crate or module `egui`
+  --> src/main.rs:58:32
+   |
+58 |     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+   |                                ^^^^ use of undeclared crate or module `egui`
+   |
+help: consider importing this crate
+   |
+2  + use eframe::egui;
+   |
+
+Some errors have detailed explanations: E0432, E0433.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `main` (bin "main") due to 3 previous errors
+
+## Response
+
+Fixing the Import Issues in Your egui Project
+1️⃣ Fix: Values Import
+Values does not exist in egui_plot. The correct replacement is PlotPoints.
+
+🔹 Update your import statement in main.rs:
+
+rust
+Copy
+Edit
+use egui_plot::{Plot, Line, PlotPoints};
+🔹 Update the Values usage: Replace:
+
+rust
+Copy
+Edit
+let points = Values::from(vec![[0.0, 1.0], [1.0, 2.0]]);
+With:
+
+rust
+Copy
+Edit
+let points = PlotPoints::from(vec![[0.0, 1.0], [1.0, 2.0]]);
+2️⃣ Fix: egui Not Found
+The error indicates egui is missing. Ensure your Cargo.toml has:
+
+toml
+Copy
+Edit
+[dependencies]
+eframe = { version = "0.24", features = ["persistence", "glow"] }
+egui_plot = "0.24"
+eframe already includes egui, so do not add egui separately.
+
+3️⃣ Fix: Import egui Properly
+Modify main.rs:
+
+rust
+Copy
+Edit
+use eframe::egui;
+use egui::{CentralPanel, Context};
+And fix the function signature:
+
+rust
+Copy
+Edit
+fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+🔄 Final Step: Rebuild
+Run:
+
+sh
+Copy
+Edit
+cargo clean
+cargo update
+cargo build
+✅ Now, your egui_plot and egui setup should work. Let me know if you need further debugging! 🚀
+
+
+
+
+
+
+
 
 
 
