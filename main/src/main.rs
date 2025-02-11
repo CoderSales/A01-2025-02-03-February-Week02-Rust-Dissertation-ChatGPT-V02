@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use hound;
 use rodio::{Decoder, OutputStream, source::Source};
@@ -13,8 +13,8 @@ use rustfft::num_complex::Complex;
 use eframe::egui;
 
 const CHUNK_SIZE: usize = 512;  
-const DOWNSAMPLE_FACTOR: usize = 8;  // Keep some smoothness
-const TIME_WINDOW_MULTIPLIER: usize = 10; // Show 10× more waves per frame
+const DOWNSAMPLE_FACTOR: usize = 8;  // Keep smoothness
+const FPS: usize = 60;  // Standard screen refresh rate
 
 struct AudioVisualizer {
     waveform: Arc<Mutex<Vec<f64>>>,
@@ -23,7 +23,7 @@ struct AudioVisualizer {
 }
 
 impl AudioVisualizer {
-    fn new() -> Self {
+    fn new(audio_duration_secs: f64) -> Self {
         let waveform = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
         let fft_result = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
         let is_playing = Arc::new(Mutex::new(true)); 
@@ -32,7 +32,10 @@ impl AudioVisualizer {
         let fft_result_clone = Arc::clone(&fft_result);
         let is_playing_clone = Arc::clone(&is_playing);
 
-        // Spawn thread for real-time processing
+        // Calculate exact number of frames required to match audio duration
+        let total_frames = (audio_duration_secs * FPS as f64) as usize;
+        let time_per_frame = audio_duration_secs / total_frames as f64;
+
         thread::spawn(move || {
             let filename = "./test.wav"; 
             let reader = hound::WavReader::open(filename).expect("Failed to open file");
@@ -43,16 +46,16 @@ impl AudioVisualizer {
                 .collect();
 
             let mut current_window: Vec<f64> = Vec::new();
+            let start_time = Instant::now();
 
-            for chunk in samples.chunks(CHUNK_SIZE) {
+            for (i, chunk) in samples.chunks(CHUNK_SIZE).enumerate() {
                 let downsampled_chunk: Vec<f64> = chunk.iter()
                     .step_by(DOWNSAMPLE_FACTOR) 
                     .cloned()
                     .collect();
 
-                // Keep `TIME_WINDOW_MULTIPLIER` chunks on screen
                 current_window.extend(downsampled_chunk.clone());
-                if current_window.len() > CHUNK_SIZE * TIME_WINDOW_MULTIPLIER {
+                if current_window.len() > CHUNK_SIZE * total_frames {
                     current_window.drain(..CHUNK_SIZE);
                 }
 
@@ -66,7 +69,12 @@ impl AudioVisualizer {
                     *fft_data = Self::compute_fft(&current_window);
                 }
 
-                std::thread::sleep(Duration::from_millis(1)); // 10× speed-up
+                // Wait for next frame (FPS control, ensures exact match)
+                let elapsed = start_time.elapsed().as_secs_f64();
+                let expected_time = (i + 1) as f64 * time_per_frame;
+                if elapsed < expected_time {
+                    std::thread::sleep(Duration::from_secs_f64(expected_time - elapsed));
+                }
             }
 
             *is_playing_clone.lock().unwrap() = false;
@@ -97,13 +105,11 @@ impl eframe::App for AudioVisualizer {
             let fft_data = self.fft_result.lock().unwrap();
             let is_playing = *self.is_playing.lock().unwrap();
 
-            let x_scale = TIME_WINDOW_MULTIPLIER as f64; // X-axis compression
-
             // Plot waveform
             Plot::new("Waveform").show(ui, |plot_ui| {
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate()
-                        .map(|(i, &y)| [(i as f64) / x_scale, y]) // Compress X-axis
+                        .map(|(i, &y)| [i as f64, y]) 
                         .collect()
                 );
                 plot_ui.line(Line::new(points).name("Waveform"));
@@ -113,7 +119,7 @@ impl eframe::App for AudioVisualizer {
             Plot::new("FFT").show(ui, |plot_ui| {
                 let points = PlotPoints::new(
                     fft_data.iter().enumerate()
-                        .map(|(i, &y)| [(i as f64) / x_scale, y]) // Compress X-axis
+                        .map(|(i, &y)| [i as f64, y]) 
                         .collect()
                 );
                 plot_ui.line(Line::new(points).name("FFT"));
@@ -125,7 +131,7 @@ impl eframe::App for AudioVisualizer {
         });
 
         if *self.is_playing.lock().unwrap() {
-            ctx.request_repaint();
+            ctx.request_repaint();  // No sleep, UI updates as fast as possible
         }
     }
 }
@@ -136,6 +142,12 @@ fn main() {
 
     let file = File::open(filename).expect("Failed to open file");
     let source = Decoder::new(BufReader::new(file)).expect("Failed to decode audio");
+    
+    // Get audio duration in seconds
+    let reader = hound::WavReader::open(filename).expect("Failed to open file for duration check");
+    let num_samples = reader.len() as f64;
+    let sample_rate = reader.spec().sample_rate as f64;
+    let audio_duration_secs = num_samples / sample_rate;
 
     // Play the audio asynchronously
     let _ = stream_handle.play_raw(source.convert_samples());
@@ -144,7 +156,7 @@ fn main() {
     if let Err(e) = eframe::run_native(
         "Real-Time Audio FFT Visualizer",
         options,
-        Box::new(|_cc| Box::new(AudioVisualizer::new())),
+        Box::new(|_cc| Box::new(AudioVisualizer::new(audio_duration_secs))),
     ) {
         eprintln!("Error running eframe: {}", e);
     };
