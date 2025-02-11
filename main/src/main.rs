@@ -12,7 +12,8 @@ use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 use eframe::egui;
 
-const CHUNK_SIZE: usize = 1024;
+const CHUNK_SIZE: usize = 1024; // Lower resolution for visuals
+const DOWNSAMPLE_FACTOR: usize = 8; // Skip every N samples for visuals
 
 struct AudioVisualizer {
     waveform: Arc<Mutex<Vec<f64>>>,
@@ -41,20 +42,24 @@ impl AudioVisualizer {
                 .collect();
 
             for chunk in samples.chunks(CHUNK_SIZE) {
+                let downsampled_chunk: Vec<f64> = chunk.iter()
+                    .step_by(DOWNSAMPLE_FACTOR) // Reduce resolution
+                    .cloned()
+                    .collect();
+
                 {
                     let mut waveform_data = waveform_clone.lock().unwrap();
-                    *waveform_data = chunk.to_vec();
+                    *waveform_data = downsampled_chunk.clone();
                 }
 
                 {
                     let mut fft_data = fft_result_clone.lock().unwrap();
-                    *fft_data = Self::compute_fft(&chunk.to_vec());
+                    *fft_data = Self::compute_fft(&downsampled_chunk);
                 }
 
-                std::thread::sleep(Duration::from_millis(50));
+                std::thread::sleep(Duration::from_millis(25)); // Faster updates
             }
 
-            // Mark playback as finished
             *is_playing_clone.lock().unwrap() = false;
         });
 
@@ -103,13 +108,11 @@ impl eframe::App for AudioVisualizer {
                 plot_ui.line(Line::new(points).name("FFT"));
             });
 
-            // Stop updating if playback finished
             if !is_playing {
                 ui.label("Playback finished.");
             }
         });
 
-        // Request repaint only if still playing
         if *self.is_playing.lock().unwrap() {
             ctx.request_repaint();
         }
@@ -118,8 +121,6 @@ impl eframe::App for AudioVisualizer {
 
 fn main() {
     let filename = "./test.wav";
-    
-    // Fix: Use `OutputStream::try_default()` instead of `default_output_device()`
     let (_stream, stream_handle) = OutputStream::try_default().expect("Failed to create output stream");
 
     let file = File::open(filename).expect("Failed to open file");
