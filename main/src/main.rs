@@ -13,8 +13,8 @@ use rustfft::num_complex::Complex;
 use eframe::egui;
 
 const CHUNK_SIZE: usize = 512;  
-const DOWNSAMPLE_FACTOR: usize = 16;  // Reduce jaggedness
-const TIME_WINDOW_MULTIPLIER: usize = 4; // Show 4x more waves at once
+const DOWNSAMPLE_FACTOR: usize = 8;  // Keep some smoothness
+const TIME_WINDOW_MULTIPLIER: usize = 10; // Show 10× more waves per frame
 
 struct AudioVisualizer {
     waveform: Arc<Mutex<Vec<f64>>>,
@@ -66,7 +66,7 @@ impl AudioVisualizer {
                     *fft_data = Self::compute_fft(&current_window);
                 }
 
-                std::thread::sleep(Duration::from_millis(10)); 
+                std::thread::sleep(Duration::from_millis(1)); // 10× speed-up
             }
 
             *is_playing_clone.lock().unwrap() = false;
