@@ -11,8 +11,8 @@ use egui_plot::{Plot, Line, PlotPoints};
 use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 use eframe::egui;
-// use eframe::{NativeOptions, ViewportBuilder};
-crate::egui::ViewportBuilder
+use eframe::{NativeOptions};
+use eframe::viewport::ViewportBuilder;  // ✅ Corrected import
 use eframe::epaint::vec2;
 
 const CHUNK_SIZE: usize = 512;  
@@ -161,7 +161,7 @@ fn main() {
 
     let options = NativeOptions {
         viewport: ViewportBuilder::default()
-            .with_inner_size(vec2(800.0, 600.0)), // ✅ Correct field instead of `window_size`
+            .with_inner_size(vec2(800.0, 600.0)), // ✅ Correct import for ViewportBuilder
         ..Default::default()
     };
     
