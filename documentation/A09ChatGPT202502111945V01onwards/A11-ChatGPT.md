@@ -245,3 +245,55 @@ Used i as f64 for waveform and i * fft_x_scale for FFT to improve display.
 
 🎉 Enjoy Your Real-Time Audio Visualizer! 🚀
 ```
+
+## Input
+
+```bash
+As git commit message
+
+Bug Add Chat I O Add updated code
+
+Fix thread panic
+
+Bug
+height is 1000 on y axis
+
+width is 
+30 
+on x axis
+
+aspect ratio
+between
+both axes
+is
+disproportionately
+too large
+on the y axis
+
+Video
+takes many multiples of time longer than
+audio
+to playback
+```
+
+## Ouptut
+
+(Note: This output was unexpected, as code was intended not markdown.  Included for completeness.)
+
+```bash
+Bug: Fix thread panic in waveform processing
+
+- Fixed out-of-bounds panic in `drain(..)` by clamping `shift_amount`
+- Ensured waveform data updates correctly in GUI
+- Standardized x-axis scaling for waveform and FFT
+
+Bug: GUI aspect ratio disproportionate
+
+- Y-axis height is too large (1000), x-axis width is too narrow (30)
+- Aspect ratio is visually unbalanced
+
+Bug: Video playback significantly slower than audio
+
+- Video takes multiple times longer than audio to playback
+- Needs optimization for real-time synchronization
+```
