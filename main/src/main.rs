@@ -159,8 +159,7 @@ fn main() {
     let _ = stream_handle.play_raw(source.convert_samples());
 
     let options = NativeOptions {
-        viewport: eframe::viewport::ViewportBuilder::default()
-            .with_inner_size(vec2(800.0, 600.0)), // ✅ Set window size properly
+        window_size: vec2(800.0, 600.0), // ✅ Correct field instead of `viewport`
         ..Default::default()
     };
     
