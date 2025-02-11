@@ -45,7 +45,7 @@ impl AudioVisualizer {
                 .map(|s| s as f64)
                 .collect();
 
-            let mut current_window: Vec<f64> = Vec::new();
+            let mut current_window: Vec<f64> = vec![0.0; CHUNK_SIZE * 5]; // Fixed-length scrolling buffer | Edit 1.
             let start_time = Instant::now();
 
             for (i, chunk) in samples.chunks(CHUNK_SIZE).enumerate() {
@@ -54,10 +54,10 @@ impl AudioVisualizer {
                     .cloned()
                     .collect();
 
-                current_window.extend(downsampled_chunk.clone());
-                if current_window.len() > CHUNK_SIZE * total_frames {
-                    current_window.drain(..CHUNK_SIZE);
-                }
+                // Shift the waveform left and append new samples to create scrolling effect
+                let shift_amount = downsampled_chunk.len();
+                current_window.drain(..shift_amount); // Remove oldest samples
+                current_window.extend(downsampled_chunk.clone()); // Append new data
 
                 {
                     let mut waveform_data = waveform_clone.lock().unwrap();
@@ -107,21 +107,27 @@ impl eframe::App for AudioVisualizer {
 
             // Plot waveform
             Plot::new("Waveform").show(ui, |plot_ui| {
+                let x_start = 0.0;
+                let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
+                
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate()
-                        .map(|(i, &y)| [i as f64, y]) 
+                        .map(|(i, &y)| [(i as f64 % x_end) + x_start, y]) // Keep X values within range
                         .collect()
-                );
+                );                
                 plot_ui.line(Line::new(points).name("Waveform"));
             });
 
             // Plot FFT
             Plot::new("FFT").show(ui, |plot_ui| {
+                let x_start = 0.0;
+                let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
+                
                 let points = PlotPoints::new(
-                    fft_data.iter().enumerate()
-                        .map(|(i, &y)| [i as f64, y]) 
+                    waveform_data.iter().enumerate()
+                        .map(|(i, &y)| [(i as f64 % x_end) + x_start, y]) // Keep X values within range
                         .collect()
-                );
+                );                
                 plot_ui.line(Line::new(points).name("FFT"));
             });
 
