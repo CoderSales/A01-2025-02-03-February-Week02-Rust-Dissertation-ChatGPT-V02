@@ -11,6 +11,8 @@ use egui_plot::{Plot, Line, PlotPoints};
 use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 use eframe::egui;
+use eframe::NativeOptions;
+use eframe::epaint::vec2;
 
 const CHUNK_SIZE: usize = 512;  
 const DOWNSAMPLE_FACTOR: usize = 8;  // Keep smoothness
@@ -45,7 +47,7 @@ impl AudioVisualizer {
                 .map(|s| s as f64)
                 .collect();
 
-            let mut current_window: Vec<f64> = vec![0.0; CHUNK_SIZE * 5]; // Fixed-length scrolling buffer | Edit 1.
+            let mut current_window: Vec<f64> = vec![0.0; CHUNK_SIZE * 5]; // Fixed-length scrolling buffer
             let start_time = Instant::now();
 
             for (i, chunk) in samples.chunks(CHUNK_SIZE).enumerate() {
@@ -102,13 +104,13 @@ impl eframe::App for AudioVisualizer {
             ui.heading("Real-Time Audio FFT Visualizer");
 
             let waveform_data = self.waveform.lock().unwrap();
-            let _fft_data = self.fft_result.lock().unwrap(); // Prevents compiler warning
+            let fft_data = self.fft_result.lock().unwrap();
             let is_playing = *self.is_playing.lock().unwrap();
 
-            // Plot waveform
+            // Plot waveform (Time-Domain)
             Plot::new("Waveform").show(ui, |plot_ui| {
                 let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
-                            
+                
                 let x_offset = waveform_data.len() as f64; // ✅ Use locked waveform data
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate()
@@ -117,10 +119,10 @@ impl eframe::App for AudioVisualizer {
                 );                
                 plot_ui.line(Line::new(points).name("Waveform"));
             });
-            
-            // Plot FFT
+
+            // Plot FFT (Frequency-Domain)
             Plot::new("FFT").show(ui, |plot_ui| {
-                let fft_x_scale = (fft_data.len() as f64) / 2.0; // Frequency scaling
+                let fft_x_scale = (fft_data.len() as f64) / 2.0; // ✅ Frequency scaling
                 let points = PlotPoints::new(
                     fft_data.iter().enumerate()
                         .map(|(i, &y)| [(i as f64) * fft_x_scale, y]) // ✅ Correct X-axis for frequency domain
@@ -128,7 +130,6 @@ impl eframe::App for AudioVisualizer {
                 );                
                 plot_ui.line(Line::new(points).name("FFT"));
             });
-            
 
             if !is_playing {
                 ui.label("Playback finished.");
@@ -157,8 +158,9 @@ fn main() {
     // Play the audio asynchronously
     let _ = stream_handle.play_raw(source.convert_samples());
 
-    let options = eframe::NativeOptions {
-        initial_window_size: Some(egui::Vec2::new(800.0, 600.0)), // ✅ Set a window size
+    let options = NativeOptions {
+        viewport: eframe::viewport::ViewportBuilder::default()
+            .with_inner_size(vec2(800.0, 600.0)), // ✅ Set window size properly
         ..Default::default()
     };
     
