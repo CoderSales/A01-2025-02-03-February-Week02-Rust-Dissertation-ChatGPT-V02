@@ -11,8 +11,7 @@ use egui_plot::{Plot, Line, PlotPoints};
 use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 use eframe::egui;
-use eframe::{NativeOptions};
-use eframe::viewport::ViewportBuilder;  // ✅ Corrected import
+use eframe::NativeOptions;
 use eframe::epaint::vec2;
 
 const CHUNK_SIZE: usize = 512;  
@@ -160,16 +159,15 @@ fn main() {
     let _ = stream_handle.play_raw(source.convert_samples());
 
     let options = NativeOptions {
-        viewport: ViewportBuilder::default()
-            .with_inner_size(vec2(800.0, 600.0)), // ✅ Correct import for ViewportBuilder
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size(vec2(800.0, 600.0)), // ✅ Corrected viewport usage
         ..Default::default()
     };
     
-    // ✅ Clone `audio_duration_secs` into the closure to avoid borrowing issues
     if let Err(e) = eframe::run_native(
         "Real-Time Audio FFT Visualizer",
         options,
-        Box::new(move |_cc| Box::new(AudioVisualizer::new(audio_duration_secs))),  // ✅ `move` ensures ownership
+        Box::new(move |_cc| Box::new(AudioVisualizer::new(audio_duration_secs))),  
     ) {
         eprintln!("Error running eframe: {}", e);
     };
