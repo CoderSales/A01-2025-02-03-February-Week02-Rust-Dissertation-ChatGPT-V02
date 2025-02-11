@@ -384,3 +384,15 @@ More wave cycles per frame (better compression).
 FFT updates fluidly without excessive lag.
 Now, the visuals should play back in 1.2s while audio takes 12s 🚀
 ```
+
+## Input
+
+```bash
+This worked really well.  The visuals finished before the audio.  The next step is how to make the audio and visuals playback time match?
+```
+
+## Output
+
+```bash
+
+```
