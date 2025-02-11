@@ -206,6 +206,8 @@ GUI Window not displaying
 
 ```
 
+```
+
 ## Output
 
 ```bash
@@ -288,4 +290,177 @@ Expected Behavior
 ✅ Smooth, real-time updates matching audio.
 
 Now, your GUI should display properly with correct scrolling! 🚀
+```
+
+## Input
+
+```bash
+Fix: GUI Window Not Displaying & Remove Unused Variables
+1️⃣ Remove Unused x_start Variable
+The x_start variable is declared but never used, causing a compiler warning.
+
+Replace these lines:
+
+rust
+Copy
+Edit
+let x_start = 0.0;
+With:
+
+rust
+Copy
+Edit
+// Remove x_start since it is unused
+2️⃣ Fix X-Axis Calculation for Scrolling
+Replace:
+
+rust
+Copy
+Edit
+let x_offset = self.waveform.lock().unwrap().len() as f64;
+With:
+
+rust
+Copy
+Edit
+let x_offset = waveform_data.len() as f64; // ✅ Use locked waveform data
+3️⃣ Fix FFT Plot: Use fft_data Instead of waveform_data
+Currently, both Waveform and FFT plots use waveform_data, meaning FFT is never displayed.
+
+Replace:
+
+rust
+Copy
+Edit
+let x_offset = self.waveform.lock().unwrap().len() as f64;
+let points = PlotPoints::new(
+    waveform_data.iter().enumerate()
+        .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Scroll smoothly
+        .collect()
+);
+With:
+
+rust
+Copy
+Edit
+let x_offset = fft_data.len() as f64;
+let points = PlotPoints::new(
+    fft_data.iter().enumerate()
+        .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Correctly use FFT data
+        .collect()
+);
+4️⃣ Ensure the GUI Window is Created Properly
+If the GUI does not display, make sure eframe::NativeOptions is correctly set.
+
+Replace:
+
+rust
+Copy
+Edit
+let options = eframe::NativeOptions::default();
+With:
+
+rust
+Copy
+Edit
+let options = eframe::NativeOptions {
+    initial_window_size: Some(egui::Vec2::new(800.0, 600.0)), // ✅ Set a window size
+    ..Default::default()
+};
+Expected Behavior
+✅ No more compiler warnings about unused variables.
+✅ GUI window correctly appears on launch.
+✅ FFT and waveform scrolling independently.
+✅ Smooth, real-time updates matching audio.
+
+Now, your GUI should display properly with correct scrolling! 🚀
+
+```
+
+## Output
+
+```bash
+Yes, the Plot Waveform and Plot FFT sections are currently nearly identical, but they should be different because:
+
+Waveform Plot should display time-domain samples (the actual sound wave).
+FFT Plot should display frequency-domain values (magnitude of different frequencies).
+Fix: Correct the FFT Plot
+Issues in Your Current Code
+FFT plot mistakenly uses waveform_data instead of fft_data
+
+rust
+Copy
+Edit
+let x_offset = waveform_data.len() as f64; // ❌ Should be fft_data.len()
+FFT data needs its own X-axis scaling
+
+Waveform has time-based X-axis.
+FFT should have a frequency-based X-axis.
+Updated Code Fix
+1️⃣ Fix the Waveform Plot (Time Domain)
+Keep this as is:
+
+rust
+Copy
+Edit
+Plot::new("Waveform").show(ui, |plot_ui| {
+    let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
+                
+    let x_offset = waveform_data.len() as f64; // ✅ Use locked waveform data
+    let points = PlotPoints::new(
+        waveform_data.iter().enumerate()
+            .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Scroll smoothly
+            .collect()
+    );                
+    plot_ui.line(Line::new(points).name("Waveform"));
+});
+2️⃣ Fix the FFT Plot (Frequency Domain)
+Replace:
+
+rust
+Copy
+Edit
+let x_offset = fft_data.len() as f64;
+With:
+
+rust
+Copy
+Edit
+let fft_x_scale = (fft_data.len() as f64) / 2.0; // X-axis represents frequency bins
+Replace:
+
+rust
+Copy
+Edit
+Plot::new("FFT").show(ui, |plot_ui| {
+    let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
+                
+    let x_offset = fft_data.len() as f64;
+    let points = PlotPoints::new(
+        fft_data.iter().enumerate()
+            .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Correctly use FFT data
+            .collect()
+    );                
+    plot_ui.line(Line::new(points).name("FFT"));
+});
+With:
+
+rust
+Copy
+Edit
+Plot::new("FFT").show(ui, |plot_ui| {
+    let fft_x_scale = (fft_data.len() as f64) / 2.0; // Frequency scaling
+    let points = PlotPoints::new(
+        fft_data.iter().enumerate()
+            .map(|(i, &y)| [(i as f64) * fft_x_scale, y]) // ✅ Correct X-axis for frequency domain
+            .collect()
+    );                
+    plot_ui.line(Line::new(points).name("FFT"));
+});
+Why This Fix Works
+✅ Waveform Plot scrolls smoothly and correctly represents time-based samples.
+✅ FFT Plot now displays frequency bins correctly instead of scrolling like the waveform.
+✅ Eliminates confusion between waveform_data and fft_data.
+
+Now, your Waveform and FFT plots are correctly separated! 🚀
 ```

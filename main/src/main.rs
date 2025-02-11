@@ -107,9 +107,8 @@ impl eframe::App for AudioVisualizer {
 
             // Plot waveform
             Plot::new("Waveform").show(ui, |plot_ui| {
-                // Remove x_start since it is unused
                 let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
-                
+                            
                 let x_offset = waveform_data.len() as f64; // ✅ Use locked waveform data
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate()
@@ -118,20 +117,18 @@ impl eframe::App for AudioVisualizer {
                 );                
                 plot_ui.line(Line::new(points).name("Waveform"));
             });
-
+            
             // Plot FFT
             Plot::new("FFT").show(ui, |plot_ui| {
-                // Remove x_start since it is unused
-                let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
-                
-                let x_offset = fft_data.len() as f64;
+                let fft_x_scale = (fft_data.len() as f64) / 2.0; // Frequency scaling
                 let points = PlotPoints::new(
                     fft_data.iter().enumerate()
-                        .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Correctly use FFT data
+                        .map(|(i, &y)| [(i as f64) * fft_x_scale, y]) // ✅ Correct X-axis for frequency domain
                         .collect()
                 );                
                 plot_ui.line(Line::new(points).name("FFT"));
             });
+            
 
             if !is_playing {
                 ui.label("Playback finished.");
