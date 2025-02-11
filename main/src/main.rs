@@ -55,7 +55,7 @@ impl AudioVisualizer {
                     .collect();
 
                 // Shift the waveform left and append new samples to create scrolling effect
-                let shift_amount = downsampled_chunk.len();
+                let shift_amount = downsampled_chunk.len() * 5; // ✅ Move 5× faster
                 current_window.drain(..shift_amount); // Remove oldest samples
                 current_window.extend(downsampled_chunk.clone()); // Append new data
 
@@ -102,7 +102,7 @@ impl eframe::App for AudioVisualizer {
             ui.heading("Real-Time Audio FFT Visualizer");
 
             let waveform_data = self.waveform.lock().unwrap();
-            let fft_data = self.fft_result.lock().unwrap();
+            let _fft_data = self.fft_result.lock().unwrap(); // Prevents compiler warning
             let is_playing = *self.is_playing.lock().unwrap();
 
             // Plot waveform
@@ -110,9 +110,10 @@ impl eframe::App for AudioVisualizer {
                 let x_start = 0.0;
                 let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
                 
+                let x_offset = self.waveform.lock().unwrap().len() as f64; // ✅ Make it scroll dynamically
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate()
-                        .map(|(i, &y)| [(i as f64 % x_end) + x_start, y]) // Keep X values within range
+                        .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Scroll smoothly
                         .collect()
                 );                
                 plot_ui.line(Line::new(points).name("Waveform"));
@@ -123,9 +124,10 @@ impl eframe::App for AudioVisualizer {
                 let x_start = 0.0;
                 let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
                 
+                let x_offset = self.waveform.lock().unwrap().len() as f64; // ✅ Make it scroll dynamically
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate()
-                        .map(|(i, &y)| [(i as f64 % x_end) + x_start, y]) // Keep X values within range
+                        .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Scroll smoothly
                         .collect()
                 );                
                 plot_ui.line(Line::new(points).name("FFT"));
