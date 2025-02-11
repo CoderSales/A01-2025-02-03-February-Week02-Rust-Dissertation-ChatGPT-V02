@@ -107,10 +107,10 @@ impl eframe::App for AudioVisualizer {
 
             // Plot waveform
             Plot::new("Waveform").show(ui, |plot_ui| {
-                let x_start = 0.0;
+                // Remove x_start since it is unused
                 let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
                 
-                let x_offset = self.waveform.lock().unwrap().len() as f64; // ✅ Make it scroll dynamically
+                let x_offset = waveform_data.len() as f64; // ✅ Use locked waveform data
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate()
                         .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Scroll smoothly
@@ -121,13 +121,13 @@ impl eframe::App for AudioVisualizer {
 
             // Plot FFT
             Plot::new("FFT").show(ui, |plot_ui| {
-                let x_start = 0.0;
+                // Remove x_start since it is unused
                 let x_end = CHUNK_SIZE as f64;  // Fixed X-axis range
                 
-                let x_offset = self.waveform.lock().unwrap().len() as f64; // ✅ Make it scroll dynamically
+                let x_offset = fft_data.len() as f64;
                 let points = PlotPoints::new(
-                    waveform_data.iter().enumerate()
-                        .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Scroll smoothly
+                    fft_data.iter().enumerate()
+                        .map(|(i, &y)| [(i as f64 + x_offset) % x_end, y]) // ✅ Correctly use FFT data
                         .collect()
                 );                
                 plot_ui.line(Line::new(points).name("FFT"));
@@ -160,8 +160,11 @@ fn main() {
     // Play the audio asynchronously
     let _ = stream_handle.play_raw(source.convert_samples());
 
-    let options = eframe::NativeOptions::default();
-
+    let options = eframe::NativeOptions {
+        initial_window_size: Some(egui::Vec2::new(800.0, 600.0)), // ✅ Set a window size
+        ..Default::default()
+    };
+    
     // ✅ Clone `audio_duration_secs` into the closure to avoid borrowing issues
     if let Err(e) = eframe::run_native(
         "Real-Time Audio FFT Visualizer",
