@@ -15,8 +15,8 @@ use eframe::NativeOptions;
 use eframe::epaint::vec2;
 
 const CHUNK_SIZE: usize = 256;  
-const DOWNSAMPLE_FACTOR: usize = 8;  
-const FPS: usize = 240;  // Increased FPS (~4x faster)
+const DOWNSAMPLE_FACTOR: usize = 4;  // Less downsampling to improve waveform width  
+const FPS: usize = 480;  // Increased to better sync with audio
 
 struct AudioVisualizer {
     waveform: Arc<Mutex<Vec<f64>>>,
@@ -27,7 +27,7 @@ struct AudioVisualizer {
 impl AudioVisualizer {
     fn new(audio_duration_secs: f64) -> Self {
         let waveform = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
-        let fft_result = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE / 2]));  // FFT represents half the range
+        let fft_result = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE / 2]));  
         let is_playing = Arc::new(Mutex::new(true)); 
 
         let waveform_clone = Arc::clone(&waveform);
@@ -43,10 +43,10 @@ impl AudioVisualizer {
 
             let samples: Vec<f64> = reader.into_samples::<i16>()
                 .filter_map(Result::ok)
-                .map(|s| s as f64)
+                .map(|s| s as f64 / 32768.0) // Normalize to [-1, 1] range
                 .collect();
 
-            let mut current_window: Vec<f64> = vec![0.0; CHUNK_SIZE * 5]; 
+            let mut current_window: Vec<f64> = vec![0.0; CHUNK_SIZE * 8]; // Wider buffer  
             let start_time = Instant::now();
 
             for (i, chunk) in samples.chunks(CHUNK_SIZE).enumerate() {
@@ -55,7 +55,7 @@ impl AudioVisualizer {
                     .cloned()
                     .collect();
 
-                let shift_amount = (downsampled_chunk.len() * 5).min(current_window.len());
+                let shift_amount = (downsampled_chunk.len() * 8).min(current_window.len());
                 current_window.drain(..shift_amount);
                 current_window.extend(downsampled_chunk.clone());
 
@@ -92,7 +92,7 @@ impl AudioVisualizer {
         buffer.resize(len, Complex::new(0.0, 0.0)); 
 
         fft.process(&mut buffer);
-        buffer.iter().take(len / 2).map(|c| c.norm()).collect()  // Take half for correct FFT scaling
+        buffer.iter().take(len / 2).map(|c| c.norm()).collect()  
     }
 }
 
@@ -108,7 +108,7 @@ impl eframe::App for AudioVisualizer {
             Plot::new("Waveform").show(ui, |plot_ui| {
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate()
-                        .map(|(i, &y)| [i as f64, y])
+                        .map(|(i, &y)| [(i as f64) * 2.0, y * 2.0]) // ✅ Widen x-axis, normalize y-axis  
                         .collect()
                 );                
                 plot_ui.line(Line::new(points).name("Waveform"));
@@ -118,7 +118,7 @@ impl eframe::App for AudioVisualizer {
                 let fft_x_scale = (fft_data.len() as f64) / 2.0; 
                 let points = PlotPoints::new(
                     fft_data.iter().enumerate()
-                        .map(|(i, &y)| [(i as f64) * fft_x_scale, y])
+                        .map(|(i, &y)| [(i as f64) * fft_x_scale, y * 0.5]) // ✅ Adjust amplitude  
                         .collect()
                 );                
                 plot_ui.line(Line::new(points).name("FFT"));
@@ -151,7 +151,7 @@ fn main() {
 
     let options = NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size(vec2(800.0, 500.0)), // ✅ Adjusted aspect ratio
+            .with_inner_size(vec2(1000.0, 500.0)), // ✅ Wider aspect ratio  
         ..Default::default()
     };
 
