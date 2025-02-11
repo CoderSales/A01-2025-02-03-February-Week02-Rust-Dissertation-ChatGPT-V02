@@ -224,3 +224,93 @@ Results
 
 🚀 Now properly working! 🚀
 ```
+
+## Input
+
+```bash
+Compiler error:
+
+____
+
+error[E0597]: `audio_duration_secs` does not live long enough
+   --> src/main.rs:174:54
+    |
+161 |     let audio_duration_secs = num_samples / sample_rate;
+    |         ------------------- binding `audio_duration_secs` declared here
+...
+174 |         Box::new(|_cc| Box::new(AudioVisualizer::new(audio_duration_secs))),
+    |         ---------------------------------------------^^^^^^^^^^^^^^^^^^^---
+    |         |        |                                   |
+    |         |        |                                   borrowed value does not live long enough
+    |         |        value captured here
+    |         cast requires that `audio_duration_secs` is borrowed for `'static`
+...
+178 | }
+    | - `audio_duration_secs` dropped here while still borrowed
+    |
+    = note: due to object lifetime defaults, `Box<dyn for<'a, 'b> FnOnce(&'a CreationContext<'b>) -> Box<dyn App>>` actually means `Box<(dyn for<'a, 'b> FnOnce(&'a CreationContext<'b>) -> Box<dyn App> + 'static)>`
+
+For more information about this error, try `rustc --explain E0597`.
+error: could not compile `main` (bin "main") due to 1 previous error
+
+
+____
+
+```
+
+## Output
+
+```bash
+Fix for Compiler Error (E0597)
+Issue
+The audio_duration_secs variable is being captured inside the closure, but it does not have a 'static lifetime. The error occurs because the closure used in eframe::run_native requires 'static references.
+
+Solution
+We clone the audio_duration_secs value into the closure, ensuring that the variable is properly moved instead of being borrowed.
+
+Updated Code
+rust
+Copy
+Edit
+fn main() {
+    let filename = "./test.wav";
+    let (_stream, stream_handle) = OutputStream::try_default().expect("Failed to create output stream");
+
+    let file = File::open(filename).expect("Failed to open file");
+    let source = Decoder::new(BufReader::new(file)).expect("Failed to decode audio");
+
+    let reader = hound::WavReader::open(filename).expect("Failed to open file for duration check");
+    let num_samples = reader.len() as f64;
+    let sample_rate = reader.spec().sample_rate as f64;
+    let audio_duration_secs = num_samples / sample_rate;
+
+    let _ = stream_handle.play_raw(source.convert_samples());
+
+    let options = NativeOptions {
+        viewport: ViewportBuilder::default().with_inner_size(vec2(800.0, 500.0)), // ✅ Corrected aspect ratio
+        ..Default::default()
+    };
+
+    // ✅ FIX: Move `audio_duration_secs` into the closure
+    if let Err(e) = eframe::run_native(
+        "Real-Time Audio FFT Visualizer",
+        options,
+        Box::new(move |_cc| Box::new(AudioVisualizer::new(audio_duration_secs))), // ✅ Move value into closure
+    ) {
+        eprintln!("Error running eframe: {}", e);
+    };
+}
+Changes & Explanation
+✅ Used move in closure:
+
+Ensures audio_duration_secs is moved instead of being borrowed.
+Prevents the variable from being dropped before it is used.
+✅ No longer a temporary borrow:
+
+Previously, audio_duration_secs was borrowed but dropped at the end of main().
+Now, it's owned inside the closure, allowing safe usage.
+🚀 Expected Results
+🎯 Compiles successfully
+🎯 Runs without lifetime errors
+🎯 Displays correct visualizations and audio playback
+```

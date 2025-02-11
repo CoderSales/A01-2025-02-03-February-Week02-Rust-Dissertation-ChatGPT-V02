@@ -167,11 +167,11 @@ fn main() {
         ..Default::default()
     };
 
-    // ✅ Ensuring only one window instance
+    // ✅ FIX: Move `audio_duration_secs` into the closure
     if let Err(e) = eframe::run_native(
         "Real-Time Audio FFT Visualizer",
         options,
-        Box::new(|_cc| Box::new(AudioVisualizer::new(audio_duration_secs))),
+        Box::new(move |_cc| Box::new(AudioVisualizer::new(audio_duration_secs))), // ✅ Move value into closure
     ) {
         eprintln!("Error running eframe: {}", e);
     };
