@@ -11,7 +11,7 @@ use egui_plot::{Plot, Line, PlotPoints};
 use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 use eframe::egui;
-use eframe::NativeOptions;
+use eframe::{NativeOptions, ViewportBuilder};
 use eframe::epaint::vec2;
 
 const CHUNK_SIZE: usize = 512;  
@@ -159,7 +159,8 @@ fn main() {
     let _ = stream_handle.play_raw(source.convert_samples());
 
     let options = NativeOptions {
-        window_size: vec2(800.0, 600.0), // ✅ Correct field instead of `viewport`
+        viewport: ViewportBuilder::default()
+            .with_inner_size(vec2(800.0, 600.0)), // ✅ Correct field instead of `window_size`
         ..Default::default()
     };
     
