@@ -142,21 +142,23 @@ fn main() {
 
     let file = File::open(filename).expect("Failed to open file");
     let source = Decoder::new(BufReader::new(file)).expect("Failed to decode audio");
-    
+
     // Get audio duration in seconds
     let reader = hound::WavReader::open(filename).expect("Failed to open file for duration check");
     let num_samples = reader.len() as f64;
     let sample_rate = reader.spec().sample_rate as f64;
-    let audio_duration_secs = num_samples / sample_rate;
+    let audio_duration_secs = num_samples / sample_rate;  // ✅ f64 primitive, easy to copy
 
     // Play the audio asynchronously
     let _ = stream_handle.play_raw(source.convert_samples());
 
     let options = eframe::NativeOptions::default();
+
+    // ✅ Clone `audio_duration_secs` into the closure to avoid borrowing issues
     if let Err(e) = eframe::run_native(
         "Real-Time Audio FFT Visualizer",
         options,
-        Box::new(|_cc| Box::new(AudioVisualizer::new(audio_duration_secs))),
+        Box::new(move |_cc| Box::new(AudioVisualizer::new(audio_duration_secs))),  // ✅ `move` ensures ownership
     ) {
         eprintln!("Error running eframe: {}", e);
     };
