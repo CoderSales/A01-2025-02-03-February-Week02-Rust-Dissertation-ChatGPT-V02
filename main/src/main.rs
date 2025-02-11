@@ -12,8 +12,8 @@ use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 use eframe::egui;
 
-const CHUNK_SIZE: usize = 1024; // Lower resolution for visuals
-const DOWNSAMPLE_FACTOR: usize = 8; // Skip every N samples for visuals
+const CHUNK_SIZE: usize = 512;  // Smaller chunk for faster visuals
+const DOWNSAMPLE_FACTOR: usize = 32; // Skip 32 samples per visual frame
 
 struct AudioVisualizer {
     waveform: Arc<Mutex<Vec<f64>>>,
@@ -43,7 +43,7 @@ impl AudioVisualizer {
 
             for chunk in samples.chunks(CHUNK_SIZE) {
                 let downsampled_chunk: Vec<f64> = chunk.iter()
-                    .step_by(DOWNSAMPLE_FACTOR) // Reduce resolution
+                    .step_by(DOWNSAMPLE_FACTOR) // More aggressive downsampling
                     .cloned()
                     .collect();
 
@@ -57,7 +57,7 @@ impl AudioVisualizer {
                     *fft_data = Self::compute_fft(&downsampled_chunk);
                 }
 
-                std::thread::sleep(Duration::from_millis(25)); // Faster updates
+                std::thread::sleep(Duration::from_millis(10)); // Faster updates
             }
 
             *is_playing_clone.lock().unwrap() = false;
