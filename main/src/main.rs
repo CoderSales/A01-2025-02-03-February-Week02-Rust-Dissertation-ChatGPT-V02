@@ -13,11 +13,10 @@ use rustfft::num_complex::Complex;
 use eframe::egui;
 use eframe::NativeOptions;
 use eframe::epaint::vec2;
-use egui::ViewportBuilder;
 
-const CHUNK_SIZE: usize = 256;
-const DOWNSAMPLE_FACTOR: usize = 8;
-const FPS: usize = 60;
+const CHUNK_SIZE: usize = 256;  
+const DOWNSAMPLE_FACTOR: usize = 8;  
+const FPS: usize = 240;  // Increased FPS (~4x faster)
 
 struct AudioVisualizer {
     waveform: Arc<Mutex<Vec<f64>>>,
@@ -28,8 +27,8 @@ struct AudioVisualizer {
 impl AudioVisualizer {
     fn new(audio_duration_secs: f64) -> Self {
         let waveform = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
-        let fft_result = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
-        let is_playing = Arc::new(Mutex::new(true));
+        let fft_result = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE / 2]));  // FFT represents half the range
+        let is_playing = Arc::new(Mutex::new(true)); 
 
         let waveform_clone = Arc::clone(&waveform);
         let fft_result_clone = Arc::clone(&fft_result);
@@ -39,20 +38,22 @@ impl AudioVisualizer {
         let time_per_frame = audio_duration_secs / total_frames as f64;
 
         thread::spawn(move || {
-            let filename = "./test.wav";
+            let filename = "./test.wav"; 
             let reader = hound::WavReader::open(filename).expect("Failed to open file");
 
-            let samples: Vec<f64> = reader
-                .into_samples::<i16>()
+            let samples: Vec<f64> = reader.into_samples::<i16>()
                 .filter_map(Result::ok)
                 .map(|s| s as f64)
                 .collect();
 
-            let mut current_window: Vec<f64> = vec![0.0; CHUNK_SIZE * 5];
+            let mut current_window: Vec<f64> = vec![0.0; CHUNK_SIZE * 5]; 
             let start_time = Instant::now();
 
             for (i, chunk) in samples.chunks(CHUNK_SIZE).enumerate() {
-                let downsampled_chunk: Vec<f64> = chunk.iter().step_by(DOWNSAMPLE_FACTOR).cloned().collect();
+                let downsampled_chunk: Vec<f64> = chunk.iter()
+                    .step_by(DOWNSAMPLE_FACTOR) 
+                    .cloned()
+                    .collect();
 
                 let shift_amount = (downsampled_chunk.len() * 5).min(current_window.len());
                 current_window.drain(..shift_amount);
@@ -88,10 +89,10 @@ impl AudioVisualizer {
         let fft = planner.plan_fft_forward(len);
 
         let mut buffer: Vec<Complex<f64>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
-        buffer.resize(len, Complex::new(0.0, 0.0));
+        buffer.resize(len, Complex::new(0.0, 0.0)); 
 
         fft.process(&mut buffer);
-        buffer.iter().map(|c| c.norm()).collect()
+        buffer.iter().take(len / 2).map(|c| c.norm()).collect()  // Take half for correct FFT scaling
     }
 }
 
@@ -104,38 +105,24 @@ impl eframe::App for AudioVisualizer {
             let fft_data = self.fft_result.lock().unwrap();
             let is_playing = *self.is_playing.lock().unwrap();
 
-            // Aspect ratio correction
-            let x_range = 500.0;
-            let y_range = 200.0; // ✅ Adjusted for better proportions
+            Plot::new("Waveform").show(ui, |plot_ui| {
+                let points = PlotPoints::new(
+                    waveform_data.iter().enumerate()
+                        .map(|(i, &y)| [i as f64, y])
+                        .collect()
+                );                
+                plot_ui.line(Line::new(points).name("Waveform"));
+            });
 
-            // Plot waveform (Time-Domain)
-            Plot::new("Waveform")
-                .view_aspect(5.0) // ✅ Increased width to fix vertical line issue
-                .show(ui, |plot_ui| {
-                    let points = PlotPoints::new(
-                        waveform_data
-                            .iter()
-                            .enumerate()
-                            .map(|(i, &y)| [(i as f64) % x_range, y / y_range])
-                            .collect(),
-                    );
-                    plot_ui.line(Line::new(points).name("Waveform"));
-                });
-
-            // Plot FFT (Frequency-Domain)
-            Plot::new("FFT")
-                .view_aspect(5.0) // ✅ Matched aspect ratio
-                .show(ui, |plot_ui| {
-                    let fft_x_scale = fft_data.len() as f64 / 2.0;
-                    let points = PlotPoints::new(
-                        fft_data
-                            .iter()
-                            .enumerate()
-                            .map(|(i, &y)| [(i as f64) * fft_x_scale, y / y_range])
-                            .collect(),
-                    );
-                    plot_ui.line(Line::new(points).name("FFT"));
-                });
+            Plot::new("FFT").show(ui, |plot_ui| {
+                let fft_x_scale = (fft_data.len() as f64) / 2.0; 
+                let points = PlotPoints::new(
+                    fft_data.iter().enumerate()
+                        .map(|(i, &y)| [(i as f64) * fft_x_scale, y])
+                        .collect()
+                );                
+                plot_ui.line(Line::new(points).name("FFT"));
+            });
 
             if !is_playing {
                 ui.label("Playback finished.");
@@ -163,15 +150,15 @@ fn main() {
     let _ = stream_handle.play_raw(source.convert_samples());
 
     let options = NativeOptions {
-        viewport: ViewportBuilder::default().with_inner_size(vec2(800.0, 500.0)), // ✅ Corrected aspect ratio
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size(vec2(800.0, 500.0)), // ✅ Adjusted aspect ratio
         ..Default::default()
     };
 
-    // ✅ FIX: Move `audio_duration_secs` into the closure
     if let Err(e) = eframe::run_native(
         "Real-Time Audio FFT Visualizer",
         options,
-        Box::new(move |_cc| Box::new(AudioVisualizer::new(audio_duration_secs))), // ✅ Move value into closure
+        Box::new(move |_cc| Box::new(AudioVisualizer::new(audio_duration_secs))),  
     ) {
         eprintln!("Error running eframe: {}", e);
     };
