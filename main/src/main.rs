@@ -11,7 +11,8 @@ use egui_plot::{Plot, Line, PlotPoints};
 use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 use eframe::egui;
-use eframe::{NativeOptions, ViewportBuilder};
+// use eframe::{NativeOptions, ViewportBuilder};
+crate::egui::ViewportBuilder
 use eframe::epaint::vec2;
 
 const CHUNK_SIZE: usize = 512;  
