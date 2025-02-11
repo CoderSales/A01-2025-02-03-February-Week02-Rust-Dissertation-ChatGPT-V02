@@ -12,8 +12,9 @@ use rustfft::FftPlanner;
 use rustfft::num_complex::Complex;
 use eframe::egui;
 
-const CHUNK_SIZE: usize = 512;  // Smaller chunk for faster visuals
-const DOWNSAMPLE_FACTOR: usize = 32; // Skip 32 samples per visual frame
+const CHUNK_SIZE: usize = 512;  
+const DOWNSAMPLE_FACTOR: usize = 16;  // Reduce jaggedness
+const TIME_WINDOW_MULTIPLIER: usize = 4; // Show 4x more waves at once
 
 struct AudioVisualizer {
     waveform: Arc<Mutex<Vec<f64>>>,
@@ -25,7 +26,7 @@ impl AudioVisualizer {
     fn new() -> Self {
         let waveform = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
         let fft_result = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
-        let is_playing = Arc::new(Mutex::new(true)); // Flag to track playback
+        let is_playing = Arc::new(Mutex::new(true)); 
 
         let waveform_clone = Arc::clone(&waveform);
         let fft_result_clone = Arc::clone(&fft_result);
@@ -41,23 +42,31 @@ impl AudioVisualizer {
                 .map(|s| s as f64)
                 .collect();
 
+            let mut current_window: Vec<f64> = Vec::new();
+
             for chunk in samples.chunks(CHUNK_SIZE) {
                 let downsampled_chunk: Vec<f64> = chunk.iter()
-                    .step_by(DOWNSAMPLE_FACTOR) // More aggressive downsampling
+                    .step_by(DOWNSAMPLE_FACTOR) 
                     .cloned()
                     .collect();
 
+                // Keep `TIME_WINDOW_MULTIPLIER` chunks on screen
+                current_window.extend(downsampled_chunk.clone());
+                if current_window.len() > CHUNK_SIZE * TIME_WINDOW_MULTIPLIER {
+                    current_window.drain(..CHUNK_SIZE);
+                }
+
                 {
                     let mut waveform_data = waveform_clone.lock().unwrap();
-                    *waveform_data = downsampled_chunk.clone();
+                    *waveform_data = current_window.clone();
                 }
 
                 {
                     let mut fft_data = fft_result_clone.lock().unwrap();
-                    *fft_data = Self::compute_fft(&downsampled_chunk);
+                    *fft_data = Self::compute_fft(&current_window);
                 }
 
-                std::thread::sleep(Duration::from_millis(10)); // Faster updates
+                std::thread::sleep(Duration::from_millis(10)); 
             }
 
             *is_playing_clone.lock().unwrap() = false;
@@ -72,7 +81,7 @@ impl AudioVisualizer {
         let fft = planner.plan_fft_forward(len);
 
         let mut buffer: Vec<Complex<f64>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
-        buffer.resize(len, Complex::new(0.0, 0.0)); // Zero-padding
+        buffer.resize(len, Complex::new(0.0, 0.0)); 
 
         fft.process(&mut buffer);
         buffer.iter().map(|c| c.norm()).collect()
@@ -88,11 +97,13 @@ impl eframe::App for AudioVisualizer {
             let fft_data = self.fft_result.lock().unwrap();
             let is_playing = *self.is_playing.lock().unwrap();
 
+            let x_scale = TIME_WINDOW_MULTIPLIER as f64; // X-axis compression
+
             // Plot waveform
             Plot::new("Waveform").show(ui, |plot_ui| {
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate()
-                        .map(|(i, &y)| [i as f64, y])
+                        .map(|(i, &y)| [(i as f64) / x_scale, y]) // Compress X-axis
                         .collect()
                 );
                 plot_ui.line(Line::new(points).name("Waveform"));
@@ -102,7 +113,7 @@ impl eframe::App for AudioVisualizer {
             Plot::new("FFT").show(ui, |plot_ui| {
                 let points = PlotPoints::new(
                     fft_data.iter().enumerate()
-                        .map(|(i, &y)| [i as f64, y])
+                        .map(|(i, &y)| [(i as f64) / x_scale, y]) // Compress X-axis
                         .collect()
                 );
                 plot_ui.line(Line::new(points).name("FFT"));
