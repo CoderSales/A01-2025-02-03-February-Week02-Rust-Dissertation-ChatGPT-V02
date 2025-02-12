@@ -1,8 +1,7 @@
 use crate::audio::AudioProcessor;
-use eframe::egui::{self, CentralPanel};
+use eframe::egui::{self, CentralPanel, Button};
 use egui_plot::{Plot, Line, PlotPoints};
 use std::time::{Duration, Instant};
-
 
 pub struct Visualization {
     audio: AudioProcessor,
@@ -53,13 +52,12 @@ impl eframe::App for Visualization {
                 self.audio.start_listening();
                 self.is_listening = true;
             }
-            
             if ui.button("🛑 Stop Listening").clicked() {
                 self.audio.stop_listening();
-                self.audio.play_recorded_audio();  // ✅ Now properly defined
                 self.is_listening = false;
+                self.audio.play_recorded_audio(); // ✅ Play recorded sound after stopping
             }
-                        
+
             if ui.button("🔄 Toggle Live/File").clicked() {
                 self.is_file_mode = !self.is_file_mode;
             }
@@ -90,11 +88,6 @@ impl eframe::App for Visualization {
 
             ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
             ui.label(format!("Detected Chord: {}", self.last_chord));
-            if ui.button("🛑 Stop Listening").clicked() {
-                self.audio.stop_listening();
-                self.audio.play_recorded_audio(); // ✅ Play recorded sound after stopping
-                self.is_listening = false;
-            }            
         });
 
         ctx.request_repaint();
