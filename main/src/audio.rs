@@ -3,7 +3,7 @@ use rustfft::{FftPlanner, num_complex::Complex};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
 const CHUNK_SIZE: usize = 256;
-const SAMPLE_RATE: f32 = 44100.0;  
+const SAMPLE_RATE: f64 = 44100.0;  // ✅ Changed from `f32` to `f64`
 
 pub struct AudioProcessor {
     pub waveform: Arc<Mutex<Vec<f64>>>,
@@ -58,7 +58,12 @@ impl AudioProcessor {
     }
 
     fn find_dominant_frequency(fft_data: &[f64]) -> f64 {
-        let max_index = fft_data.iter().enumerate().max_by(|a, b| a.1.partial_cmp(b.1).unwrap()).unwrap().0;
-        (max_index as f64) * (SAMPLE_RATE / CHUNK_SIZE as f64)
-    }
+        let max_index = fft_data.iter()
+            .enumerate()
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .unwrap()
+            .0;
+        
+        (max_index as f64) * (SAMPLE_RATE as f64 / CHUNK_SIZE as f64) // ✅ Convert SAMPLE_RATE to f64
+    }    
 }

@@ -53,9 +53,9 @@ impl Visualization {
         let mut closest_note = "Unknown";
         let mut min_diff = f64::MAX;
 
-        for (note, &freq) in note_frequencies.iter() {
-            let diff = (freq - frequency).abs();
-            if diff < min_diff {
+        for (note, freq) in note_frequencies.iter() { // ✅ Remove `&`
+            let diff = (freq - frequency).abs();  
+                    if diff < min_diff {
                 min_diff = diff;
                 closest_note = note;
             }
