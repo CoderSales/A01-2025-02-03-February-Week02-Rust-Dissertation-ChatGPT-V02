@@ -1,5 +1,5 @@
-pub mod audio;  // ✅ Make `audio.rs` accessible in `visualization.rs`
-mod visualization;
+mod audio;
+mod visualization; // ✅ Ensure `visualization.rs` is properly included
 
 use visualization::Visualization;
 use eframe::NativeOptions;
