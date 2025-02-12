@@ -200,3 +200,84 @@ CABLE Input (VB-Audio Virtual Cable)
 Available input devices:
 Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
 CABLE Output (VB-Audio Virtual Cable)
+
+## Output
+
+Next Step: Select CABLE Output (VB-Audio Virtual Cable) for Audio Capture
+Modify src/main.rs to capture audio from CABLE Output and print raw samples.
+
+1. Update Cargo.toml
+Ensure cpal is installed:
+
+toml
+Copy
+Edit
+[dependencies]
+cpal = "0.15"
+2. Modify src/main.rs:
+rust
+Copy
+Edit
+use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use cpal::{SampleFormat, StreamConfig};
+use std::sync::{Arc, Mutex};
+
+fn main() {
+    let host = cpal::default_host();
+    let device = host
+        .input_devices()
+        .expect("Failed to get input devices")
+        .find(|d| d.name().unwrap_or_default().contains("CABLE Output"))
+        .expect("VB-Audio Virtual Cable not found");
+
+    println!("Using input device: {}", device.name().unwrap());
+
+    let config: StreamConfig = device.default_input_config().unwrap().into();
+    let sample_format = config.sample_format();
+
+    let data = Arc::new(Mutex::new(Vec::new()));
+
+    let err_fn = |err| eprintln!("Error: {:?}", err);
+
+    let data_clone = Arc::clone(&data);
+    let stream = match sample_format {
+        SampleFormat::F32 => device.build_input_stream(
+            &config,
+            move |data: &[f32], _: &_| {
+                let mut buffer = data_clone.lock().unwrap();
+                buffer.extend_from_slice(data);
+                println!("Captured {} samples", data.len());
+            },
+            err_fn,
+            None,
+        ),
+        _ => panic!("Unsupported sample format"),
+    }
+    .expect("Failed to create stream");
+
+    stream.play().expect("Failed to start stream");
+
+    println!("Listening for audio... Press Ctrl+C to stop.");
+    std::thread::sleep(std::time::Duration::from_secs(10));
+}
+3. Run the program:
+sh
+Copy
+Edit
+cargo run
+Expected Output:
+This will capture and print raw audio sample counts from CABLE Output. If successful, next step is frequency analysis.
+
+## Input
+
+### Output of cargo test
+
+error[E0599]: no method named `sample_format` found for struct `StreamConfig` in the current scope
+  --> src/main.rs:16:32
+   |
+16 |     let sample_format = config.sample_format();
+   |                                ^^^^^^^^^^^^^ method not found in `StreamConfig`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer" test) due to 1 previous error
+
