@@ -1,7 +1,8 @@
 use crate::audio::AudioProcessor;
-use eframe::egui::{self, CentralPanel, Button};
+use eframe::egui::{self, CentralPanel};
 use egui_plot::{Plot, Line, PlotPoints};
 use std::time::{Duration, Instant};
+
 
 pub struct Visualization {
     audio: AudioProcessor,
@@ -55,9 +56,10 @@ impl eframe::App for Visualization {
             
             if ui.button("🛑 Stop Listening").clicked() {
                 self.audio.stop_listening();
+                self.audio.play_recorded_audio();  // ✅ Now properly defined
                 self.is_listening = false;
             }
-            
+                        
             if ui.button("🔄 Toggle Live/File").clicked() {
                 self.is_file_mode = !self.is_file_mode;
             }
