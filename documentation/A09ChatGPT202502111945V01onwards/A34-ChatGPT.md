@@ -116,3 +116,71 @@ Edit
 cargo run
 Next step: Verify frequency accuracy on midi.city 🎵
 
+## Input
+
+### Positives
+
+Code compiles.
+
+No compiler errors, like: E0599, E0597, E0433.
+
+No reduction of code due to incomplete code given.
+
+Code runs.
+
+### Code output
+
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+Detected frequency: 44056.93 Hz
+
+### Issues
+
+Detected frequency does not react to keys pressed on midi.city
+
+It does not matter which internal audio device is used, 
+
+whether Virtual Cable / FxSound Speakers / Speakers (Realtek(R) Audio)
+
+Also, the Detected frequency repeats every second filling up the CLI.
+
+## Next step
+
+Create boolean flag to identify
+
+whether a note is being played currently or not, 
+
+regardless of frequency.
+
+Also, revert to 
+
+printing audio setup,
+
+this needs to be detected from the system.
+
+It would also be good if the code worked whether audio going through speakers headphones or FXSound (https://www.fxsound.com/)
+
+or Virtual Cable.
+
+Also, one outcome for this project would be to emulate FXSound.
+
+Also, it would be better to package out working pieces of code into files
+
+as each one is found to work
+
+then main can concentrate on
+
+current feature at a time.
