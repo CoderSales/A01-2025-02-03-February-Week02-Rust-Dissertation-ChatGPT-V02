@@ -1,14 +1,18 @@
 use crate::audio::AudioProcessor;
-use eframe::egui::{self, CentralPanel};
+use eframe::egui::{self, CentralPanel, Button};
 use egui_plot::{Plot, Line, PlotPoints};
 
 pub struct Visualization {
     audio: AudioProcessor,
+    is_listening: bool,  // ✅ Add listening state
 }
 
 impl Visualization {
     pub fn new() -> Self {
-        Self { audio: AudioProcessor::new() }
+        Self { 
+            audio: AudioProcessor::new(),
+            is_listening: false,  // ✅ Default is not listening
+        }
     }
 }
 
@@ -16,6 +20,14 @@ impl eframe::App for Visualization {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
             ui.heading("Live Audio Visualization");
+
+            if ui.button("🎤 Listen").clicked() {
+                self.is_listening = true;
+            }
+
+            if ui.button("🛑 Stop Listening").clicked() {
+                self.is_listening = false;
+            }
 
             let waveform_data = self.audio.waveform.lock().unwrap();
             let fft_data = self.audio.fft_result.lock().unwrap();
@@ -40,26 +52,5 @@ impl eframe::App for Visualization {
         });
 
         ctx.request_repaint();
-    }
-}
-
-impl Visualization {
-    fn detect_chord(frequency: f64) -> String {
-        let note_frequencies = [
-            ("C", 261.63), ("C#", 277.18), ("D", 293.66), ("D#", 311.13),
-            ("E", 329.63), ("F", 349.23), ("F#", 369.99), ("G", 392.00),
-            ("G#", 415.30), ("A", 440.00), ("A#", 466.16), ("B", 493.88),
-        ];
-        let mut closest_note = "Unknown";
-        let mut min_diff = f64::MAX;
-
-        for (note, freq) in note_frequencies.iter() { // ✅ Remove `&`
-            let diff = (freq - frequency).abs();          
-                    if diff < min_diff {
-                min_diff = diff;
-                closest_note = note;
-            }
-        }
-        format!("Detected: {}", closest_note)
     }
 }

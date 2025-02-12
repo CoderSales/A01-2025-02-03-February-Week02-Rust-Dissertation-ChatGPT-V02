@@ -63,3 +63,9 @@ eframe::run_native(
     Box::new(|_cc| Box::new(AudioVisualizer::new())),
 );
 ```
+
+### Split out into 3 files audio visualization and main.rs
+
+### Command
+
+cargo check && cargo run
