@@ -2,27 +2,29 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{SampleFormat, StreamConfig};
 use rustfft::{FftPlanner, num_complex::Complex};
 use std::sync::{Arc, Mutex};
+use std::f32::consts::PI;
 
-const SAMPLE_RATE: f32 = 44100.0; // Standard audio sample rate
+const SAMPLE_RATE: f32 = 44100.0; // Standard sample rate
 const MIN_FREQUENCY: f32 = 20.0;  // Ignore frequencies below 20 Hz
 const MAX_FREQUENCY: f32 = 20000.0; // Ignore extreme false frequencies
-const MIN_AMPLITUDE: f32 = 0.01; // Ignore silence / very low volumes
+const MIN_AMPLITUDE: f32 = 0.02; // Ignore low-volume noise
+const FFT_SIZE: usize = 2048; // Larger FFT window for better resolution
 
 fn main() {
     let host = cpal::default_host();
 
-    // Print available input/output devices
+    // Print available devices
     println!("Available input devices:");
     for device in host.input_devices().unwrap() {
         println!("- {}", device.name().unwrap_or("Unknown".to_string()));
     }
-    
+
     println!("\nAvailable output devices:");
     for device in host.output_devices().unwrap() {
         println!("- {}", device.name().unwrap_or("Unknown".to_string()));
     }
 
-    // Select input device (Virtual Cable preferred)
+    // Select preferred input device (VB-Audio Virtual Cable)
     let device = host
         .input_devices()
         .expect("Failed to get input devices")
@@ -51,8 +53,8 @@ fn main() {
                 let mut buffer = data_clone.lock().unwrap();
                 buffer.extend_from_slice(data);
 
-                if buffer.len() >= 1024 {
-                    let freq = analyze_frequency(&buffer[..1024]);
+                if buffer.len() >= FFT_SIZE {
+                    let freq = analyze_frequency(&buffer[..FFT_SIZE]);
 
                     let mut note_playing = note_clone.lock().unwrap();
                     
@@ -81,21 +83,32 @@ fn main() {
     std::thread::sleep(std::time::Duration::from_secs(30));
 }
 
-/// Analyze frequency using FFT
+/// Apply Hanning window and compute FFT to detect dominant frequency
 fn analyze_frequency(samples: &[f32]) -> f32 {
     let mean: f32 = samples.iter().sum::<f32>() / samples.len() as f32;
     let centered_samples: Vec<f32> = samples.iter().map(|&s| s - mean).collect();
 
-    // Check amplitude threshold to detect silence
+    // Check amplitude to ignore silence
     let amplitude = centered_samples.iter().map(|&x| x.abs()).sum::<f32>() / centered_samples.len() as f32;
     if amplitude < MIN_AMPLITUDE {
-        return 0.0; // Return 0 Hz when no note is played
+        return 0.0; // Ignore background noise
     }
 
-    let mut planner = FftPlanner::new();
-    let fft = planner.plan_fft_forward(centered_samples.len());
+    // Apply Hanning window
+    let hann_window: Vec<f32> = (0..samples.len())
+        .map(|i| 0.5 * (1.0 - (2.0 * PI * i as f32 / (samples.len() - 1) as f32).cos()))
+        .collect();
 
-    let mut buffer: Vec<Complex<f32>> = centered_samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+    let windowed_samples: Vec<f32> = centered_samples
+        .iter()
+        .zip(hann_window.iter())
+        .map(|(s, w)| s * w)
+        .collect();
+
+    let mut planner = FftPlanner::new();
+    let fft = planner.plan_fft_forward(windowed_samples.len());
+
+    let mut buffer: Vec<Complex<f32>> = windowed_samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
     fft.process(&mut buffer);
 
     let magnitude_spectrum: Vec<f32> = buffer.iter().map(|c| c.norm()).collect();
