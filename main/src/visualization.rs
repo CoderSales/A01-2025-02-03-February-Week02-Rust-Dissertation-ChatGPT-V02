@@ -8,6 +8,11 @@ pub struct Visualization {
 }
 
 impl Visualization {
+    pub fn new() -> Self {
+        Self {
+            audio: AudioProcessor::new(),
+        }
+    }
     fn detect_chord(frequency: f64) -> String {
         let note_frequencies = [
             ("C", 261.63), ("C#", 277.18), ("D", 293.66), ("D#", 311.13),
@@ -18,7 +23,7 @@ impl Visualization {
         let mut closest_note = "Unknown";
         let mut min_diff = f64::MAX;
 
-        for (note, &freq) in note_frequencies.iter() {
+        for (note, freq) in note_frequencies.iter() {
             let diff = (freq - frequency).abs();
             if diff < min_diff {
                 min_diff = diff;
@@ -63,6 +68,7 @@ impl eframe::App for Visualization {
 
             ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
             ui.label(format!("Chord: {}", Visualization::detect_chord(dominant_freq)));
+            ui.add(egui::Button::new("Example"));
         });
 
         ctx.request_repaint();
