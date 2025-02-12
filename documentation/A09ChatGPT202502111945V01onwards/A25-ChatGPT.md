@@ -531,3 +531,51 @@ Analyse
 Playback Recorded Audio
 🎉 Now the system can analyze and play back recorded sound! 🚀
 ```
+
+## Notes
+
+### From rust-lang documentation:
+
+#### Structs used in audio.rs
+
+- [std::fs > Struct File](https://doc.rust-lang.org/std/fs/struct.File.html) is "an object providing access to an open file on the filesystem."
+
+- From [std::io > Struct BufReader](https://doc.rust-lang.org/std/io/struct.BufReader.html), "The BufReader<R> struct adds buffering to any reader."
+
+This is because "It can be excessively inefficient to work directly with a Read instance. For example, every call to read on TcpStream results in a system call. A BufReader<R> performs large, infrequent reads on the underlying Read and maintains an in-memory buffer of the results."
+
+### Rodio
+
+[Crate rodio](https://docs.rs/rodio/latest/rodio/) is an "Audio playback library."
+
+"The main concept of this library is the Source trait, which represents a sound (streaming or not). In order to play a sound, there are three steps:
+
+- Create an **object** that represents the **streaming sound**. It can be a sine wave, a buffer, a decoder, etc. or even your own type that implements the Source trait.
+
+- **Get** an **output stream handle** **to** a **physical device**. For example, get a **stream** **to** the **system’s default sound device** with **OutputStream::try_default()**
+
+- Call **.play_raw(source)** **on** the **output stream handle**.
+
+The play_raw function expects the source to produce f32s, which may not be the case. If you get a compilation error, try calling .convert_samples() on the source to fix it.
+
+For example, here is how you would play an audio file:"
+
+```rust
+use std::fs::File;
+use std::io::BufReader;
+use rodio::{Decoder, OutputStream, source::Source};
+
+// Get an output stream handle to the default physical sound device.
+// Note that no sound will be played if _stream is dropped
+let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+// Load a sound from a file, using a path relative to Cargo.toml
+let file = BufReader::new(File::open("examples/music.ogg").unwrap());
+// Decode that sound file into a source
+let source = Decoder::new(file).unwrap();
+// Play the sound directly on the device
+stream_handle.play_raw(source.convert_samples());
+
+// The sound plays in a separate audio thread,
+// so we need to keep the main thread alive while it's playing.
+std::thread::sleep(std::time::Duration::from_secs(5));
+```

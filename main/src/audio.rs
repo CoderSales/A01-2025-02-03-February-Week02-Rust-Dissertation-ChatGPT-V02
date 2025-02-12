@@ -1,18 +1,19 @@
 use std::sync::{Arc, Mutex};
 use rustfft::{FftPlanner, num_complex::Complex};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use std::fs::File;
+use std::io::{BufReader, Write};
+use rodio::{Decoder, OutputStream, Sink};
 
 const CHUNK_SIZE: usize = 256;
 const SAMPLE_RATE: f64 = 44100.0;
 
-// Ensure SAMPLE_RATE is used:
-// let sample_rate = SAMPLE_RATE;  // ✅ Now used
-
-pub struct AudioProcessor {  // ✅ Mark as public
+pub struct AudioProcessor {
     pub waveform: Arc<Mutex<Vec<f64>>>,
     pub fft_result: Arc<Mutex<Vec<f64>>>,
     pub dominant_frequency: Arc<Mutex<f64>>,
-    stream: Option<cpal::Stream>,  // ✅ Add optional stream
+    stream: Option<cpal::Stream>,
+    recorded_audio: Arc<Mutex<Vec<f32>>>, // ✅ Store recorded audio
 }
 
 impl AudioProcessor {
@@ -20,12 +21,14 @@ impl AudioProcessor {
         let waveform = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE]));
         let fft_result = Arc::new(Mutex::new(vec![0.0; CHUNK_SIZE / 2]));
         let dominant_frequency = Arc::new(Mutex::new(0.0));
+        let recorded_audio = Arc::new(Mutex::new(Vec::new()));
 
-        Self { 
-            waveform, 
-            fft_result, 
-            dominant_frequency, 
-            stream: None,  // ✅ Default is no active stream
+        Self {
+            waveform,
+            fft_result,
+            dominant_frequency,
+            stream: None,
+            recorded_audio,
         }
     }
 
@@ -33,6 +36,7 @@ impl AudioProcessor {
         let waveform_clone = Arc::clone(&self.waveform);
         let fft_result_clone = Arc::clone(&self.fft_result);
         let dominant_frequency_clone = Arc::clone(&self.dominant_frequency);
+        let recorded_audio_clone = Arc::clone(&self.recorded_audio);
 
         let host = cpal::default_host();
         let device = host.default_input_device().expect("No input device found");
@@ -42,8 +46,11 @@ impl AudioProcessor {
             &config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
                 let mut waveform_data = waveform_clone.lock().unwrap();
+                let mut recorded_audio = recorded_audio_clone.lock().unwrap();
+
                 waveform_data.clear();
                 waveform_data.extend(data.iter().map(|&s| s as f64));
+                recorded_audio.extend(data.iter());
 
                 let mut fft_data = fft_result_clone.lock().unwrap();
                 *fft_data = AudioProcessor::compute_fft(&waveform_data);
@@ -56,14 +63,39 @@ impl AudioProcessor {
         ).unwrap();
 
         stream.play().unwrap();
-        self.stream = Some(stream);  // ✅ Store stream to allow stopping
+        self.stream = Some(stream);
     }
 
     pub fn stop_listening(&mut self) {
-        if let Some(stream) = self.stream.take() {  // ✅ Take stream first
+        if let Some(stream) = self.stream.take() {
             drop(stream);
-        }        
-        // self.stream = None;  // ✅ Drop the stream (stops recording)
+        }
+    }
+
+    pub fn play_recorded_audio(&self) {
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let sink = Sink::try_new(&stream_handle).unwrap();
+
+        let recorded_audio = self.recorded_audio.lock().unwrap();
+
+        let path = "recorded_audio.wav";
+        let mut file = File::create(path).unwrap();
+        let mut writer = hound::WavWriter::create(path, hound::WavSpec {
+            channels: 1,
+            sample_rate: SAMPLE_RATE as u32,
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
+        }).unwrap();
+
+        for &sample in recorded_audio.iter() {
+            writer.write_sample((sample * i16::MAX as f32) as i16).unwrap();
+        }
+        writer.finalize().unwrap();
+
+        let file = BufReader::new(File::open(path).unwrap());
+        let source = Decoder::new(file).unwrap();
+        sink.append(source);
+        sink.sleep_until_end();
     }
 
     fn compute_fft(samples: &[f64]) -> Vec<f64> {
