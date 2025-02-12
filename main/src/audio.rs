@@ -79,7 +79,6 @@ impl AudioProcessor {
         let recorded_audio = self.recorded_audio.lock().unwrap();
 
         let path = "recorded_audio.wav";
-        let mut file = File::create(path).unwrap();
         let mut writer = hound::WavWriter::create(path, hound::WavSpec {
             channels: 1,
             sample_rate: SAMPLE_RATE as u32,
