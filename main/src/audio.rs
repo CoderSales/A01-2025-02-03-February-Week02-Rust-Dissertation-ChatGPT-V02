@@ -6,9 +6,9 @@ const CHUNK_SIZE: usize = 256;
 const SAMPLE_RATE: f64 = 44100.0;
 
 // Ensure SAMPLE_RATE is used:
-let sample_rate = SAMPLE_RATE;  // ✅ Now used
+// let sample_rate = SAMPLE_RATE;  // ✅ Now used
 
-pub struct AudioProcessor {
+pub struct AudioProcessor {  // ✅ Mark as public
     pub waveform: Arc<Mutex<Vec<f64>>>,
     pub fft_result: Arc<Mutex<Vec<f64>>>,
     pub dominant_frequency: Arc<Mutex<f64>>,
@@ -60,11 +60,10 @@ impl AudioProcessor {
     }
 
     pub fn stop_listening(&mut self) {
-        self.stream = None;  // ✅ Drop the stream (stops recording)
-        if let Some(stream) = self.stream.take() {
-            drop(stream);  // ✅ Properly drop stream
-        }
-    
+        if let Some(stream) = self.stream.take() {  // ✅ Take stream first
+            drop(stream);
+        }        
+        // self.stream = None;  // ✅ Drop the stream (stops recording)
     }
 
     fn compute_fft(samples: &[f64]) -> Vec<f64> {

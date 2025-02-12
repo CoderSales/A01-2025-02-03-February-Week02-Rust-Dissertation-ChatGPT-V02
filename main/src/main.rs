@@ -1,4 +1,4 @@
-mod audio;
+pub mod audio;  // ✅ Make `audio.rs` accessible in `visualization.rs`
 mod visualization;
 
 use visualization::Visualization;

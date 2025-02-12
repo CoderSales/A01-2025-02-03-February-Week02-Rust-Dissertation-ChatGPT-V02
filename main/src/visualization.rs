@@ -74,15 +74,14 @@ impl eframe::App for Visualization {
                 println!("Button clicked!");
             }
             if ui.button("🎤 Listen").clicked() {
-                self.audio.start_listening();
+                self.audio.start_listening();  // ✅ Ensure `start_listening()` is called
                 self.is_listening = true;
             }
-            
             if ui.button("🛑 Stop Listening").clicked() {
-                self.audio.stop_listening();
+                self.audio.stop_listening();  // ✅ Ensure `stop_listening()` is called
                 self.is_listening = false;
             }
-                        
+                                    
         });
 
         ctx.request_repaint();
