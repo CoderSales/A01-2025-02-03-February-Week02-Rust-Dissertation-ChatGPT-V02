@@ -192,3 +192,58 @@ Next Steps
 🔜 Auto-detect musical note names (e.g., C4, A4, etc.).
 🚀 Try cargo test now and confirm if errors are resolved!
 
+## Note
+
+Before this:
+
+latest working code was at this commit:
+
+[Commit f2e9591](https://github.com/CoderSales/A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT/blob/f2e95914815ea552c444f62d3ac53ed99b23c43f/midi_freq_analyzer/src/main.rs)
+
+## Input
+
+### cargo test output
+
+error[E0583]: file not found for module `audio`
+ --> src\lib.rs:1:1
+  |
+1 | pub mod audio;
+  | ^^^^^^^^^^^^^^
+  |
+  = help: to create the module `audio`, create file "src\audio.rs" or "src\audio\mod.rs"
+  = note: if there is a `mod audio` elsewhere in the crate already, import it with `use crate::...` instead
+
+For more information about this error, try `rustc --explain E0583`.
+error: could not compile `midi_freq_analyzer` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `midi_freq_analyzer` (lib) due to 1 previous error
+
+### Possible issue
+
+is the fact that:
+
+Cargo.toml
+
+does not feature
+
+audio an issue?
+
+### Current toml
+
+[package]
+name = "midi_freq_analyzer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cpal = "0.15"
+rustfft = "6.1.0"
+fundsp = "0.14"
+
+### Priority
+
+compile without errors
+
+Err on the side of simple code.
+
+Try to avoid errors however.

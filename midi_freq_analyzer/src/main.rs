@@ -1,6 +1,5 @@
-mod audio;
-mod fft;
-
+use midi_freq_analyzer::audio;
+use midi_freq_analyzer::fft;
 use cpal::traits::StreamTrait;
 use std::sync::{Arc, Mutex};
 
