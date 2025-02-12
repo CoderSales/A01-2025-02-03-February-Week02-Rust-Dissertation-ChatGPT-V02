@@ -382,3 +382,73 @@ fn main() {
 
 ## Output
 
+Fixing Compilation Errors and Improving Stability
+🔧 Step 1: Fixing E0061 (Wrong number of arguments in build_input_stream)
+Cause:
+The build_input_stream function in cpal 0.15 requires 4 arguments but only 3 were provided.
+Solution: Add None as the 4th argument (Option<Duration>), which controls latency.
+Modify audio.rs
+rust
+Copy
+Edit
+let stream = device.build_input_stream(
+    &config,
+    move |data: &[f32], _: &cpal::InputCallbackInfo| {
+        let mut waveform_data = waveform_clone.lock().unwrap();
+        waveform_data.clear();
+        waveform_data.extend(data.iter().map(|&s| s as f64));
+
+        let mut fft_data = fft_result_clone.lock().unwrap();
+        *fft_data = AudioProcessor::compute_fft(&waveform_data);
+
+        let mut dominant_freq = dominant_frequency_clone.lock().unwrap();
+        *dominant_freq = AudioProcessor::find_dominant_frequency(&fft_data);
+    },
+    |err| eprintln!("Stream error: {:?}", err),
+    None, // ✅ Fix: Add missing fourth argument
+).unwrap();
+🔧 Step 2: Fixing E0277 and E0308 (Mismatched Types in Math Operations)
+Cause:
+SAMPLE_RATE was f32, but other values were f64.
+Rust does not allow mixing f32 and f64 in calculations.
+Solution: Convert all numbers in the formula to f64.
+Modify audio.rs
+rust
+Copy
+Edit
+const SAMPLE_RATE: f64 = 44100.0;  // ✅ Convert to f64
+
+fn find_dominant_frequency(fft_data: &[f64]) -> f64 {
+    let max_index = fft_data.iter()
+        .enumerate()
+        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+        .unwrap()
+        .0;
+    
+    (max_index as f64) * (SAMPLE_RATE / CHUNK_SIZE as f64) // ✅ Fix type mismatch
+}
+🔧 Step 3: Fixing E0308 in visualization.rs (Incorrect Tuple Destructuring in note_frequencies)
+Cause:
+note_frequencies.iter() returns &(&str, f64), but for (note, &freq) expected &str, f64.
+Solution: Remove & from freq.
+Modify visualization.rs
+rust
+Copy
+Edit
+for (note, freq) in note_frequencies.iter() { // ✅ Remove `&`
+    let diff = (freq - frequency).abs();  
+}
+🚀 Final Steps: Compile and Run
+Run:
+
+bash
+Copy
+Edit
+cargo check && cargo run
+Expected Outcome:
+✔ No more compiler errors
+✔ Audio & Video Playback Sync
+✔ Live Frequency Analysis
+✔ Real-Time Chord Detection
+
+Would you like to fine-tune latency, UI features, or move to packaging next? 🎵🚀
