@@ -1,12 +1,12 @@
 mod audio;
 mod fft;
 
-use cpal::traits::{StreamTrait};
+use cpal::traits::StreamTrait;
 use std::sync::{Arc, Mutex};
 
-const MIN_FREQUENCY: f32 = 20.0;  // Ignore frequencies below 20 Hz
-const MAX_FREQUENCY: f32 = 20000.0; // Ignore extreme false frequencies
-const FFT_SIZE: usize = 2048; // FFT size for resolution
+const MIN_FREQUENCY: f32 = 20.0;
+const MAX_FREQUENCY: f32 = 20000.0;
+const FFT_SIZE: usize = 2048;
 
 fn main() {
     let device = audio::get_audio_device();
@@ -21,7 +21,7 @@ fn main() {
 
     let data_clone = Arc::clone(&data);
     let note_clone = Arc::clone(&note_playing);
-    
+
     let stream = device.build_input_stream(
         &config,
         move |data: &[f32], _: &_| {
@@ -34,7 +34,7 @@ fn main() {
                 if !peaks.is_empty() {
                     let mut note_playing = note_clone.lock().unwrap();
 
-                    let fundamental = peaks[0].0; // The strongest frequency
+                    let fundamental = peaks[0].0;
                     if fundamental >= MIN_FREQUENCY && fundamental <= MAX_FREQUENCY {
                         if !*note_playing {
                             println!("Fundamental: {:.2} Hz", fundamental);

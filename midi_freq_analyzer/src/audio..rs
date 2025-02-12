@@ -4,7 +4,7 @@ use cpal::{StreamConfig, SampleFormat, Device};
 /// Selects the best available input device
 pub fn get_audio_device() -> Device {
     let host = cpal::default_host();
-    
+
     println!("Available input devices:");
     for device in host.input_devices().unwrap() {
         println!("- {}", device.name().unwrap_or("Unknown".to_string()));
