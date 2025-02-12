@@ -425,3 +425,86 @@ fn main() {
 
 ## Output
 
+Fixing Errors
+1️⃣ Error: let sample_rate = SAMPLE_RATE; in audio.rs
+vbnet
+Copy
+Edit
+error: expected item, found keyword `let`
+  |
+9 | let sample_rate = SAMPLE_RATE;  
+  | ^^^ consider using `const` or `static` instead of `let` for global variables
+Fix: You cannot use let at the top level in Rust.
+➡ Solution: Remove let sample_rate = SAMPLE_RATE; completely.
+SAMPLE_RATE is already being used inside functions, so there's no need to redefine it.
+
+2️⃣ Error: use crate::audio::AudioProcessor; Not Found
+latex
+Copy
+Edit
+error[E0432]: unresolved import `crate::audio::AudioProcessor`
+  |
+1 | use crate::audio::AudioProcessor;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `AudioProcessor` in `audio`
+Fix: This means that AudioProcessor is not public in audio.rs.
+➡ Solution: Mark AudioProcessor as public by adding pub before mod audio;.
+
+rust
+Copy
+Edit
+// main.rs
+pub mod audio;  // ✅ Make `audio.rs` accessible in `visualization.rs`
+mod visualization;
+Also, update audio.rs:
+
+rust
+Copy
+Edit
+pub struct AudioProcessor {  // ✅ Mark as public
+3️⃣ Fix: Stop Dropping Stream Before Taking It
+rust
+Copy
+Edit
+pub fn stop_listening(&mut self) {
+    self.stream = None;  // ❌ Drops stream early
+    if let Some(stream) = self.stream.take() {  // ❌ self.stream is already None
+        drop(stream);
+    }
+}
+Fix: Move .take() before setting None:
+
+rust
+Copy
+Edit
+pub fn stop_listening(&mut self) {
+    if let Some(stream) = self.stream.take() {  // ✅ Take stream first
+        drop(stream);
+    }
+}
+4️⃣ Fix: Ensure start_listening() is Called Properly
+Currently, pressing "Listen" does not start audio input.
+Fix: Modify Visualization:
+
+rust
+Copy
+Edit
+if ui.button("🎤 Listen").clicked() {
+    self.audio.start_listening();  // ✅ Ensure `start_listening()` is called
+    self.is_listening = true;
+}
+if ui.button("🛑 Stop Listening").clicked() {
+    self.audio.stop_listening();  // ✅ Ensure `stop_listening()` is called
+    self.is_listening = false;
+}
+Final Steps
+Remove let sample_rate = SAMPLE_RATE; ✅
+Make AudioProcessor public ✅
+Fix stop_listening() to prevent double dropping the stream ✅
+Ensure UI buttons correctly call start_listening() and stop_listening() ✅
+Now, re-run:
+
+sh
+Copy
+Edit
+cargo check && cargo run
+Let me know if any issues remain! 🚀
