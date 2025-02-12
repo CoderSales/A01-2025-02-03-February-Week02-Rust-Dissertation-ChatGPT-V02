@@ -319,6 +319,8 @@ ____
 
 Both produced errors model 2 moreso.
 
+model 1 preferred.
+
 ### Note 
 
 file sizes decreasing
