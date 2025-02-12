@@ -1,58 +1,22 @@
-use crate::audio::AudioProcessor;
-use eframe::egui::{self, CentralPanel, Button};
-use egui_plot::{Plot, Line, PlotPoints};
-
-pub struct Visualization {
-    audio: AudioProcessor,
-    is_listening: bool,  // ✅ Add listening state
-}
-
-impl Visualization {
-    pub fn new() -> Self {
-        Self {
-            audio: AudioProcessor::new(),
-            is_listening: false,  // ✅ Fix: Initialize field
-        }
-    }
-    fn detect_chord(frequency: f64) -> String {
-        let note_frequencies = [
-            ("C", 261.63), ("C#", 277.18), ("D", 293.66), ("D#", 311.13),
-            ("E", 329.63), ("F", 349.23), ("F#", 369.99), ("G", 392.00),
-            ("G#", 415.30), ("A", 440.00), ("A#", 466.16), ("B", 493.88),
-        ];
-        
-        let mut closest_note = "Unknown";
-        let mut min_diff = f64::MAX;
-
-        for (note, freq) in note_frequencies.iter() {
-            let diff = (freq - frequency).abs();
-            if diff < min_diff {
-                min_diff = diff;
-                closest_note = note;
-            }
-        }
-        
-        format!("Detected: {}", closest_note)
-    }
-}
-
 impl eframe::App for Visualization {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
             ui.heading("Live Audio Visualization");
 
+            // UI Buttons for Listening
             if ui.button("🎤 Listen").clicked() {
                 self.is_listening = true;
             }
-
             if ui.button("🛑 Stop Listening").clicked() {
                 self.is_listening = false;
             }
 
+            // Lock the data (Immutable Borrow)
             let waveform_data = self.audio.waveform.lock().unwrap();
             let fft_data = self.audio.fft_result.lock().unwrap();
             let dominant_freq = *self.audio.dominant_frequency.lock().unwrap();
 
+            // Display Plots
             Plot::new("Waveform").show(ui, |plot_ui| {
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
@@ -67,21 +31,23 @@ impl eframe::App for Visualization {
                 plot_ui.line(Line::new(points).name("FFT"));
             });
 
+            // Drop Immutable Locks Before Calling Mutating Methods
+            drop(waveform_data);
+            drop(fft_data);
+
+            // Display Detected Frequency & Chord
             ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
             ui.label(format!("Chord: {}", Visualization::detect_chord(dominant_freq)));
-            ui.add(egui::Button::new("Example"));
-            if ui.button("Example Button").clicked() {
-                println!("Button clicked!");
-            }
+
+            // ✅ Ensure buttons trigger `start_listening()` and `stop_listening()` safely
             if ui.button("🎤 Listen").clicked() {
-                self.audio.start_listening();  // ✅ Ensure `start_listening()` is called
+                self.audio.start_listening();
                 self.is_listening = true;
             }
             if ui.button("🛑 Stop Listening").clicked() {
-                self.audio.stop_listening();  // ✅ Ensure `stop_listening()` is called
+                self.audio.stop_listening();
                 self.is_listening = false;
             }
-                                    
         });
 
         ctx.request_repaint();
