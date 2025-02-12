@@ -11,11 +11,6 @@ impl Visualization {
     pub fn new() -> Self {
         Self {
             audio: AudioProcessor::new(),
-        }
-    }
-    pub fn new() -> Self {
-        Self {
-            audio: AudioProcessor::new(),
             is_listening: false,  // ✅ Fix: Initialize field
         }
     }
