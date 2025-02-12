@@ -12,8 +12,9 @@ fn main() {
 
     println!("Using input device: {}", device.name().unwrap());
 
-    let config: StreamConfig = device.default_input_config().unwrap().into();
+    let config = device.default_input_config().unwrap();
     let sample_format = config.sample_format();
+    let stream_config: StreamConfig = config.into();
 
     let data = Arc::new(Mutex::new(Vec::new()));
 
@@ -22,7 +23,7 @@ fn main() {
     let data_clone = Arc::clone(&data);
     let stream = match sample_format {
         SampleFormat::F32 => device.build_input_stream(
-            &config,
+            &stream_config,
             move |data: &[f32], _: &_| {
                 let mut buffer = data_clone.lock().unwrap();
                 buffer.extend_from_slice(data);
