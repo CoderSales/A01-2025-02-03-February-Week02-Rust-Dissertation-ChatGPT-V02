@@ -5,6 +5,7 @@ use audio::AudioVisualizer;
 use eframe::NativeOptions;
 use eframe::epaint::vec2;
 use eframe::egui;
+use rodio::Source;  // ✅ Fix: Import `Source` trait
 
 fn main() {
     let filename = "./test.wav";
@@ -18,11 +19,11 @@ fn main() {
     let sample_rate = reader.spec().sample_rate as f64;
     let audio_duration_secs = num_samples / sample_rate;
 
-    let _ = stream_handle.play_raw(source.convert_samples());
+    let _ = stream_handle.play_raw(source.convert_samples());  // ✅ Fix works now
 
     let options = NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size(vec2(800.0, 500.0)), // Adjusted aspect ratio
+            .with_inner_size(vec2(800.0, 500.0)), // ✅ Adjusted aspect ratio
         ..Default::default()
     };
 

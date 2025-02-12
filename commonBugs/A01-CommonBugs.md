@@ -44,3 +44,27 @@ error[E0597]: `audio_duration_secs` does not live long enough
 For more information about this error, try `rustc --explain E0597`.
 error: could not compile `main` (bin "main") due to 1 previous error
 
+## 3 [E0599]
+
+error[E0599]: no method named `convert_samples` found for struct `Decoder` in the current scope
+   --> src/main.rs:21:43
+    |
+21  |     let _ = stream_handle.play_raw(source.convert_samples());
+    |                                           ^^^^^^^^^^^^^^^
+    |
+   ::: C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\rodio-0.17.3\src\source\mod.rs:300:8
+    |
+300 |     fn convert_samples<D>(self) -> SamplesConverter<Self, D>
+    |        --------------- the method is available for `Decoder<BufReader<File>>` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `Source` which provides `convert_samples` is implemented but not in scope; perhaps you want to import it
+    |
+1   + use rodio::Source;
+    |
+help: there is a method `into_sample` with a similar name
+    |
+21  |     let _ = stream_handle.play_raw(source.into_sample());
+    |                                           ~~~~~~~~~~~
+
+For more information about this error, try `rustc --explain E0599`.
