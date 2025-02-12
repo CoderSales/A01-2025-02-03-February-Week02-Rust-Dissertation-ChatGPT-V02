@@ -8,6 +8,7 @@ pub struct Visualization {
     is_listening: bool,
     is_file_mode: bool,  // ✅ Toggle between live input & file
     last_analysis_time: Instant,
+    last_chord: String,
 }
 
 impl Visualization {
@@ -17,6 +18,7 @@ impl Visualization {
             is_listening: false,
             is_file_mode: false,  // ✅ Default to live input
             last_analysis_time: Instant::now(),
+            last_chord: "Unknown".to_string(),
         }
     }
 
@@ -53,6 +55,7 @@ impl eframe::App for Visualization {
             if ui.button("🛑 Stop Listening").clicked() {
                 self.audio.stop_listening();
                 self.is_listening = false;
+                self.audio.play_recorded_audio(); // ✅ Play recorded sound after stopping
             }
 
             if ui.button("🔄 Toggle Live/File").clicked() {
@@ -60,7 +63,9 @@ impl eframe::App for Visualization {
             }
 
             if ui.button("📊 Analyse").clicked() {
-                self.last_analysis_time = Instant::now();
+                let dominant_freq = *self.audio.dominant_frequency.lock().unwrap();
+                self.last_chord = Visualization::detect_chord(dominant_freq);
+                println!("Detected Chord: {}", self.last_chord);
             }
 
             let waveform_data = self.audio.waveform.lock().unwrap();
@@ -82,13 +87,7 @@ impl eframe::App for Visualization {
             });
 
             ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
-            ui.label(format!("Chord: {}", Visualization::detect_chord(dominant_freq)));
-
-            // Only analyze every 1 second
-            if self.last_analysis_time.elapsed() >= Duration::from_secs(1) {
-                println!("Analyzing audio...");
-                self.last_analysis_time = Instant::now();
-            }
+            ui.label(format!("Detected Chord: {}", self.last_chord));
         });
 
         ctx.request_repaint();
