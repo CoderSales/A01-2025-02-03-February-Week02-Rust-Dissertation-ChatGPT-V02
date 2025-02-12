@@ -107,3 +107,29 @@ Google Chrome Browser,
 - when the site is [midi.city](https://midi.city/)
 
 and give the frequency of the note being played in Hertz.
+
+## Note
+
+cd up to root above main/src
+
+before creating new app
+
+using cargo command.
+
+Then use command from Output below.
+
+## Output
+
+Run the following command inside the repository to create a new standalone Rust app:
+
+sh
+Copy
+Edit
+cargo new --bin midi_freq_analyzer
+Then, navigate to the new app’s directory:
+
+sh
+Copy
+Edit
+cd midi_freq_analyzer
+This will create a new Rust binary application inside the repository. Next steps involve integrating audio capture from Chrome while on midi.city and extracting frequency data.
