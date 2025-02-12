@@ -1,6 +1,6 @@
-use std::sync::{Arc, Mutex};
-use rustfft::{FftPlanner, num_complex::Complex};
-use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use std::fs::File;
+use std::io::{BufReader};
+use rodio::{Decoder, OutputStream, Sink};
 
 pub struct AudioProcessor {
     pub waveform: Arc<Mutex<Vec<f64>>>,
@@ -17,6 +17,26 @@ impl AudioProcessor {
             dominant_frequency: Arc::new(Mutex::new(0.0)),
             stream: None,
         }
+    }
+
+    fn compute_fft(samples: &[f64]) -> Vec<f64> {
+        let len = samples.len().next_power_of_two();
+        let mut planner = FftPlanner::new();
+        let fft = planner.plan_fft_forward(len);
+        let mut buffer: Vec<Complex<f64>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+        buffer.resize(len, Complex::new(0.0, 0.0));
+        fft.process(&mut buffer);
+        buffer.iter().take(len / 2).map(|c| c.norm()).collect()
+    }
+
+    fn find_dominant_frequency(fft_data: &[f64]) -> f64 {
+        let max_index = fft_data.iter()
+            .enumerate()
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .unwrap()
+            .0;
+        
+        (max_index as f64) * (44100.0 / 256.0)
     }
 
     pub fn start_listening(&mut self) {
@@ -53,5 +73,15 @@ impl AudioProcessor {
         if let Some(stream) = self.stream.take() {
             drop(stream);
         }
+    }
+
+    pub fn play_recorded_audio(&self) {
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let sink = Sink::try_new(&stream_handle).unwrap();
+
+        let file = BufReader::new(File::open("recorded_audio.wav").unwrap());
+        let source = Decoder::new(file).unwrap();
+        sink.append(source);
+        sink.sleep_until_end();
     }
 }
