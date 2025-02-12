@@ -1,12 +1,12 @@
 use std::sync::{Arc, Mutex};
+use rustfft::{FftPlanner, num_complex::Complex};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{Stream, StreamConfig};
 
 pub struct AudioProcessor {
     pub waveform: Arc<Mutex<Vec<f64>>>,
     pub fft_result: Arc<Mutex<Vec<f64>>>,
     pub dominant_frequency: Arc<Mutex<f64>>,
-    stream: Option<Stream>,
+    stream: Option<cpal::Stream>,
 }
 
 impl AudioProcessor {
@@ -20,13 +20,13 @@ impl AudioProcessor {
     }
 
     pub fn start_listening(&mut self) {
-        let host = cpal::default_host();
-        let device = host.default_input_device().expect("No input device found");
-        let config = device.default_input_config().unwrap().into();
-
         let waveform_clone = Arc::clone(&self.waveform);
         let fft_result_clone = Arc::clone(&self.fft_result);
         let dominant_frequency_clone = Arc::clone(&self.dominant_frequency);
+
+        let host = cpal::default_host();
+        let device = host.default_input_device().expect("No input device found");
+        let config = device.default_input_config().unwrap().into();
 
         let stream = device.build_input_stream(
             &config,
@@ -50,18 +50,8 @@ impl AudioProcessor {
     }
 
     pub fn stop_listening(&mut self) {
-        self.stream = None;  // Dropping the stream stops recording
-    }
-
-    fn compute_fft(samples: &[f64]) -> Vec<f64> {
-        samples.iter().map(|&s| s.abs()).collect() // Placeholder for FFT logic
-    }
-
-    fn find_dominant_frequency(fft_data: &[f64]) -> f64 {
-        fft_data.iter()
-            .enumerate()
-            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-            .map(|(index, _)| index as f64)
-            .unwrap_or(0.0)
+        if let Some(stream) = self.stream.take() {
+            drop(stream);
+        }
     }
 }

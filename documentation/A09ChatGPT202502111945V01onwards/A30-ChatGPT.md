@@ -248,6 +248,79 @@ error: could not compile `main` (bin "main") due to 1 previous error; 3 warnings
 
 ____
 
+warning: unused imports: `FftPlanner` and `num_complex::Complex`
+ --> src\audio.rs:2:15
+  |
+2 | use rustfft::{FftPlanner, num_complex::Complex};
+  |               ^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
 
+warning: unused import: `Button`
+ --> src\visualization.rs:2:40
+  |
+2 | use eframe::egui::{self, CentralPanel, Button};
+  |                                        ^^^^^^
+
+warning: unused import: `Duration`
+ --> src\visualization.rs:4:17
+  |
+4 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^
+
+error[E0599]: no function or associated item named `compute_fft` found for struct `AudioProcessor` in the current scope
+  --> src\audio.rs:39:45
+   |
+5  | pub struct AudioProcessor {
+   | ------------------------- function or associated item `compute_fft` not found for this struct
+...
+39 |                 *fft_data = AudioProcessor::compute_fft(&waveform_data);
+   |                                             ^^^^^^^^^^^ function or associated item not found in `AudioProcessor`
+   |
+note: if you're trying to build a new `AudioProcessor`, consider using `AudioProcessor::new` which returns `AudioProcessor`
+  --> src\audio.rs:13:5
+   |
+13 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no function or associated item named `find_dominant_frequency` found for struct `AudioProcessor` in the current scope
+  --> src\audio.rs:42:50
+   |
+5  | pub struct AudioProcessor {
+   | ------------------------- function or associated item `find_dominant_frequency` not found for this struct
+...
+42 |                 *dominant_freq = AudioProcessor::find_dominant_frequency(&fft_data);
+   |                                                  ^^^^^^^^^^^^^^^^^^^^^^^ function or associated item not found in `AudioProcessor`
+   |
+note: if you're trying to build a new `AudioProcessor`, consider using `AudioProcessor::new` which returns `AudioProcessor`
+  --> src\audio.rs:13:5
+   |
+13 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `play_recorded_audio` found for struct `AudioProcessor` in the current scope
+  --> src\visualization.rs:93:28
+   |
+93 |                 self.audio.play_recorded_audio(); // ✅ Play recorded sound after stopping
+   |                            ^^^^^^^^^^^^^^^^^^^ method not found in `AudioProcessor`
+   |
+  ::: src\audio.rs:5:1
+   |
+5  | pub struct AudioProcessor {
+   | ------------------------- method `play_recorded_audio` not found for this struct
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `main` (bin "main") generated 3 warnings
+error: could not compile `main` (bin "main") due to 3 previous errors; 3 warnings emitted
+
+____
+
+## Summary 
+
+Both produced errors model 2 moreso.
+
+### Note 
+
+file sizes decreasing
 
 ____
