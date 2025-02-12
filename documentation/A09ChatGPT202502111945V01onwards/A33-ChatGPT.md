@@ -133,3 +133,70 @@ Copy
 Edit
 cd midi_freq_analyzer
 This will create a new Rust binary application inside the repository. Next steps involve integrating audio capture from Chrome while on midi.city and extracting frequency data.
+
+## Input
+
+cd midi_freq_analyzer/src
+
+This creates hello world app.
+
+Next step is to:
+
+Take the audio in.
+
+This will use VBAudio (Already installed)
+
+Then, when user plays a note on the midi.city synthesizer,
+
+The program should analyze the frequency.
+
+And display the frequency in the command line.
+
+## Output
+
+Next Step: Capture Audio Input
+Add cpal and fundsp to Cargo.toml for audio input and frequency analysis:
+
+toml
+Copy
+Edit
+[dependencies]
+cpal = "0.15"
+fundsp = "0.14"
+Modify src/main.rs to list available audio input devices:
+
+rust
+Copy
+Edit
+use cpal::traits::{DeviceTrait, HostTrait};
+
+fn main() {
+    let host = cpal::default_host();
+    let devices = host.input_devices().expect("Failed to get input devices");
+
+    println!("Available input devices:");
+    for device in devices {
+        println!("{}", device.name().unwrap_or("Unknown device".to_string()));
+    }
+}
+Run the program:
+
+sh
+Copy
+Edit
+cargo run
+This will list available audio devices, including the Virtual Audio Cable. Confirm which device corresponds to VBAudio. Next step: capture audio and process frequencies.
+
+## Input
+
+Audio device software is:
+
+CABLE Input (VB-Audio Virtual Cable)
+
+(already installed and running).
+
+### Output of cargo run
+
+Available input devices:
+Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+CABLE Output (VB-Audio Virtual Cable)
