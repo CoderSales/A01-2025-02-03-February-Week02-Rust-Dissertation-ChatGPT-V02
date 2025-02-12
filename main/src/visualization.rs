@@ -70,6 +70,19 @@ impl eframe::App for Visualization {
             ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
             ui.label(format!("Chord: {}", Visualization::detect_chord(dominant_freq)));
             ui.add(egui::Button::new("Example"));
+            if ui.button("Example Button").clicked() {
+                println!("Button clicked!");
+            }
+            if ui.button("🎤 Listen").clicked() {
+                self.audio.start_listening();
+                self.is_listening = true;
+            }
+            
+            if ui.button("🛑 Stop Listening").clicked() {
+                self.audio.stop_listening();
+                self.is_listening = false;
+            }
+                        
         });
 
         ctx.request_repaint();
