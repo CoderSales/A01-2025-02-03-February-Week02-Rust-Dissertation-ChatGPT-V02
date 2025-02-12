@@ -161,3 +161,155 @@ Next Steps
 🔜 Implement real-time frequency visualization
 🔜 Allow user to select input device dynamically
 🚀 Try it out and let me know the results!
+
+## Input: Refine Frequency Analsysis of Working Code
+
+### cargo run Output
+
+Available input devices:
+- Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+- CABLE Output (VB-Audio Virtual Cable)
+
+Available output devices:
+- FxSound Speakers (FxSound Audio Enhancer)
+- CABLE Input (VB-Audio Virtual Cable)
+- Speakers (Realtek(R) Audio)
+
+Using input device: CABLE Output (VB-Audio Virtual Cable)
+
+Listening for audio... Press Ctrl+C to stop.
+Detected frequency: 64.60 Hz
+Detected frequency: 64.60 Hz
+Detected frequency: 64.60 Hz
+Detected frequency: 150.73 Hz
+Detected frequency: 150.73 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 64.60 Hz
+Detected frequency: 150.73 Hz
+Detected frequency: 64.60 Hz
+Detected frequency: 150.73 Hz
+Detected frequency: 64.60 Hz
+Detected frequency: 64.60 Hz
+Detected frequency: 64.60 Hz
+Detected frequency: 64.60 Hz
+Detected frequency: 150.73 Hz
+Detected frequency: 64.60 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 193.80 Hz
+Detected frequency: 107.67 Hz
+Detected frequency: 215.33 Hz
+Detected frequency: 107.67 Hz
+Detected frequency: 107.67 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 258.40 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 150.73 Hz
+Detected frequency: 150.73 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 301.46 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 150.73 Hz
+Detected frequency: 193.80 Hz
+Detected frequency: 193.80 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 236.87 Hz
+Detected frequency: 516.80 Hz
+Detected frequency: 258.40 Hz
+Detected frequency: 258.40 Hz
+Detected frequency: 279.93 Hz
+Detected frequency: 301.46 Hz
+Detected frequency: 667.53 Hz
+Detected frequency: 323.00 Hz
+Detected frequency: 344.53 Hz
+Detected frequency: 344.53 Hz
+Detected frequency: 344.53 Hz
+Detected frequency: 344.53 Hz
+Detected frequency: 344.53 Hz
+Detected frequency: 215.33 Hz
+Detected frequency: 215.33 Hz
+
+### Notes
+
+#### Positives
+
+Number of lines of Code increased, indicating nothing was left out
+
+from previoius version.
+
+No Compiler Warnings
+
+No Compiler Warnings
+
+Runs.
+
+#### Negatives
+
+It would be nice to have a second file with packages
+
+so that once these are set, they can be left alone.
+
+#### Next Step
+
+For a given note pressed:
+
+identify top harmonics
+
+likely fundamental frequency
+
+and
+
+likely overtones.
+
+This would be relevant for
+
+determining the type of instrument.
+
+Also for estimating what the note is.
+
+As, a C2 on a piano 
+
+and a C3 will share similar frequencies,
+
+although the bass frequency should be half 
+
+for the C2.
+
+However, this frequency may not be the loudest.
+
+Also, there may be some of the note
+
+G, which is the dominant as opposed to the tonic.
+
+(This is not meant to cause confusion with prior use of dominant meaning the principal frequency.)
+
+#### Possible stretch objective
+
+Add simple User interface to display
+
+main frequency peaks.
+
+May be necessary to apply filtering.
+
+##### Potential Drawbacks to this approach
+
+It is better to have a working simple product,
+
+than attempt to make an experimeental product
+
+which breaks the code and then results
+
+in a decrease in code complexity
+
+through oversimplification
+
+only to get back to working code.
+
+#### Add a Pause before answering
+
+Possibly do a 5 second pause before giving response to allow different factors to be weighed.
