@@ -111,7 +111,7 @@ A network error occurred. Please check your connection and try again. If this is
 
 ____
 
-## Output (Resent Input from A30 file)
+## Output (Re-sent Input from A30 file)
 
 ____
 
@@ -212,5 +212,331 @@ Compilation succeeds (cargo check passes).
 No missing method errors.
 Audio plays correctly after stopping.
 🚀 Now, everything should work as expected!
+
+____
+
+## cargo test Output
+
+____
+
+warning: unused imports: `FftPlanner` and `num_complex::Complex`
+ --> src\audio.rs:2:15
+  |
+2 | use rustfft::{FftPlanner, num_complex::Complex};
+  |               ^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `Button`
+ --> src\visualization.rs:2:40
+  |
+2 | use eframe::egui::{self, CentralPanel, Button};
+  |                                        ^^^^^^
+
+warning: unused import: `Duration`
+ --> src\visualization.rs:4:17
+  |
+4 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^
+
+error[E0599]: no function or associated item named `compute_fft` found for struct `AudioProcessor` in the current scope
+  --> src\audio.rs:39:45
+   |
+5  | pub struct AudioProcessor {
+   | ------------------------- function or associated item `compute_fft` not found for this struct
+...
+39 |                 *fft_data = AudioProcessor::compute_fft(&waveform_data);
+   |                                             ^^^^^^^^^^^ function or associated item not found in `AudioProcessor`
+   |
+note: if you're trying to build a new `AudioProcessor`, consider using `AudioProcessor::new` which returns `AudioProcessor`
+  --> src\audio.rs:13:5
+   |
+13 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no function or associated item named `find_dominant_frequency` found for struct `AudioProcessor` in the current scope
+  --> src\audio.rs:42:50
+   |
+5  | pub struct AudioProcessor {
+   | ------------------------- function or associated item `find_dominant_frequency` not found for this struct
+...
+42 |                 *dominant_freq = AudioProcessor::find_dominant_frequency(&fft_data);
+   |                                                  ^^^^^^^^^^^^^^^^^^^^^^^ function or associated item not found in `AudioProcessor`
+   |
+note: if you're trying to build a new `AudioProcessor`, consider using `AudioProcessor::new` which returns `AudioProcessor`
+  --> src\audio.rs:13:5
+   |
+13 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `play_recorded_audio` found for struct `AudioProcessor` in the current scope
+  --> src\visualization.rs:93:28
+   |
+93 |                 self.audio.play_recorded_audio(); // ✅ Play recorded sound after stopping
+   |                            ^^^^^^^^^^^^^^^^^^^ method not found in `AudioProcessor`
+   |
+  ::: src\audio.rs:5:1
+   |
+5  | pub struct AudioProcessor {
+   | ------------------------- method `play_recorded_audio` not found for this struct
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `main` (bin "main") generated 3 warnings
+error: could not compile `main` (bin "main") due to 3 previous errors; 3 warnings emitted
+
+steph@Laptop7JA MINGW64 ~/OneDrive/Documents/48-Rust/A06ChatGPT/A01-proj/A03Project01/A01-proj/A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT/main/src (main)
+$ cargo test
+   Compiling main v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\main)
+error[E0412]: cannot find type `Arc` in this scope
+ --> src\audio.rs:6:19
+  |
+6 |     pub waveform: Arc<Mutex<Vec<f64>>>,
+  |                   ^^^ not found in this scope
+  |
+help: consider importing this struct
+  |
+1 + use std::sync::Arc;
+  |
+
+error[E0412]: cannot find type `Mutex` in this scope
+ --> src\audio.rs:6:23
+  |
+6 |     pub waveform: Arc<Mutex<Vec<f64>>>,
+  |                       ^^^^^ not found in this scope
+  |
+help: consider importing one of these structs
+  |
+1 + use crate::egui::mutex::Mutex;
+  |
+1 + use std::sync::Mutex;
+  |
+1 + use egui::mutex::Mutex;
+  |
+
+error[E0412]: cannot find type `Arc` in this scope
+ --> src\audio.rs:7:21
+  |
+7 |     pub fft_result: Arc<Mutex<Vec<f64>>>,
+  |                     ^^^ not found in this scope
+  |
+help: consider importing this struct
+  |
+1 + use std::sync::Arc;
+  |
+
+error[E0412]: cannot find type `Mutex` in this scope
+ --> src\audio.rs:7:25
+  |
+7 |     pub fft_result: Arc<Mutex<Vec<f64>>>,
+  |                         ^^^^^ not found in this scope
+  |
+help: consider importing one of these structs
+  |
+1 + use crate::egui::mutex::Mutex;
+  |
+1 + use std::sync::Mutex;
+  |
+1 + use egui::mutex::Mutex;
+  |
+
+error[E0412]: cannot find type `Arc` in this scope
+ --> src\audio.rs:8:29
+  |
+8 |     pub dominant_frequency: Arc<Mutex<f64>>,
+  |                             ^^^ not found in this scope
+  |
+help: consider importing this struct
+  |
+1 + use std::sync::Arc;
+  |
+
+error[E0412]: cannot find type `Mutex` in this scope
+ --> src\audio.rs:8:33
+  |
+8 |     pub dominant_frequency: Arc<Mutex<f64>>,
+  |                                 ^^^^^ not found in this scope
+  |
+help: consider importing one of these structs
+  |
+1 + use crate::egui::mutex::Mutex;
+  |
+1 + use std::sync::Mutex;
+  |
+1 + use egui::mutex::Mutex;
+  |
+
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> src\audio.rs:15:23
+   |
+15 |             waveform: Arc::new(Mutex::new(vec![0.0; 256])),
+   |                       ^^^ use of undeclared type `Arc`
+   |
+help: consider importing this struct
+   |
+1  + use std::sync::Arc;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mutex`
+  --> src\audio.rs:15:32
+   |
+15 |             waveform: Arc::new(Mutex::new(vec![0.0; 256])),
+   |                                ^^^^^ use of undeclared type `Mutex`
+   |
+help: consider importing one of these structs
+   |
+1  + use crate::egui::mutex::Mutex;
+   |
+1  + use std::sync::Mutex;
+   |
+1  + use egui::mutex::Mutex;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> src\audio.rs:16:25
+   |
+16 |             fft_result: Arc::new(Mutex::new(vec![0.0; 128])),
+   |                         ^^^ use of undeclared type `Arc`
+   |
+help: consider importing this struct
+   |
+1  + use std::sync::Arc;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mutex`
+  --> src\audio.rs:16:34
+   |
+16 |             fft_result: Arc::new(Mutex::new(vec![0.0; 128])),
+   |                                  ^^^^^ use of undeclared type `Mutex`
+   |
+help: consider importing one of these structs
+   |
+1  + use crate::egui::mutex::Mutex;
+   |
+1  + use std::sync::Mutex;
+   |
+1  + use egui::mutex::Mutex;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> src\audio.rs:17:33
+   |
+17 |             dominant_frequency: Arc::new(Mutex::new(0.0)),
+   |                                 ^^^ use of undeclared type `Arc`
+   |
+help: consider importing this struct
+   |
+1  + use std::sync::Arc;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Mutex`
+  --> src\audio.rs:17:42
+   |
+17 |             dominant_frequency: Arc::new(Mutex::new(0.0)),
+   |                                          ^^^^^ use of undeclared type `Mutex`
+   |
+help: consider importing one of these structs
+   |
+1  + use crate::egui::mutex::Mutex;
+   |
+1  + use std::sync::Mutex;
+   |
+1  + use egui::mutex::Mutex;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `FftPlanner`
+  --> src\audio.rs:24:27
+   |
+24 |         let mut planner = FftPlanner::new();
+   |                           ^^^^^^^^^^ use of undeclared type `FftPlanner`
+   |
+help: consider importing this struct
+   |
+1  + use rustfft::FftPlanner;
+   |
+
+error[E0412]: cannot find type `Complex` in this scope
+  --> src\audio.rs:26:29
+   |
+26 |         let mut buffer: Vec<Complex<f64>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+   |                             ^^^^^^^ not found in this scope
+
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> src\audio.rs:43:30
+   |
+43 |         let waveform_clone = Arc::clone(&self.waveform);
+   |                              ^^^ use of undeclared type `Arc`
+   |
+help: consider importing this struct
+   |
+1  + use std::sync::Arc;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> src\audio.rs:44:32
+   |
+44 |         let fft_result_clone = Arc::clone(&self.fft_result);
+   |                                ^^^ use of undeclared type `Arc`
+   |
+help: consider importing this struct
+   |
+1  + use std::sync::Arc;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Arc`
+  --> src\audio.rs:45:40
+   |
+45 |         let dominant_frequency_clone = Arc::clone(&self.dominant_frequency);
+   |                                        ^^^ use of undeclared type `Arc`
+   |
+help: consider importing this struct
+   |
+1  + use std::sync::Arc;
+   |
+
+warning: unused import: `Duration`
+ --> src\visualization.rs:4:17
+  |
+4 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0433]: failed to resolve: use of undeclared type `Complex`
+  --> src\audio.rs:26:69
+   |
+26 |         let mut buffer: Vec<Complex<f64>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+   |                                                                     ^^^^^^^ use of undeclared type `Complex`
+
+error[E0433]: failed to resolve: use of undeclared type `Complex`
+  --> src\audio.rs:27:28
+   |
+27 |         buffer.resize(len, Complex::new(0.0, 0.0));
+   |                            ^^^^^^^ use of undeclared type `Complex`
+
+error[E0599]: no method named `default_input_device` found for struct `Host` in the current scope
+  --> src\audio.rs:48:27
+   |
+48 |         let device = host.default_input_device().expect("No input device found");
+   |                           ^^^^^^^^^^^^^^^^^^^^
+   |
+  ::: C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cpal-0.15.3\src\traits.rs:50:8
+   |
+50 |     fn default_input_device(&self) -> Option<Self::Device>;
+   |        -------------------- the method is available for `Host` here
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `HostTrait` which provides `default_input_device` is implemented but not in scope; perhaps you want to import it
+   |
+1  + use cpal::traits::HostTrait;
+   |
+help: there is a method `default_output_device` with a similar name
+   |
+48 |         let device = host.default_output_device().expect("No input device found");
+   |                           ~~~~~~~~~~~~~~~~~~~~~
+
+Some errors have detailed explanations: E0412, E0433, E0599.
+For more information about an error, try `rustc --explain E0412`.
+warning: `main` (bin "main" test) generated 1 warning
+error: could not compile `main` (bin "main" test) due to 20 previous errors; 1 warning emitted
 
 ____
