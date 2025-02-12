@@ -264,3 +264,20 @@ Verify if chord detection is accurate.
 🚀 Now, your program should analyze real-time audio from Chrome!
 
 ____
+
+## Instructions summary
+
+```bash
+✅ Next Steps
+Set up Virtual Audio Cable & ensure it works.
+Run the updated Rust program:
+sh
+Copy
+Edit
+cargo run
+Play chords on midi.city.
+Verify if chord detection is accurate.
+🚀 Now, your program should analyze real-time audio from Chrome!
+```
+
+
