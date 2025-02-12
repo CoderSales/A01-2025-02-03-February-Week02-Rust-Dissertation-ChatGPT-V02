@@ -8,11 +8,25 @@ pub struct Visualization {
 }
 
 impl Visualization {
-    pub fn new() -> Self {
-        Self { 
-            audio: AudioProcessor::new(),
-            is_listening: false,  // ✅ Default is not listening
+    fn detect_chord(frequency: f64) -> String {
+        let note_frequencies = [
+            ("C", 261.63), ("C#", 277.18), ("D", 293.66), ("D#", 311.13),
+            ("E", 329.63), ("F", 349.23), ("F#", 369.99), ("G", 392.00),
+            ("G#", 415.30), ("A", 440.00), ("A#", 466.16), ("B", 493.88),
+        ];
+        
+        let mut closest_note = "Unknown";
+        let mut min_diff = f64::MAX;
+
+        for (note, &freq) in note_frequencies.iter() {
+            let diff = (freq - frequency).abs();
+            if diff < min_diff {
+                min_diff = diff;
+                closest_note = note;
+            }
         }
+        
+        format!("Detected: {}", closest_note)
     }
 }
 

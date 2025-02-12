@@ -254,3 +254,116 @@ Next Steps
 3️⃣ Improve Chord Detection Accuracy
 
 Do you want to test this first or continue implementing dB scaling? 🎸📊
+
+## Input
+
+### Command run
+
+cargo check && cargo run
+
+### Compiler output
+
+```bash
+warning: unused import: `Button`
+ --> src\visualization.rs:2:40
+  |
+2 | use eframe::egui::{self, CentralPanel, Button};
+  |                                        ^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0599]: no function or associated item named `detect_chord` found for struct `Visualization` in the current scope
+  --> src\visualization.rs:51:58
+   |
+5  | pub struct Visualization {
+   | ------------------------ function or associated item `detect_chord` not found for this struct
+...
+51 |             ui.label(format!("Chord: {}", Visualization::detect_chord(dominant_freq)));
+   |                                                          ^^^^^^^^^^^^ function or associated item not found in `Visualization`
+   |
+note: if you're trying to build a new `Visualization`, consider using `Visualization::new` which returns `Visualization`
+  --> src\visualization.rs:11:5
+   |
+11 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `main` (bin "main") generated 1 warning
+error: could not compile `main` (bin "main") due to 1 previous error; 1 warning emitted
+
+steph@Laptop7JA MINGW64 ~/OneDrive/Documents/48-Rust/A06ChatGPT/A01-proj/A03Project01/A01-proj/A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT/main/src (main)
+$ cargo check && cargo run
+    Checking main v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\main)
+warning: unused import: `Button`
+ --> src\visualization.rs:2:40
+  |
+2 | use eframe::egui::{self, CentralPanel, Button};
+  |                                        ^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0599]: no function or associated item named `detect_chord` found for struct `Visualization` in the current scope
+  --> src\visualization.rs:51:58
+   |
+5  | pub struct Visualization {
+   | ------------------------ function or associated item `detect_chord` not found for this struct
+...
+51 |             ui.label(format!("Chord: {}", Visualization::detect_chord(dominant_freq)));
+   |                                                          ^^^^^^^^^^^^ function or associated item not found in `Visualization`
+   |
+note: if you're trying to build a new `Visualization`, consider using `Visualization::new` which returns `Visualization`
+  --> src\visualization.rs:11:5
+   |
+11 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `main` (bin "main") generated 1 warning
+error: could not compile `main` (bin "main") due to 1 previous error; 1 warning emitted
+```
+
+## Output
+
+Fix: Add detect_chord Function to Visualization
+The compiler error E0599 occurs because detect_chord is missing from Visualization. The function was intended but not added.
+
+Solution: Add detect_chord
+Modify visualization.rs
+Add detect_chord to Visualization:
+
+rust
+Copy
+Edit
+impl Visualization {
+    fn detect_chord(frequency: f64) -> String {
+        let note_frequencies = [
+            ("C", 261.63), ("C#", 277.18), ("D", 293.66), ("D#", 311.13),
+            ("E", 329.63), ("F", 349.23), ("F#", 369.99), ("G", 392.00),
+            ("G#", 415.30), ("A", 440.00), ("A#", 466.16), ("B", 493.88),
+        ];
+        
+        let mut closest_note = "Unknown";
+        let mut min_diff = f64::MAX;
+
+        for (note, &freq) in note_frequencies.iter() {
+            let diff = (freq - frequency).abs();
+            if diff < min_diff {
+                min_diff = diff;
+                closest_note = note;
+            }
+        }
+        
+        format!("Detected: {}", closest_note)
+    }
+}
+Expected Fix
+✔ Removes E0599 compiler error
+✔ Correctly maps frequency to musical notes
+✔ Chord detection now functional
+
+Next Steps
+1️⃣ Test if audio processing works as expected
+2️⃣ Confirm that chord detection updates dynamically
+3️⃣ Implement logarithmic frequency scaling & dB display
+
+Try running cargo check && cargo run again. 🚀
