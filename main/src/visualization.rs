@@ -1,10 +1,13 @@
-use crate::audio::AudioProcessor; 
-use eframe::egui::{self, CentralPanel, Button}; // ✅ Import `CentralPanel`
-use egui_plot::{Plot, Line, PlotPoints}; // ✅ Import `Plot`, `Line`, `PlotPoints`
+use crate::audio::AudioProcessor;
+use eframe::egui::{self, CentralPanel, Button};
+use egui_plot::{Plot, Line, PlotPoints};
+use std::time::{Duration, Instant};
 
 pub struct Visualization {
     audio: AudioProcessor,
-    is_listening: bool,  // ✅ Ensure `is_listening` is defined
+    is_listening: bool,
+    is_file_mode: bool,  // ✅ Toggle between live input & file
+    last_analysis_time: Instant,
 }
 
 impl Visualization {
@@ -12,6 +15,8 @@ impl Visualization {
         Self {
             audio: AudioProcessor::new(),
             is_listening: false,
+            is_file_mode: false,  // ✅ Default to live input
+            last_analysis_time: Instant::now(),
         }
     }
 
@@ -50,6 +55,14 @@ impl eframe::App for Visualization {
                 self.is_listening = false;
             }
 
+            if ui.button("🔄 Toggle Live/File").clicked() {
+                self.is_file_mode = !self.is_file_mode;
+            }
+
+            if ui.button("📊 Analyse").clicked() {
+                self.last_analysis_time = Instant::now();
+            }
+
             let waveform_data = self.audio.waveform.lock().unwrap();
             let fft_data = self.audio.fft_result.lock().unwrap();
             let dominant_freq = *self.audio.dominant_frequency.lock().unwrap();
@@ -70,6 +83,12 @@ impl eframe::App for Visualization {
 
             ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
             ui.label(format!("Chord: {}", Visualization::detect_chord(dominant_freq)));
+
+            // Only analyze every 1 second
+            if self.last_analysis_time.elapsed() >= Duration::from_secs(1) {
+                println!("Analyzing audio...");
+                self.last_analysis_time = Instant::now();
+            }
         });
 
         ctx.request_repaint();
