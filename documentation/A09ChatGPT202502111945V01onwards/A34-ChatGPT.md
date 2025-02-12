@@ -359,3 +359,162 @@ Live Visualization
 
 Plot real-time frequencies using egui or plotters.
 🚀 Try this out and confirm if notes are detected properly!
+
+## Input
+
+### cargo run Ouput
+
+Available input devices:
+- Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+- CABLE Output (VB-Audio Virtual Cable)
+
+Available output devices:
+- FxSound Speakers (FxSound Audio Enhancer)
+- CABLE Input (VB-Audio Virtual Cable)
+- Speakers (Realtek(R) Audio)
+
+Using input device: CABLE Output (VB-Audio Virtual Cable)
+
+Listening for audio... Press Ctrl+C to stop.
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 215.33 Hz
+Detected frequency: 215.33 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 43.07 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 43.07 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 172.27 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 215.33 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 215.33 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 43.07 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 43.07 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 43.07 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 86.13 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 215.33 Hz
+Detected frequency: 215.33 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 258.40 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 258.40 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 258.40 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 301.46 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 301.46 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 301.46 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 301.46 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 301.46 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+Detected frequency: 129.20 Hz
+
+### Notes
+
+#### Positives
+
+only displays frequency when key pressed
+
+#### Negatives
+
+sometimes different keys lead to same frequency, especially around 86 Hz as shown in output above.
