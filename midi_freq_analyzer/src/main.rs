@@ -4,6 +4,7 @@ use rustfft::{FftPlanner, num_complex::Complex};
 use std::sync::{Arc, Mutex};
 
 const SAMPLE_RATE: f32 = 44100.0; // Standard audio sample rate
+const MIN_FREQUENCY: f32 = 20.0;  // Ignore frequencies below 20 Hz (human hearing range)
 
 fn main() {
     let host = cpal::default_host();
@@ -33,7 +34,9 @@ fn main() {
 
                 if buffer.len() >= 1024 {
                     let freq = analyze_frequency(&buffer[..1024]);
-                    println!("Dominant frequency: {:.2} Hz", freq);
+                    if freq >= MIN_FREQUENCY {
+                        println!("Detected frequency: {:.2} Hz", freq);
+                    }
                     buffer.clear();
                 }
             },
@@ -52,10 +55,13 @@ fn main() {
 
 /// Analyze frequency using FFT
 fn analyze_frequency(samples: &[f32]) -> f32 {
-    let mut planner = FftPlanner::new();
-    let fft = planner.plan_fft_forward(samples.len());
+    let mean: f32 = samples.iter().sum::<f32>() / samples.len() as f32;
+    let centered_samples: Vec<f32> = samples.iter().map(|&s| s - mean).collect();
 
-    let mut buffer: Vec<Complex<f32>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+    let mut planner = FftPlanner::new();
+    let fft = planner.plan_fft_forward(centered_samples.len());
+
+    let mut buffer: Vec<Complex<f32>> = centered_samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
     fft.process(&mut buffer);
 
     let magnitude_spectrum: Vec<f32> = buffer.iter().map(|c| c.norm()).collect();
