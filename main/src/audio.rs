@@ -31,14 +31,15 @@ impl AudioProcessor {
                     let mut waveform_data = waveform_clone.lock().unwrap();
                     waveform_data.clear();
                     waveform_data.extend(data.iter().map(|&s| s as f64));
-
+            
                     let mut fft_data = fft_result_clone.lock().unwrap();
                     *fft_data = AudioProcessor::compute_fft(&waveform_data);
-
+            
                     let mut dominant_freq = dominant_frequency_clone.lock().unwrap();
                     *dominant_freq = AudioProcessor::find_dominant_frequency(&fft_data);
                 },
                 |err| eprintln!("Stream error: {:?}", err),
+                None, // ✅ Fix: Add missing fourth argument
             ).unwrap();
             stream.play().unwrap();
             loop { std::thread::sleep(std::time::Duration::from_millis(100)); }
@@ -64,6 +65,6 @@ impl AudioProcessor {
             .unwrap()
             .0;
         
-        (max_index as f64) * (SAMPLE_RATE as f64 / CHUNK_SIZE as f64) // ✅ Convert SAMPLE_RATE to f64
+        (max_index as f64) * (SAMPLE_RATE / CHUNK_SIZE as f64) // ✅ Fix type mismatch
     }    
 }
