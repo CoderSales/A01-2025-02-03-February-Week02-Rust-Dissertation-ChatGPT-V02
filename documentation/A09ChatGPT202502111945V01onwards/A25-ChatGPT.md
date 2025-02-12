@@ -243,3 +243,33 @@ Copy
 Edit
 cargo check && cargo run
 🎉 No more missing imports or struct errors! 🚀
+
+## Input
+
+### Next Steps 
+
+- Continue with Steps outlined and documented earlier in Chat
+
+- Add an Analyse button
+
+- Add a timer that records only 1 second of audio at a time, so that the amount of audio to be analysed is small
+
+### Issues
+
+No Button to switch between hard coded loaded file and recorded live audio
+
+### Positives
+
+- Live audio seems to have very little lag from visual display
+
+- Visual seems to go live when listen button is pressed
+
+- stop button seems to stop the visualisation of audio
+
+### Issues Continued
+
+- No analysis performed
+
+- No chord displayed
+
+- No audio out or playback of recorded sound.
