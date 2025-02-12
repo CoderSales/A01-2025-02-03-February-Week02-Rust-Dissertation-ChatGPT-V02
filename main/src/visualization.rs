@@ -13,6 +13,12 @@ impl Visualization {
             audio: AudioProcessor::new(),
         }
     }
+    pub fn new() -> Self {
+        Self {
+            audio: AudioProcessor::new(),
+            is_listening: false,  // ✅ Fix: Initialize field
+        }
+    }
     fn detect_chord(frequency: f64) -> String {
         let note_frequencies = [
             ("C", 261.63), ("C#", 277.18), ("D", 293.66), ("D#", 311.13),
