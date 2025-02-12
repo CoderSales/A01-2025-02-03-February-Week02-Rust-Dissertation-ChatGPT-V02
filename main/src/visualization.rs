@@ -88,6 +88,11 @@ impl eframe::App for Visualization {
 
             ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
             ui.label(format!("Detected Chord: {}", self.last_chord));
+            if ui.button("🛑 Stop Listening").clicked() {
+                self.audio.stop_listening();
+                self.audio.play_recorded_audio(); // ✅ Play recorded sound after stopping
+                self.is_listening = false;
+            }            
         });
 
         ctx.request_repaint();
