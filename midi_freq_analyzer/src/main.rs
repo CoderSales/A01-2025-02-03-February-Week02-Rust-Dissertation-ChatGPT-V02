@@ -1,6 +1,9 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{SampleFormat, StreamConfig};
+use rustfft::{FftPlanner, num_complex::Complex};
 use std::sync::{Arc, Mutex};
+
+const SAMPLE_RATE: f32 = 44100.0; // Standard audio sample rate
 
 fn main() {
     let host = cpal::default_host();
@@ -27,7 +30,12 @@ fn main() {
             move |data: &[f32], _: &_| {
                 let mut buffer = data_clone.lock().unwrap();
                 buffer.extend_from_slice(data);
-                println!("Captured {} samples", data.len());
+
+                if buffer.len() >= 1024 {
+                    let freq = analyze_frequency(&buffer[..1024]);
+                    println!("Dominant frequency: {:.2} Hz", freq);
+                    buffer.clear();
+                }
             },
             err_fn,
             None,
@@ -40,4 +48,19 @@ fn main() {
 
     println!("Listening for audio... Press Ctrl+C to stop.");
     std::thread::sleep(std::time::Duration::from_secs(10));
+}
+
+/// Analyze frequency using FFT
+fn analyze_frequency(samples: &[f32]) -> f32 {
+    let mut planner = FftPlanner::new();
+    let fft = planner.plan_fft_forward(samples.len());
+
+    let mut buffer: Vec<Complex<f32>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+    fft.process(&mut buffer);
+
+    let magnitude_spectrum: Vec<f32> = buffer.iter().map(|c| c.norm()).collect();
+    let max_index = magnitude_spectrum.iter().enumerate().max_by(|a, b| a.1.partial_cmp(b.1).unwrap()).unwrap().0;
+
+    let frequency = (max_index as f32) * (SAMPLE_RATE / samples.len() as f32);
+    frequency
 }

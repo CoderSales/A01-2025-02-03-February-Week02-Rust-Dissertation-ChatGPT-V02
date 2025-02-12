@@ -354,3 +354,103 @@ Captured 882 samples
 Captured 882 samples
 Captured 882 samples
 
+## Output
+
+Next Step: Frequency Analysis
+Now that audio capture works, integrate frequency detection using the real FFT (Fast Fourier Transform) to analyze the dominant frequency.
+
+1. Add dependencies in Cargo.toml:
+toml
+Copy
+Edit
+[dependencies]
+cpal = "0.15"
+rustfft = "6.1.0"
+2. Modify src/main.rs:
+rust
+Copy
+Edit
+use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use cpal::{SampleFormat, StreamConfig};
+use rustfft::{FftPlanner, num_complex::Complex};
+use std::sync::{Arc, Mutex};
+
+const SAMPLE_RATE: f32 = 44100.0; // Standard audio sample rate
+
+fn main() {
+    let host = cpal::default_host();
+    let device = host
+        .input_devices()
+        .expect("Failed to get input devices")
+        .find(|d| d.name().unwrap_or_default().contains("CABLE Output"))
+        .expect("VB-Audio Virtual Cable not found");
+
+    println!("Using input device: {}", device.name().unwrap());
+
+    let config = device.default_input_config().unwrap();
+    let sample_format = config.sample_format();
+    let stream_config: StreamConfig = config.into();
+
+    let data = Arc::new(Mutex::new(Vec::new()));
+
+    let err_fn = |err| eprintln!("Error: {:?}", err);
+
+    let data_clone = Arc::clone(&data);
+    let stream = match sample_format {
+        SampleFormat::F32 => device.build_input_stream(
+            &stream_config,
+            move |data: &[f32], _: &_| {
+                let mut buffer = data_clone.lock().unwrap();
+                buffer.extend_from_slice(data);
+
+                if buffer.len() >= 1024 {
+                    let freq = analyze_frequency(&buffer[..1024]);
+                    println!("Dominant frequency: {:.2} Hz", freq);
+                    buffer.clear();
+                }
+            },
+            err_fn,
+            None,
+        ),
+        _ => panic!("Unsupported sample format"),
+    }
+    .expect("Failed to create stream");
+
+    stream.play().expect("Failed to start stream");
+
+    println!("Listening for audio... Press Ctrl+C to stop.");
+    std::thread::sleep(std::time::Duration::from_secs(10));
+}
+
+/// Analyze frequency using FFT
+fn analyze_frequency(samples: &[f32]) -> f32 {
+    let mut planner = FftPlanner::new();
+    let fft = planner.plan_fft_forward(samples.len());
+
+    let mut buffer: Vec<Complex<f32>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+    fft.process(&mut buffer);
+
+    let magnitude_spectrum: Vec<f32> = buffer.iter().map(|c| c.norm()).collect();
+    let max_index = magnitude_spectrum.iter().enumerate().max_by(|a, b| a.1.partial_cmp(b.1).unwrap()).unwrap().0;
+
+    let frequency = (max_index as f32) * (SAMPLE_RATE / samples.len() as f32);
+    frequency
+}
+Run:
+sh
+Copy
+Edit
+cargo run
+Expected Output:
+When playing notes on midi.city, the program should print the dominant frequency detected.
+
+Example:
+
+yaml
+Copy
+Edit
+Dominant frequency: 440.00 Hz
+Dominant frequency: 261.63 Hz
+(These correspond to musical notes like A4 and C4.)
+
+Next step: Verify results and refine output filtering. 🚀
