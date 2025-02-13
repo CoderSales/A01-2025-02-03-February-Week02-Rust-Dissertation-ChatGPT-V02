@@ -45,3 +45,331 @@ for sample in samples {
 3️⃣ Confirm no missing warnings when truly silent.
 
 Let me know if adjustments are needed! 🎛🔊
+
+## Input
+
+### Here is Git Commit Message which will act as a High Level Summary of changes since last request
+
+Edit fft rs Suppress no sound warning
+
+when sound plays
+
+Issue
+
+Repetitive sound warning
+when no sound
+playing
+
+### cargo run output
+
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+___
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+__
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+_
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+
+### Evaluation of cargo run output
+
+#### Issue
+
+No significant sound ...
+
+should not repeat if it is the last item on screen
+
+### Next step
+
+Reduce frequency of printing volume to command line
