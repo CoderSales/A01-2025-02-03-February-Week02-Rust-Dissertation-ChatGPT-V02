@@ -223,3 +223,236 @@ if amplitude < MIN_PEAK_MAGNITUDE {
 3️⃣ If it's low but not zero, try lowering MIN_PEAK_MAGNITUDE (e.g., 2.0).
 
 Let me know the results! 🎙️🔊
+
+## Input
+
+### Issue
+
+when first ran 
+
+cargo out
+
+program started to hang after Build
+
+### Work around
+
+cargo test
+
+cargo build
+
+cargo run
+
+### Result
+
+program ran
+
+### cargo run output
+
+#### Start
+
+Available input devices:
+0: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: CABLE Output (VB-Audio Virtual Cable)
+Select an input device (Enter number): 0
+
+Using input device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+
+Capturing noise profile...
+Capturing noise for 5 seconds...
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00001
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00004
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00003
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00004
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00006
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00007
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00006
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00006
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00045
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00131
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00069
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00112
+
+#### middle
+
+Raw Amplitude: 0.14986
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.12194
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.10510
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.12159
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.14969
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.11841
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.07591
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.12892
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.12610
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.10518
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.09809
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.11973
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.12016
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.11339
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.11888
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.15703
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.19058
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.15156
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.14724
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.13649
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.11896
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.13323
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.13678
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.13260
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.21050
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.18344
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.07509
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.14259
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.14043
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.15081
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.15297
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.16370
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.16144
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.15089
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.08239
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.05057
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.05275
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.01596
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00311
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00328
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00458
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.01814
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.02545
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.02030
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.01125
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.01228
+
+#### end
+
+Raw Amplitude: 0.00001
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00004
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00002
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00005
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00005
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00003
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00002
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00001
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00001
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+error: process didn't exit successfully:
+
+#### Ctrl C used to end process
+
+Not an issue
+
+### Next Step
+
+Reduce to 2 seconds of noise capture
+
+add prompt for loud note amplitude
+
+add prompt for quiet note amplitude
+
+add prompt for low frequency note
+
+add prompt for high frequency note
+
+### Priority
+
+Try to avoid errors.
+
+Err on the side of caution.
+
+One small incremental change per response.

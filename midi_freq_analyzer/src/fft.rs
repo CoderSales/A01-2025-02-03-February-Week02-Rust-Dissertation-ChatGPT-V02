@@ -14,10 +14,16 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     let mean = samples.iter().sum::<f32>() / samples.len() as f32;
     let centered_samples: Vec<f32> = samples.iter().map(|&s| s - mean).collect();
 
+    // Compute raw amplitude (before FFT)
     let amplitude = centered_samples.iter().map(|&x| x.abs()).sum::<f32>() / centered_samples.len() as f32;
+
+    // Debug print to check if microphone is capturing sound
+    println!("Raw Amplitude: {:.5}", amplitude);
+
     if amplitude < MIN_PEAK_MAGNITUDE {
+        println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
         return vec![];
-    }
+    }    
 
     let hann_window: Vec<f32> = (0..FFT_SIZE)
         .map(|i| 0.5 * (1.0 - (2.0 * PI * i as f32 / (FFT_SIZE - 1) as f32).cos()))
