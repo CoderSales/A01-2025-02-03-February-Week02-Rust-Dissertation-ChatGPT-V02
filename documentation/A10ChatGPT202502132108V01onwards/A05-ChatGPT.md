@@ -373,3 +373,59 @@ should not repeat if it is the last item on screen
 ### Next step
 
 Reduce frequency of printing volume to command line
+
+## Output: Reduce Command Line Output Verbosity
+
+✅ Step 10: Reduce Command Line Output Verbosity
+🔹 Fix: Reduce Printing Frequency
+Modify the function to print fewer amplitude readings and prevent excessive "No Sound" warnings when already displayed.
+
+rust
+Copy
+Edit
+
+```rust
+fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool, frame: usize) {
+    let bars = (amplitude * 50.0) as usize;  // Scale output
+    let visual = "_".repeat(bars);
+
+    if frame % 10 == 0 {  // Reduce print frequency (every 10 frames)
+        if !visual.is_empty() {
+            println!("{}", visual);
+            *count = 0;
+            *last_warning = false;
+        } else {
+            *count += 1;
+        }
+    }
+
+    if *count >= 20 && !*last_warning {
+        println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+        *last_warning = true;
+    }
+}
+
+```
+
+
+✅ Integration
+Modify where display_amplitude() is called:
+
+```rust
+let mut count = 0;
+let mut last_warning = false;
+let mut frame = 0;
+
+for sample in samples {
+    display_amplitude(*sample, &mut count, &mut last_warning, frame);
+    frame += 1;
+}
+
+```
+
+🚀 Next Steps
+1️⃣ Test output reduction (should print less frequently).
+2️⃣ Ensure no excessive "No Sound" warnings appear back-to-back.
+3️⃣ Fine-tune print frequency if needed for readability.
+
+Let me know if adjustments are needed! 🎛🔊
