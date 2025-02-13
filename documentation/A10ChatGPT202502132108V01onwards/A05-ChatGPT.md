@@ -1,6 +1,6 @@
 # ChatGPT
 
-## Output
+## Output: Suppress Excess Warnings When Sound Detected
 
 Step 9: Suppress Redundant Warnings When Sound is Detected
 ✅ Fix: Suppress Consecutive "No Sound" Warnings
