@@ -231,3 +231,15 @@ running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
+### cargo build
+
+warning: constant `FFT_SIZE` is never used
+ --> src\fft.rs:6:7
+  |
+6 | const FFT_SIZE: usize = 2048; // Larger FFT window
+  |       ^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` on by default
+
+warning: `midi_freq_analyzer` (lib) generated 1 warning
+
