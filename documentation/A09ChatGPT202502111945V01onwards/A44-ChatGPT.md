@@ -78,3 +78,86 @@ Try it now! 🚀
 
 ## Input
 
+### Works program produces the following in Terminal
+
+Available input devices:
+- Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+- CABLE Output (VB-Audio Virtual Cable)
+
+Using input device: CABLE Output (VB-Audio Virtual Cable)
+
+Capturing noise profile...
+Capturing noise for 5 seconds...
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+Adjusted Fundamental: 430.66 Hz (A4)
+Adjusted Fundamental: 430.66 Hz
+Adjusted Fundamental: 882.86 Hz (A5)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 882.86 Hz (A5)
+Adjusted Fundamental: 882.86 Hz (A5)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 882.86 Hz (A5)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 882.86 Hz (A5)
+Adjusted Fundamental: 882.86 Hz
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 882.86 Hz (A5)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 882.86 Hz (A5)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 882.86 Hz (A5)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 710.60 Hz (F5)
+Adjusted Fundamental: 710.60 Hz
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 710.60 Hz (F5)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 710.60 Hz (F5)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 710.60 Hz (F5)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 710.60 Hz (F5)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 344.53 Hz (F4)
