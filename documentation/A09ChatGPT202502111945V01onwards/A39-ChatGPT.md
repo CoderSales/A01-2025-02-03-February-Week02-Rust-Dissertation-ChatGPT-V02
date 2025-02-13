@@ -183,3 +183,51 @@ Next Steps
 🔜 Implement frequency visualization (egui or plotters).
 🔜 Auto-detect musical note names (e.g., C4, A4, etc.).
 🚀 Try cargo test now and confirm if errors are resolved!
+
+## Input
+
+### Git commit messages as High Level Summary of Changes
+
+#### Last commit
+
+Add use cpal traits DeviceTrait Fix E0599
+
+#### Next commit
+
+Add Chat input include output of cargo test 
+
+Document fix 
+
+### Compiler cargo test command and output (ignore warnings)
+
+cargo test
+warning: constant `FFT_SIZE` is never used
+ --> src\fft.rs:6:7
+  |
+6 | const FFT_SIZE: usize = 2048; // Larger FFT window
+  |       ^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` on by default
+
+warning: `midi_freq_analyzer` (lib) generated 1 warning
+warning: `midi_freq_analyzer` (lib test) generated 1 warning (1 duplicate)
+   Compiling midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.66s
+     Running unittests src\lib.rs (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer\target\debug\deps\midi_freq_analyzer-517250f5ad323203.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer\target\debug\deps\midi_freq_analyzer-ca6252c05382c34e.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests midi_freq_analyzer
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
