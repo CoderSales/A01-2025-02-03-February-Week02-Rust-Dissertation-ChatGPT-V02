@@ -50,6 +50,8 @@ fn main() {
                     let adjusted_fundamental = subtract_noise(fundamental, &noise_profile);
 
                     if adjusted_fundamental >= MIN_FREQUENCY && adjusted_fundamental <= MAX_FREQUENCY {
+                        let note_name = frequency_to_note(adjusted_fundamental);
+                        println!("Adjusted Fundamental: {:.2} Hz ({})", adjusted_fundamental, note_name);
                         if !*note_playing {
                             println!("Adjusted Fundamental: {:.2} Hz", adjusted_fundamental);
                         }
@@ -77,11 +79,15 @@ fn subtract_noise(frequency: f32, noise_profile: &Vec<f32>) -> f32 {
         return frequency;
     }
 
-    let noise_avg = noise_profile.iter().sum::<f32>() / noise_profile.len() as f32;
-    let adjusted = (frequency - noise_avg).max(20.0); // Ensure it does not drop below 20Hz
+    // Calculate rolling noise average
+    let weight_factor = 0.8; // Give 80% weight to past noise, 20% to current
+    let rolling_noise_avg: f32 = noise_profile.iter().rev().take(10) // Use last 10 readings
+        .sum::<f32>() / 10.0; 
+
+    let adjusted = (frequency - rolling_noise_avg * weight_factor).max(20.0); // Adaptive subtraction
 
     if adjusted < MIN_FREQUENCY {
-        return 0.0; // Ignore if still too low
+        return 0.0; // Ignore too-low frequencies
     }
     adjusted
 }
@@ -152,3 +158,29 @@ fn load_noise_profile() -> Result<Vec<f32>, std::io::Error> {
 
     Ok(noise_profile)
 }
+
+/// Converts a frequency to the closest musical note
+fn frequency_to_note(frequency: f32) -> String {
+    let a4_freq = 440.0;
+    let semitone_ratio = 2.0_f32.powf(1.0 / 12.0);
+    
+    let mut closest_note = "A4".to_string();
+    let mut min_diff = f32::MAX;
+    
+    let note_names = [
+        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+    ];
+    
+    for i in -48..=48 { // Covers ~4 octaves up/down
+        let note_freq = a4_freq * semitone_ratio.powf(i as f32);
+        let diff = (frequency - note_freq).abs();
+        
+        if diff < min_diff {
+            min_diff = diff;
+            closest_note = format!("{}{}", note_names[((i + 9) % 12) as usize], 4 + (i + 9) / 12);
+        }
+    }
+    
+    closest_note
+}
+
