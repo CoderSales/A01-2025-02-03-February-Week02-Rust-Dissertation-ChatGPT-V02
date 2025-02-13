@@ -331,3 +331,19 @@ Next Steps
 🔜 Implement frequency visualization (egui or plotters).
 🔜 Auto-detect musical note names (e.g., C4, A4, etc.).
 🚀 Try cargo build now and confirm the warning is resolved!
+
+## Input 
+
+### No changes made
+
+Ignore warnings
+
+### Next step
+
+Take baseline frequency reading
+
+Then invert and subtract this noise profile
+
+Then subtract this from all future readings during run
+
+Save noise profile.
