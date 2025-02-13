@@ -161,3 +161,95 @@ Adjusted Fundamental: 344.53 Hz (F4)
 Adjusted Fundamental: 344.53 Hz (F4)
 Adjusted Fundamental: 344.53 Hz (F4)
 Adjusted Fundamental: 344.53 Hz (F4)
+
+## Output (Chat idea)
+
+✅ Next Steps: Filtering Duplicate Consecutive Detections
+🔍 Issue
+The program repeats the same note multiple times in a row.
+For example, Adjusted Fundamental: 344.53 Hz (F4) appears back-to-back.
+🚀 Solution: Only Print a New Note When It Changes
+Modify main.rs to track the last detected note and avoid printing consecutive duplicates.
+
+🔧 Updated Code (With Filtering)
+rust
+Copy
+Edit
+fn main() {
+    let device = audio::get_audio_device();
+    let config = audio::get_audio_config(&device);
+
+    println!("\nUsing input device: {}\n", device.name().unwrap());
+
+    let data = Arc::new(Mutex::new(Vec::new()));
+    let note_playing = Arc::new(Mutex::new(false));
+    let last_note = Arc::new(Mutex::new("".to_string())); // Track last note
+
+    let err_fn = |err| eprintln!("Error: {:?}", err);
+
+    let data_clone = Arc::clone(&data);
+    let note_clone = Arc::clone(&note_playing);
+    let last_note_clone = Arc::clone(&last_note);
+
+    let stream = device.build_input_stream(
+        &config,
+        move |data: &[f32], _: &_| {
+            let mut buffer = data_clone.lock().unwrap();
+            buffer.extend_from_slice(data);
+
+            if buffer.len() >= 2048 {
+                let peaks = fft::analyze_frequencies(&buffer[..2048]);
+
+                if !peaks.is_empty() {
+                    let mut note_playing = note_clone.lock().unwrap();
+                    let mut last_note = last_note_clone.lock().unwrap();
+
+                    let fundamental = peaks[0].0;
+                    let adjusted_fundamental = subtract_noise(fundamental, &noise_profile);
+                    let note_name = frequency_to_note(adjusted_fundamental);
+
+                    if adjusted_fundamental >= MIN_FREQUENCY && adjusted_fundamental <= MAX_FREQUENCY {
+                        // ✅ **Only print if the note has changed**
+                        if *last_note != note_name {
+                            println!("Adjusted Fundamental: {:.2} Hz ({})", adjusted_fundamental, note_name);
+                            *last_note = note_name.clone();
+                        }
+                        *note_playing = true;
+                    } else {
+                        *note_playing = false;
+                    }
+                }
+                buffer.clear();
+            }
+        },
+        err_fn,
+        None,
+    ).expect("Failed to create stream");
+
+    stream.play().expect("Failed to start stream");
+
+    println!("Listening for audio... Press Ctrl+C to stop.");
+    std::thread::sleep(std::time::Duration::from_secs(30));
+}
+✅ Why This Works
+1️⃣ Tracks the Last Note:
+
+Stores the last detected note (last_note) using an Arc<Mutex<String>>.
+2️⃣ Filters Consecutive Duplicates:
+
+Only prints if the detected note is different from the last one.
+3️⃣ Preserves Functionality:
+
+Does not interfere with fundamental detection.
+🚀 Expected Output After Fix
+bash
+Copy
+Edit
+Listening for audio... Press Ctrl+C to stop.
+Adjusted Fundamental: 452.20 Hz (A4)
+Adjusted Fundamental: 882.86 Hz (A5)
+Adjusted Fundamental: 344.53 Hz (F4)
+Adjusted Fundamental: 710.60 Hz (F5)
+✅ Duplicates removed, cleaner output!
+
+Try it now! 🚀
