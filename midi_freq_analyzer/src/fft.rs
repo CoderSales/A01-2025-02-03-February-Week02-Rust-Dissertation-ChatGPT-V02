@@ -22,7 +22,17 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     // println!("Raw Amplitude: {:.5}", display_amplitude(raw_amplitude));
     
     // raw_amplitude = amplitude;
-    display_amplitude(raw_amplitude);
+    // display_amplitude(raw_amplitude);
+
+    // Integration
+    // Modify where display_amplitude() is called to pass an iteration counter:
+    let mut count = 0;
+    // let samples = centered_samples;
+    // for sample in samples {
+    for sample in samples {
+        display_amplitude(*sample, count);
+        count += 1;
+    }
 
 
     if raw_amplitude < MIN_PEAK_MAGNITUDE {
@@ -102,8 +112,13 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     peaks
 }
 
-fn display_amplitude(raw_amplitude: f32) {
-    let bars = (raw_amplitude * 100.0) as usize; // Scale to fit visualization
-    let visual = "_".repeat(bars); // Dynamic length
+fn display_amplitude(amplitude: f32, count: usize) {
+    let bars = (amplitude * 100.0) as usize;
+    let visual = "_".repeat(bars);
     println!("{}", visual);
+
+    // Show warning only every 20th time
+    if count % 20 == 0 {
+        println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+    }
 }
