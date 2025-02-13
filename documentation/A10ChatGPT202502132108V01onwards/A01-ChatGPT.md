@@ -83,3 +83,37 @@ Revisit enhancements later, focusing on accuracy & real-time visualization.
 ## Chat Input
 
 Please Proceed.
+
+## Output
+
+📌 Next Steps: Enhancing Accuracy & Musicality
+We'll focus on three key areas to refine the system:
+
+1️⃣ Improve Frequency Accuracy
+🔹 Goal: Reduce over-quantization & improve precision.
+🔧 Steps:
+
+Verify FFT settings (window size, sample rate)
+Check if frequency rounding is affecting output.
+Apply Hann or Hamming windowing to improve spectral clarity.
+2️⃣ Enhance Note Recognition
+🔹 Goal: Reduce "Unknown" classifications & improve reliability.
+🔧 Steps:
+
+Expand frequency-to-note mapping with more precision.
+Add a tolerance range (±1 Hz) to smooth out minor variations.
+Print MIDI note number alongside note name for verification.
+3️⃣ Enable Chord Recognition
+🔹 Goal: Detect multiple simultaneous notes.
+🔧 Steps:
+
+Modify FFT peak analysis to capture top 2-3 dominant frequencies.
+Print multiple detected notes instead of just one.
+Implement a chord dictionary to recognize basic triads (Cmaj, Dmin, etc.).
+🚀 Next Move:
+Would you like to start with frequency accuracy, note recognition, or chord detection?
+Let me know, and we'll tackle it step by step! 🎵🔬
+
+## Input
+
+Please give code for next step
