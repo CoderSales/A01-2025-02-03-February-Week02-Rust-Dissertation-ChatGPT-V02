@@ -1,6 +1,6 @@
 # ChatGPT
 
-## Output
+## Output Reduce Noise Capture Duration to 2 Seconds
 
 Step 5: Reduce Noise Capture Duration to 2 Seconds
 🔧 Change in fft.rs
