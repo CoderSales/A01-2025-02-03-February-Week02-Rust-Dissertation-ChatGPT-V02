@@ -187,3 +187,48 @@ Expected Impact:
 2️⃣ If successful, move to improving note recognition by refining frequency-to-note mapping.
 
 Let me know how it performs! 🎵📊
+
+## Input
+
+### cargo run output
+
+Available input devices:
+0: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: CABLE Output (VB-Audio Virtual Cable)
+Select an input device (Enter number): 0
+
+Using input device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+
+Capturing noise profile...
+Capturing noise for 5 seconds...
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+Adjusted Fundamental: 236.87 Hz (Unknown)
+Adjusted Fundamental: 129.20 Hz (C3)
+Adjusted Fundamental: 86.13 Hz (Unknown)
+Adjusted Fundamental: 64.60 Hz (C2)
+Adjusted Fundamental: 86.13 Hz (Unknown)
+
+### Comments
+
+after updating fft.rs
+
+There are still only certain frequencies given out.
+
+Only C notes appear to be detected and Unknowns.
+
+### Next step
+
+Print live exact frequencies
+
+Check if peak occurs
+
+Define peak mathematically
+
+Peak could be only a slight local increase to a max and decrease over a short frequency range
+
+on a logarithmic axis.
+
+### Positives
+
+Code runs
