@@ -330,7 +330,7 @@ to one twentieth
 
 current frequency.
 
-## Output
+## Output: Reduce Warning Frequency
 
 Step 8: Reduce Warning Frequency
 ✅ Fix: Limit Frequency of "No Significant Sound Detected" Messages
