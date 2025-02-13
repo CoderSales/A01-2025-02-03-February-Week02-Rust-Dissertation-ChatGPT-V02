@@ -28,7 +28,9 @@ This works well as a functional prototype—you're successfully detecting and fi
 
 Run more tests with different notes and see how well it generalizes. Great job! 🎵🚀
 
-## Input (ChatGPT Ideas)
+## Input (ChatGPT Ideas as start 3 from last ChatGPT Output)
+
+### From lst Output
 
 🔍 Next Steps (Optional Enhancements)
 ✅ Fine-Tune Threshold for Note Changes
@@ -44,3 +46,55 @@ You could format them with MIDI note numbers for more accuracy.
 Use a bar graph (via plotters or egui) to show frequency peaks visually.
 🚀 Final Takeaway
 This works well as a functional prototype—you're successfully detecting and filtering real-time musical notes from microphone input. 🏆🔥
+
+### Further enhancements to enqueue
+
+-
+
+Add ability to choose between available input devices.
+
+Currently these are:
+
+Available input devices:
+- Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+- CABLE Output (VB-Audio Virtual Cable)
+
+Using input device: CABLE Output (VB-Audio Virtual Cable)
+
+This could be done by prommpting for a number at start
+
+-
+
+Detect two notes
+
+- Only record 2 seconds of input
+
+-
+
+Currently not saving noise profile
+
+- Detect file, if present skip noise capture
+
+### Priority
+
+Try not to break the file
+
+Try to make it clear what modifications to make
+
+- where to put new code
+
+Try not to reduce code functionality
+
+If in doubt
+
+ask and state generally what parts of code are in memory
+
+and where there are gaps in code knowledge
+
+so that I can supplement
+
+as needed with relevant 
+
+code from
+
+codebase.
