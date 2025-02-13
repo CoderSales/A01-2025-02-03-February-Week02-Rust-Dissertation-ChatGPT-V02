@@ -219,3 +219,40 @@ fn analyze_amplitude(samples: &[f32]) {
 ### Note
 
 This was added at the end of the `main.rs` file
+
+## Output
+
+Step 7: Ensure analyze_amplitude() is Called & Modify Output Representation
+✅ Fix 1: Ensure Function is Called
+Modify main.rs to call analyze_amplitude() with collected samples.
+Locate where amplitudes are stored and insert:
+
+rust
+Copy
+Edit
+// Call analyze_amplitude where samples are stored
+analyze_amplitude(&samples);
+✅ Fix 2: Reduce Verbose Output (Graphical Representation)
+Modify how amplitudes are displayed instead of raw numbers:
+
+rust
+Copy
+Edit
+fn display_amplitude(amplitude: f32) {
+    let bars = (amplitude * 100.0) as usize; // Scale to fit visualization
+    let visual = "_".repeat(bars); // Dynamic length
+    println!("{}", visual);
+}
+✅ Integration:
+Inside the loop where amplitudes are printed:
+
+rust
+Copy
+Edit
+display_amplitude(raw_amplitude);
+🚀 Next Steps
+1️⃣ Test if analyze_amplitude() is called.
+2️⃣ Verify simplified visual output (_ or _____).
+3️⃣ Adjust scaling factor for better visualization.
+
+Let me know if results need tweaking! 🎛📊
