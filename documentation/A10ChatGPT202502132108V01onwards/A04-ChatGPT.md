@@ -146,3 +146,76 @@ fn analyze_amplitude(samples: &[f32]) {
 3️⃣ Confirm results with real sound tests
 
 Let me know if you want any adjustments! 🎤📊
+
+## Input
+
+### cargo run output
+
+Raw Amplitude: 0.00010
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00005
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00001
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+Raw Amplitude: 0.00000
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+
+### Issues
+
+This output is verbose
+
+### Future Step
+
+edit amplitude display to be
+
+_
+
+for low volume
+
+and
+
+_____
+
+for high volume
+
+### Note
+
+not clear if this method is called
+
+```rust
+
+fn analyze_amplitude(samples: &[f32]) {
+    if samples.is_empty() {
+        println!("No audio recorded.");
+        return;
+    }
+
+    let min = samples.iter().cloned().fold(f32::INFINITY, f32::min);
+    let max = samples.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
+    let mean = samples.iter().sum::<f32>() / samples.len() as f32;
+
+    let mut sorted_samples = samples.to_vec();
+    sorted_samples.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let median = if sorted_samples.len() % 2 == 0 {
+        (sorted_samples[sorted_samples.len() / 2 - 1] + sorted_samples[sorted_samples.len() / 2]) / 2.0
+    } else {
+        sorted_samples[sorted_samples.len() / 2]
+    };
+
+    println!(
+        "🔍 Amplitude Analysis - Min: {:.5}, Max: {:.5}, Mean: {:.5}, Median: {:.5}",
+        min, max, mean, median
+    );
+}
+
+
+
+```
+
+### Note
+
+This was added at the end of the `main.rs` file
