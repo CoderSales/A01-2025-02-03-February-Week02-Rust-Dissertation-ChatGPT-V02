@@ -120,9 +120,10 @@ fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig) -> 
 
     stream.play().expect("Failed to start stream");
 
-    println!("Capturing noise for 5 seconds...");
-    std::thread::sleep(std::time::Duration::from_secs(5));
-
+    println!("Capturing noise for 2 seconds...");
+    std::thread::sleep(std::time::Duration::from_secs(2));
+    println!("Noise profile captured.");
+    
     let buffer = data.lock().unwrap();
     if buffer.len() >= 2048 {
         let mut raw_noise = fft::analyze_frequencies(&buffer[..2048])
