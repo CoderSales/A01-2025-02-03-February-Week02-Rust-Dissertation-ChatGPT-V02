@@ -46,7 +46,7 @@ for sample in samples {
 
 Let me know if adjustments are needed! 🎛🔊
 
-## Input
+## Input: Reduce command line output verbosity
 
 ### Here is Git Commit Message which will act as a High Level Summary of changes since last request
 
