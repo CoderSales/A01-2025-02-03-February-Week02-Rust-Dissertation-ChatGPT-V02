@@ -138,3 +138,8 @@ cargo build
 cargo run
 
 all run without error
+
+### Priority
+
+Create prompt summarising next steps without code to finish up for now.
+
