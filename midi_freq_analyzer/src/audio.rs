@@ -1,5 +1,5 @@
 use cpal::traits::{DeviceTrait, HostTrait};
-use cpal::{StreamConfig, SampleFormat, Device};
+use cpal::{StreamConfig, Device};
 
 /// Selects the best available input device
 pub fn get_audio_device() -> Device {
