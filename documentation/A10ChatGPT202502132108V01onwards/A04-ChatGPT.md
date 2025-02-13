@@ -329,3 +329,40 @@ Decrease frequency of this
 to one twentieth 
 
 current frequency.
+
+## Output
+
+Step 8: Reduce Warning Frequency
+✅ Fix: Limit Frequency of "No Significant Sound Detected" Messages
+Modify the warning message to appear once every 20 iterations instead of every time:
+
+rust
+Copy
+Edit
+fn display_amplitude(amplitude: f32, count: usize) {
+    let bars = (amplitude * 100.0) as usize;
+    let visual = "_".repeat(bars);
+    println!("{}", visual);
+
+    // Show warning only every 20th time
+    if count % 20 == 0 {
+        println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+    }
+}
+✅ Integration
+Modify where display_amplitude() is called to pass an iteration counter:
+
+rust
+Copy
+Edit
+let mut count = 0;
+for sample in samples {
+    display_amplitude(*sample, count);
+    count += 1;
+}
+🚀 Next Steps
+1️⃣ Test if warnings appear less frequently (1/20th rate).
+2️⃣ Ensure amplitude bars display correctly.
+3️⃣ Adjust threshold if needed.
+
+Let me know if further tuning is needed! 🎛📉
