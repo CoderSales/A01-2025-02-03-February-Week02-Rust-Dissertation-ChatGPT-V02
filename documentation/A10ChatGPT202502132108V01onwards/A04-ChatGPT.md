@@ -259,3 +259,73 @@ Let me know if results need tweaking! 🎛📊
 
 ## Input
 
+### cargo run
+
+#### command line output showing audio amplitude
+
+__________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+__________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+____________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+____________________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+___________________________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+_______________________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+____________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+__________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+_______
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+_______
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+_________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+_____________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+___________________________________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+________________________________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+______________________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+__________________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+____________________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+___________________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+________
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+___
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+__
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+_
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+
+⚠️ No significant sound detected! Try increasing volume or checking microphone input.
+
+#### Issue
+
+No significant sound
+
+occurs too frequently
+
+Decrease frequency of this 
+
+to one twentieth 
+
+current frequency.
