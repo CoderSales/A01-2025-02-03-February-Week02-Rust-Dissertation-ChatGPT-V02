@@ -99,3 +99,42 @@ cargo run
 ✅ Code compiles & runs without breaking features
 
 🚀 Try cargo run now! Let me know if anything breaks.
+
+## Input
+
+### cargo run output
+
+Available input devices:
+0: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: CABLE Output (VB-Audio Virtual Cable)
+Select an input device (Enter number): 0
+
+Using input device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+
+Capturing noise profile...
+Capturing noise for 5 seconds...
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+Adjusted Fundamental: 64.60 Hz (C2)
+Adjusted Fundamental: 86.13 Hz (Unknown)
+Adjusted Fundamental: 129.20 Hz (C3)
+Adjusted Fundamental: 64.60 Hz (C2)
+Adjusted Fundamental: 86.13 Hz (Unknown)
+Adjusted Fundamental: 64.60 Hz (C2)
+Adjusted Fundamental: 86.13 Hz (Unknown)
+
+### notes from manual test
+
+singing into mic seems to give only C notes or unknown
+
+Also it seems unlikely that the notes sung are exactly as quantized as 86.13 or 64.60 repeatedly.
+
+### Improvements
+
+cargo test
+
+cargo build
+
+cargo run
+
+all run without error

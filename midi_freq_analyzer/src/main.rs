@@ -10,7 +10,7 @@ const MAX_FREQUENCY: f32 = 20000.0;
 const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
 
 fn main() {
-    let device = select_audio_device();
+    let device = audio::select_audio_device();
     let config = audio::get_audio_config(&device);
 
     println!("\nUsing input device: {}\n", device.name().unwrap());

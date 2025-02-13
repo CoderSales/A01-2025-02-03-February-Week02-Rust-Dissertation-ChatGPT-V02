@@ -1,9 +1,8 @@
-use cpal::traits::{DeviceTrait, HostTrait};
+use cpal::traits::{DeviceTrait, HostTrait}; // ✅ Fix import
 use cpal::{StreamConfig, Device};
-
 use std::io;
-use cpal::{Device, HostTrait};
 
+/// **User selects an input device at startup**
 pub fn select_audio_device() -> Device {
     let host = cpal::default_host();
     let devices: Vec<_> = host.input_devices().unwrap().collect();
@@ -20,11 +19,11 @@ pub fn select_audio_device() -> Device {
     io::stdin().read_line(&mut input).unwrap();
     let index = input.trim().parse::<usize>().unwrap_or(0);
 
-    devices.get(index).expect("Invalid selection, using default.").clone()
+    devices.get(index).cloned().expect("Invalid selection, using default.")
 }
 
 
-/// Selects the best available input device
+/// **Gets default input device if user skips selection**
 pub fn get_audio_device() -> Device {
     let host = cpal::default_host();
 
@@ -41,7 +40,7 @@ pub fn get_audio_device() -> Device {
         .expect("No suitable audio input device found")
 }
 
-/// Retrieves default audio config
+/// **Retrieves default audio config**
 pub fn get_audio_config(device: &Device) -> StreamConfig {
     device.default_input_config().unwrap().into()
 }
