@@ -17,11 +17,13 @@ fn main() {
 
     let data = Arc::new(Mutex::new(Vec::new()));
     let note_playing = Arc::new(Mutex::new(false));
+    let last_note = Arc::new(Mutex::new("".to_string())); // Track last note
 
     let err_fn = |err| eprintln!("Error: {:?}", err);
 
     let data_clone = Arc::clone(&data);
     let note_clone = Arc::clone(&note_playing);
+    let last_note_clone = Arc::clone(&last_note);
 
     // Step 1: Capture Baseline Noise
     let noise_profile = if let Ok(profile) = load_noise_profile() {
@@ -45,15 +47,21 @@ fn main() {
 
                 if !peaks.is_empty() {
                     let mut note_playing = note_clone.lock().unwrap();
+                    let mut last_note = last_note_clone.lock().unwrap();
 
                     let fundamental = peaks[0].0;
                     let adjusted_fundamental = subtract_noise(fundamental, &noise_profile);
+                    let note_name = frequency_to_note(adjusted_fundamental);
 
                     if adjusted_fundamental >= MIN_FREQUENCY && adjusted_fundamental <= MAX_FREQUENCY {
                         let note_name = frequency_to_note(adjusted_fundamental);
-                        println!("Adjusted Fundamental: {:.2} Hz ({})", adjusted_fundamental, note_name);
                         if !*note_playing {
-                            println!("Adjusted Fundamental: {:.2} Hz", adjusted_fundamental);
+                            
+                            // ✅ **Only print if the note has changed**
+                            if *last_note != note_name {
+                                println!("Adjusted Fundamental: {:.2} Hz ({})", adjusted_fundamental, note_name);
+                                *last_note = note_name.clone();
+                            }
                         }
                         *note_playing = true;
                     } else {
