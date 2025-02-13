@@ -369,7 +369,7 @@ Let me know if further tuning is needed! 🎛📉
 
 ## Input
 
-### Output showingamplitude represented with sporadic No sound warning
+### Output showing amplitude represented with sporadic No sound warning
 
 _
 _
