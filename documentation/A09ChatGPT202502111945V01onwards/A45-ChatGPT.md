@@ -30,7 +30,8 @@ Run more tests with different notes and see how well it generalizes. Great job! 
 
 ## Input (ChatGPT Ideas)
 
-Fine-Tune Threshold for Note Changes
+🔍 Next Steps (Optional Enhancements)
+✅ Fine-Tune Threshold for Note Changes
 
 Right now, small frequency variations can still trigger a "new" note print.
 Consider adding a tolerance range (e.g., ±1 Hz) before recognizing a new note.
