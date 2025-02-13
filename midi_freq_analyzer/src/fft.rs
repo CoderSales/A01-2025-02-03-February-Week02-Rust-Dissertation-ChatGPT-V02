@@ -27,10 +27,10 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     // Integration
     // Modify where display_amplitude() is called to pass an iteration counter:
     let mut count = 0;
-    // let samples = centered_samples;
-    // for sample in samples {
+    let mut last_warning = false;
+
     for sample in samples {
-        display_amplitude(*sample, count);
+        display_amplitude(*sample, &mut count, &mut last_warning);
         count += 1;
     }
 
@@ -112,13 +112,21 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     peaks
 }
 
-fn display_amplitude(amplitude: f32, count: usize) {
+fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool) {
     let bars = (amplitude * 100.0) as usize;
     let visual = "_".repeat(bars);
-    println!("{}", visual);
 
-    // Show warning only every 20th time
-    if count % 20 == 0 {
+    if !visual.is_empty() {
+        println!("{}", visual);
+        *count = 0;  // Reset silent counter on sound
+        *last_warning = false;
+    } else {
+        *count += 1;
+    }
+
+    // Show warning only if there was NO sound for X iterations
+    if *count >= 20 && !*last_warning {
         println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+        *last_warning = true;  // Avoid repeating until next sound is detected
     }
 }
