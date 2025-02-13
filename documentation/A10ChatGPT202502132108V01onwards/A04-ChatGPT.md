@@ -220,7 +220,7 @@ fn analyze_amplitude(samples: &[f32]) {
 
 This was added at the end of the `main.rs` file
 
-## Output
+## Output: Ensure analyze_amplitude() is Called & Modify Output Representation
 
 Step 7: Ensure analyze_amplitude() is Called & Modify Output Representation
 ✅ Fix 1: Ensure Function is Called
