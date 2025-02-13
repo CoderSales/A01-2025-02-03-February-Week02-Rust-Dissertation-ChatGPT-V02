@@ -223,6 +223,8 @@ fn analyze_amplitude(samples: &[f32]) {
         "🔍 Amplitude Analysis - Min: {:.5}, Max: {:.5}, Mean: {:.5}, Median: {:.5}",
         min, max, mean, median
     );
+
+    analyze_amplitude(&samples);
 }
 
 

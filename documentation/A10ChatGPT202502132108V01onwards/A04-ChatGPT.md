@@ -256,3 +256,6 @@ display_amplitude(raw_amplitude);
 3️⃣ Adjust scaling factor for better visualization.
 
 Let me know if results need tweaking! 🎛📊
+
+## Input
+

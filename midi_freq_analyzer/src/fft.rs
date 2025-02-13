@@ -15,12 +15,17 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     let centered_samples: Vec<f32> = samples.iter().map(|&s| s - mean).collect();
 
     // Compute raw amplitude (before FFT)
-    let amplitude = centered_samples.iter().map(|&x| x.abs()).sum::<f32>() / centered_samples.len() as f32;
+    let raw_amplitude = centered_samples.iter().map(|&x| x.abs()).sum::<f32>() / centered_samples.len() as f32;
 
     // Debug print to check if microphone is capturing sound
-    println!("Raw Amplitude: {:.5}", amplitude);
+    // println!("Raw Amplitude: {:.5}", amplitude);
+    // println!("Raw Amplitude: {:.5}", display_amplitude(raw_amplitude));
+    
+    // raw_amplitude = amplitude;
+    display_amplitude(raw_amplitude);
 
-    if amplitude < MIN_PEAK_MAGNITUDE {
+
+    if raw_amplitude < MIN_PEAK_MAGNITUDE {
         println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
         return vec![];
     }    
@@ -95,4 +100,10 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     }
 
     peaks
+}
+
+fn display_amplitude(raw_amplitude: f32) {
+    let bars = (raw_amplitude * 100.0) as usize; // Scale to fit visualization
+    let visual = "_".repeat(bars); // Dynamic length
+    println!("{}", visual);
 }
