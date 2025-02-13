@@ -1,6 +1,6 @@
 use midi_freq_analyzer::audio;
 use midi_freq_analyzer::fft;
-use cpal::traits::StreamTrait;
+use cpal::traits::{StreamTrait, DeviceTrait}; // ✅ Import DeviceTrait
 use std::sync::{Arc, Mutex};
 
 const MIN_FREQUENCY: f32 = 20.0;
@@ -11,7 +11,7 @@ fn main() {
     let device = audio::get_audio_device();
     let config = audio::get_audio_config(&device);
 
-    println!("\nUsing input device: {}\n", device.name().unwrap());
+    println!("\nUsing input device: {}\n", device.name().unwrap()); // ✅ Now works
 
     let data = Arc::new(Mutex::new(Vec::new()));
     let note_playing = Arc::new(Mutex::new(false));
@@ -21,7 +21,7 @@ fn main() {
     let data_clone = Arc::clone(&data);
     let note_clone = Arc::clone(&note_playing);
 
-    let stream = device.build_input_stream(
+    let stream = device.build_input_stream( // ✅ Now works
         &config,
         move |data: &[f32], _: &_| {
             let mut buffer = data_clone.lock().unwrap();
