@@ -190,3 +190,36 @@ One small incremental step per response.
 Gradual change to file.
 
 Try not to introduce errors which would stop compiling.
+
+## Output
+
+Step 4: Verify Sound is Being Recorded
+🔍 Issue: No Peaks Detected
+Possibility 1: Microphone input is too low (silence threshold too high).
+Possibility 2: samples array might be empty or not receiving audio properly.
+🔧 Solution: Print Raw Amplitude Before FFT
+Add this debug check before performing FFT to confirm that sound is actually captured.
+
+✅ Update in fft.rs (Before FFT Calculation)
+rust
+Copy
+Edit
+let mean = samples.iter().sum::<f32>() / samples.len() as f32;
+let centered_samples: Vec<f32> = samples.iter().map(|&s| s - mean).collect();
+
+// Compute raw amplitude (before FFT)
+let amplitude = centered_samples.iter().map(|&x| x.abs()).sum::<f32>() / centered_samples.len() as f32;
+
+// Debug print to check if microphone is capturing sound
+println!("Raw Amplitude: {:.5}", amplitude);
+
+if amplitude < MIN_PEAK_MAGNITUDE {
+    println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+    return vec![];
+}
+🚀 Next Step
+1️⃣ Run cargo run again and observe the Raw Amplitude value.
+2️⃣ If it's near zero, the microphone isn't recording properly.
+3️⃣ If it's low but not zero, try lowering MIN_PEAK_MAGNITUDE (e.g., 2.0).
+
+Let me know the results! 🎙️🔊
