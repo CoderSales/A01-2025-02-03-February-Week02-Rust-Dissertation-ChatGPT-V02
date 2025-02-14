@@ -34,11 +34,13 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     let mut last_warning = false;
     let mut frame = 0;
 
+    let mut silence_duration = Duration::ZERO; // Track silence duration
+
     for sample in samples {
-        display_amplitude(*sample, &mut count, &mut last_warning, frame, &mut last_warning_time);
+        display_amplitude(*sample, &mut count, &mut last_warning, &mut last_warning_time, &mut silence_duration);
         frame += 1;
         count += 1;
-    }
+    }   
 
 
     if raw_amplitude < MIN_PEAK_MAGNITUDE {
@@ -118,26 +120,24 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     peaks
 }
 
-fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool, frame: usize, last_warning_time: &mut Instant) {
+fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool, last_warning_time: &mut Instant, silence_duration: &mut Duration) {
     let bars = (amplitude * 50.0) as usize;  
     let visual = "_".repeat(bars);
     
-    if frame % 10 == 0 {  
-        if !visual.is_empty() {
-            println!("{}", visual);
-            *count = 0;
-            *last_warning = false;
-        } else {
-            *count += 1;
-        }
+    if !visual.is_empty() {
+        println!("{}", visual);
+        *count = 0;
+        *last_warning = false;
+        *silence_duration = Duration::ZERO; // Reset silence counter
+    } else {
+        *count += 1;
+        *silence_duration += Duration::from_secs(1); // Increase silence time
     }
 
-    // ✅ Print warning max 3 times per program run
-    if *count >= 20 && !*last_warning && frame % 300 == 0 {
-        let now = Instant::now();
-        if now.duration_since(*last_warning_time) >= Duration::from_secs(10) {
-            println!("\n⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
-            *last_warning_time = now; // Update last warning time
-        }
+    // Warn only if silence persists for 10+ seconds
+    if *count >= 20 && !*last_warning && *silence_duration >= Duration::from_secs(10) {
+        println!("\n⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+        *last_warning = true;
+        *last_warning_time = Instant::now(); // Update last warning time
     }
 }

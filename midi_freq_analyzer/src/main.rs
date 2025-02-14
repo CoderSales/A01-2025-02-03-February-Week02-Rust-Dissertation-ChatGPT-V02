@@ -59,22 +59,22 @@ fn main() {
 
             if buffer.len() >= 2048 {
                 let peaks = fft::analyze_frequencies(&buffer[..2048]);
-
+            
+                // Call amplitude analysis ✅
+                analyze_amplitude(&buffer[..2048]);  
+            
                 if !peaks.is_empty() {
                     let mut note_playing = note_clone.lock().unwrap();
                     let mut last_note = last_note_clone.lock().unwrap();
-
+            
                     let fundamental = peaks[0].0;
                     let adjusted_fundamental = subtract_noise(fundamental, &noise_profile);
                     let note_name = frequency_to_note(adjusted_fundamental);
-
+            
                     if adjusted_fundamental >= MIN_FREQUENCY && adjusted_fundamental <= MAX_FREQUENCY {
-                        let note_name = frequency_to_note(adjusted_fundamental);
-                        if !*note_playing {
-                            if *last_note != note_name {
-                                println!("Adjusted Fundamental: {:.2} Hz ({})", adjusted_fundamental, note_name);
-                                *last_note = note_name.clone();
-                            }
+                        if !*note_playing && *last_note != note_name {
+                            println!("Adjusted Fundamental: {:.2} Hz ({})", adjusted_fundamental, note_name);
+                            *last_note = note_name.clone();
                         }
                         *note_playing = true;
                     } else {
@@ -83,6 +83,7 @@ fn main() {
                 }
                 buffer.clear();
             }
+            
         },
         err_fn,
         None,
@@ -214,10 +215,19 @@ fn frequency_to_note(frequency: f32) -> String {
     closest_note
 }
 
+// use std::time::{Instant, Duration};  // Add at top of file
+
 fn analyze_amplitude(samples: &[f32]) {
-    if samples.is_empty() {
-        println!("No audio recorded.");
-        return;
+    static mut LAST_ANALYSIS_TIME: Option<Instant> = None;
+
+    let now = Instant::now();
+    unsafe {
+        if let Some(last_time) = LAST_ANALYSIS_TIME {
+            if now.duration_since(last_time) < Duration::from_secs(5) {
+                return;  // Skip print if less than 5 seconds since last output
+            }
+        }
+        LAST_ANALYSIS_TIME = Some(now);
     }
 
     let min = samples.iter().cloned().fold(f32::INFINITY, f32::min);
