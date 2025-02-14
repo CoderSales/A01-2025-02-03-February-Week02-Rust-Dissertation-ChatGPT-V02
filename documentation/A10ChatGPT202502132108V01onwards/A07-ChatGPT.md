@@ -347,3 +347,100 @@ Only warning shows continuously.
 ⚠️ No significant sound detected! Try increasing volume or checking microphone input.
 ⚠️ No significant sound detected! Try increasing volume or checking microphone input.
 
+## Output: Bug Fix No Sound Amplitude Detected
+
+🚨 Bug Fix: No Sound Amplitude Detected
+Issue: Only warning messages appear, even when the microphone has sound.
+Cause: compute_amplitude(samples) may always return 0, which triggers the warning.
+
+🛠 Fix: Debug Compute Amplitude
+🔹 Step 1: Print Amplitude Values
+Modify compute_amplitude() to print values and verify if amplitude is calculated correctly.
+
+```rust
+fn compute_amplitude(samples: &[f32]) -> f32 {
+    if samples.is_empty() {
+        println!("⚠️ No audio samples received!");
+        return 0.0;
+    }
+
+    let mean = samples.iter().sum::<f32>() / samples.len() as f32;
+    let centered_samples: Vec<f32> = samples.iter().map(|&s| s - mean).collect();
+    let amplitude = centered_samples.iter().map(|&x| x.abs()).sum::<f32>() / centered_samples.len() as f32;
+
+    // Debugging Output
+    println!("🔍 Debug: Amplitude Computed = {:.5}", amplitude);
+
+    amplitude
+}
+
+```
+
+🔹 Step 2: Debug Display Function
+Ensure amplitude visualization works.
+
+```rust
+fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool, frame: usize) {
+    let bars = (amplitude * 50.0) as usize;  // Scale output
+    let visual = "_".repeat(bars);
+
+    if frame % 10 == 0 {  // Reduce print frequency (every 10 frames)
+        if bars > 0 {
+            println!("{}", visual);
+            *count = 0;
+            *last_warning = false;
+        } else {
+            *count += 1;
+        }
+    }
+
+    if *count >= 20 && !*last_warning {
+        println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+        *last_warning = true;
+    }
+}
+
+```
+
+🔹 Step 3: Print Raw Samples
+Modify analyze_frequencies() to print first few samples and confirm they are not all zero.
+
+```rust
+pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
+    if samples.is_empty() {
+        println!("⚠️ No input audio detected.");
+        return vec![];
+    }
+
+    // Print first 10 samples for debugging
+    println!("🔍 Debug: First 10 Samples = {:?}", &samples.iter().take(10).collect::<Vec<&f32>>());
+
+    let amplitude = compute_amplitude(samples);
+
+    if amplitude < MIN_PEAK_MAGNITUDE {
+        println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+        return vec![];
+    }
+
+    let windowed_samples = apply_hann_window(samples);
+    let magnitude_spectrum = compute_fft(&windowed_samples);
+    let peaks = detect_peaks(&magnitude_spectrum);
+
+    peaks
+}
+```
+
+✅ Expected Outcome After Fix
+1️⃣ If audio is being detected, debug messages should show:
+
+First few samples
+Computed amplitude
+_ bars for visualization
+2️⃣ If samples are all zero, there may be an issue with microphone input capture.
+
+🚀 Next Steps
+1️⃣ Run cargo run and check debugging output.
+2️⃣ If amplitude is still zero, check the microphone settings.
+3️⃣ If amplitude prints but no _ bars appear, adjust display_amplitude().
+
+Let me know if the issue persists! 🚀🎛
