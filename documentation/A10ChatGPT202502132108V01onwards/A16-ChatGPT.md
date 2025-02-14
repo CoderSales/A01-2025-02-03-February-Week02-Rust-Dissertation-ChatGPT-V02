@@ -66,3 +66,38 @@ Decreases Warning Frequency: Ensures the warning is not spammed but still functi
 Issue is that regardless of these numbers, the warning prints multiple times per second when no audio in.
 
 Does this make sense?
+
+## Out
+
+Yes, that makes sense. The issue likely stems from how display_amplitude is being called within a loop that processes audio samples continuously. Even though you're checking the time difference, this function might still be called multiple times per second, resetting last_warning_time before 10 seconds have passed.
+
+Key Issue:
+analyze_frequencies() is running frequently, calling display_amplitude() multiple times.
+Even if the check for Duration::from_secs(10) is there, last_warning_time is being reset within each function call.
+The count variable might be getting reset too soon, allowing warnings to print rapidly.
+Fix (One-Line Change)
+Change this line:
+
+rust
+Copy
+Edit
+if now.duration_since(*last_warning_time) >= Duration::from_secs(10) {
+To:
+
+rust
+Copy
+Edit
+if *last_warning_time + Duration::from_secs(10) <= now {
+Why?
+Ensures last_warning_time is only updated when 10 seconds have actually passed.
+Prevents frequent resets due to analyze_frequencies() being called multiple times per second.
+Does not interfere with the rest of the logic.
+Next Steps If Issue Persists
+If this still doesn't work, we may need to move last_warning_time outside of analyze_frequencies() and maintain it as a persistent variable between function calls (e.g., using static mut or a global Mutex<Instant>). However, this one-line fix should work first.
+
+
+
+
+
+
+
