@@ -1,3 +1,12 @@
+# ChatGPT
+
+## Out
+
+### Chat Canvas
+
+#### Copied during next Chat out being generated
+
+```rust
 use rustfft::{FftPlanner, num_complex::Complex}; // Old
 use std::f32::consts::PI; // Old
 use std::sync::{Arc, Mutex}; // New
@@ -89,3 +98,7 @@ fn display_amplitude(amplitude: f32, silence_count: &mut usize, total_frames: &m
         println!("\nBass |{}\nMids |{}\nTreble |{}\n", bass, mids, treble); // Edited for vertical alignment
     }
 }
+
+```
+
+#### Output no 3 band eq
