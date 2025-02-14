@@ -117,3 +117,142 @@ fn display_amplitude(amplitude: f32) {
 3️⃣ Confirm "No sound" warning only prints once per silence event.
 
 This should fix E0425 while keeping the code safe. 🚀🔊 Let me know how it runs!
+
+## Input
+
+### cargo run output for new fft.rs code (Bug)
+
+```rust
+error[E0432]: unresolved import `lazy_static`
+ --> src\fft.rs:4:5
+  |
+4 | use lazy_static::lazy_static;
+  |     ^^^^^^^^^^^ help: a similar path exists: `fundsp::lazy_static`
+
+error[E0425]: cannot find value `LAST_WARNING` in this scope
+  --> src\fft.rs:69:28
+   |
+69 |     let mut last_warning = LAST_WARNING.lock().unwrap();
+   |                            ^^^^^^^^^^^^ not found in this scope
+
+warning: unused import: `std::sync::Mutex`
+ --> src\fft.rs:3:5
+  |
+3 | use std::sync::Mutex;
+  |     ^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+Some errors have detailed explanations: E0425, E0432.
+For more information about an error, try `rustc --explain E0425`.
+warning: `midi_freq_analyzer` (lib) generated 1 warning
+error: could not compile `midi_freq_analyzer` (lib) due to 2 previous errors; 1 warning emitted
+```
+
+### Reverting to original cargo run output (Works)
+
+```rust
+use rustfft::{FftPlanner, num_complex::Complex};
+use std::f32::consts::PI;
+use std::sync::Mutex;
+use lazy_static::lazy_static;
+
+const SAMPLE_RATE: f32 = 44100.0;
+const MIN_PEAK_MAGNITUDE: f32 = 5.0;  // Ignore weak frequencies
+const MAX_PEAKS: usize = 10;          // Limit detected peaks
+const FFT_SIZE: usize = 2048;
+
+lazy_static! {
+    static ref LAST_WARNING: Mutex<bool> = Mutex::new(false);
+}
+
+// 1️⃣ Compute Amplitude (No excessive debug prints)
+fn compute_amplitude(samples: &[f32]) -> f32 {
+    if samples.is_empty() {
+        return 0.0;
+    }
+    let mean = samples.iter().sum::<f32>() / samples.len() as f32;
+    let centered_samples: Vec<f32> = samples.iter().map(|&s| s - mean).collect();
+    centered_samples.iter().map(|&x| x.abs()).sum::<f32>() / centered_samples.len() as f32
+}
+
+// 2️⃣ Apply Hann Window (Unchanged)
+fn apply_hann_window(samples: &[f32]) -> Vec<f32> {
+    let hann_window: Vec<f32> = (0..samples.len())
+        .map(|i| 0.5 * (1.0 - (2.0 * PI * i as f32 / (samples.len() - 1) as f32).cos()))
+        .collect();
+    samples.iter().zip(hann_window.iter()).map(|(s, w)| s * w).collect()
+}
+
+// 3️⃣ Compute FFT (Unchanged)
+fn compute_fft(samples: &[f32]) -> Vec<f32> {
+    let mut planner = FftPlanner::new();
+    let fft = planner.plan_fft_forward(samples.len());
+    let mut buffer: Vec<Complex<f32>> = samples.iter().map(|&s| Complex::new(s, 0.0)).collect();
+    fft.process(&mut buffer);
+    buffer.iter().map(|c| c.norm()).collect()
+}
+
+// 4️⃣ Detect Peaks (Unchanged)
+fn detect_peaks(magnitude_spectrum: &[f32]) -> Vec<(f32, f32)> {
+    let mut peaks: Vec<(f32, f32)> = vec![];
+    for i in 1..magnitude_spectrum.len() - 1 {
+        let freq = (i as f32) * (SAMPLE_RATE / FFT_SIZE as f32);
+        let prev = magnitude_spectrum[i - 1];
+        let curr = magnitude_spectrum[i];
+        let next = magnitude_spectrum[i + 1];
+
+        if curr > prev && curr > next && curr > MIN_PEAK_MAGNITUDE {
+            peaks.push((freq, curr));
+        }
+    }
+    peaks.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+    peaks.truncate(MAX_PEAKS);
+    peaks
+}
+
+// 5️⃣ Main Analyze Function (Now Avoids `unsafe`)
+pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
+    if samples.is_empty() {
+        println!("⚠️ No input audio detected.");
+        return vec![];
+    }
+
+    let amplitude = compute_amplitude(samples);
+
+    let mut last_warning = LAST_WARNING.lock().unwrap();
+
+    if amplitude < MIN_PEAK_MAGNITUDE {
+        if !*last_warning {
+            println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+            *last_warning = true;
+        }
+        return vec![];
+    } else {
+        *last_warning = false;  // Reset warning state when sound detected
+    }
+
+    let windowed_samples = apply_hann_window(samples);
+    let magnitude_spectrum = compute_fft(&windowed_samples);
+    let peaks = detect_peaks(&magnitude_spectrum);
+
+    peaks
+}
+
+// 6️⃣ Display Amplitude Bars (Fix Missing `_` Printing)
+fn display_amplitude(amplitude: f32) {
+    let bars = (amplitude * 50.0) as usize;
+    if bars > 0 {
+        println!("{}", "_".repeat(bars));
+    }
+}
+
+```
+
+### reduce verbosity of warning
+
+at start and end of program 
+
+display if no sound detected
+
+once
