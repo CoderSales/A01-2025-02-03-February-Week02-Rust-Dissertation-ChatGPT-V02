@@ -71,21 +71,25 @@ pub fn start_timer(silence_count: Arc<Mutex<usize>>, total_frames: Arc<Mutex<usi
 }
 // old, edited, last_warning removed:
 /// Display amplitude visualization and track silence
+// Edited: Live Amplitude Visualization with Vertical Bars
 fn display_amplitude(amplitude: f32, silence_count: &mut usize, total_frames: &mut usize) {
     *total_frames += 1; // Track total frames // New
 
     let bars = (amplitude * 50.0) as usize;
-    let bass = if bars > 30 { "█" } else { " " }; // Edited
-    let mids = if bars > 15 { "█" } else { " " }; // Edited
-    let treble = if bars > 5 { "█" } else { " " }; // Edited
+    let bass = if bars > 30 { "█" } else { "." }; // Edited: Ensure output
+    let mids = if bars > 15 { "█" } else { "." }; // Edited: Ensure output
+    let treble = if bars > 5 { "█" } else { "." }; // Edited: Ensure output
 
     // Track silence percentage // New
     if bars == 0 {
         *silence_count += 1;
     }
 
+    // Debugging output to confirm execution // New
+    println!("[DEBUG] Bars: {}, Bass: '{}', Mids: '{}', Treble: '{}'", bars, bass, mids, treble);
+
     // Limit refresh rate to every 50 frames (~0.5s) // Edited
     if *total_frames % 50 == 0 {
-        println!("\nBass |{}\nMids |{}\nTreble |{}\n", bass, mids, treble); // Edited for vertical alignment
+        println!("\nBass  |{}\nMids  |{}\nTreble|{}\n", bass, mids, treble); // Edited for vertical alignment
     }
 }
