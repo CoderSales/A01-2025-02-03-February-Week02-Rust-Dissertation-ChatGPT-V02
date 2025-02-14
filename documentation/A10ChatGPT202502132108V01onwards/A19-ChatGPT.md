@@ -65,3 +65,41 @@ low number of small code block(s)
 emphasis on avoiding errors
 
 incremental change
+
+### Out
+
+Next Steps Breakdown
+✅ Plan for Timer Method Integration
+Introduce a timer method
+
+Ensures that after stage 2 of the program has run, a summary is printed.
+Avoids constant intermediate prints, only showing final results.
+Modify analyze_amplitude() Summary Output
+
+Instead of printing multiple times, print once at the end of recording.
+Replace ‘No Significant Sound Detected’ Warning
+
+Instead of multiple logs, summarize percentage of silence after recording.
+This will provide a more useful insight instead of repetitive warnings.
+Determine What Stops the Program
+
+Current Stop Condition:
+The program stops after 30 seconds (std::thread::sleep(Duration::from_secs(30))).
+This could be modified to stop when recording is complete instead of a fixed time.
+🛠 Prioritization for Next Step
+✅ Introduce a timer method (Low-risk, small change)
+✅ Ensure summary is printed only once (Avoid duplicate logs)
+✅ Minimize unnecessary warnings (Only show meaningful data)
+⚠️ Program stop logic may be adjusted later (Not a priority yet)
+Next Immediate Step
+🚀 Implement a simple timer function that:
+
+Runs in a separate thread
+Prints amplitude analysis & silence percentage after recording ends
+Does not introduce errors or disrupt existing flow
+Final Thoughts
+This step focuses on small, controlled changes while improving usability. 🚀
+
+## In
+
+Please Proceed.
