@@ -250,3 +250,35 @@ Comment edited code blocks with // Edited
 Remove Comments slowly and incrementally, from earlier versions as necessary
 
 - when no longer relevant or accurate
+
+#### First Priority
+
+Small update, code block, avoid error.
+
+
+
+## Plan for Future Chat In
+
+### Note
+
+Ask when needed about memory of code blocks in source code.
+
+Ask if need a list of functions
+
+Ask if want to provide map of
+
+- functionalities to functions
+
+As well as, where there are
+
+- functionalities
+
+and
+
+- functions
+
+which do not align.
+
+### Try to Give about three possible future steps
+
+### Try to Summarise principle ongoing requirements for responses at end of response
