@@ -112,7 +112,7 @@ Added Code from Chat Canvas to file. [Complete]
 
 ### Note
 
-#### snippit containing of edited cod from `fft.rs` > `display_amplitude()`
+#### snippet containing of edited cod from `fft.rs` > `display_amplitude()`
 
 ```rust
     let bars = (amplitude * 50.0) as usize;
