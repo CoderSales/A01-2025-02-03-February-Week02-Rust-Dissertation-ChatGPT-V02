@@ -135,7 +135,7 @@ fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool,
     // Show warning only **once every 10 seconds** if continuous silence
     if *count >= 20 && !*last_warning {
         let now = Instant::now();
-        if now.duration_since(*last_warning_time) >= Duration::from_secs(10) {
+        if *last_warning_time + Duration::from_secs(10) <= now {
             println!("\n⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
             *last_warning = true;
             *last_warning_time = now; // Update last warning time
