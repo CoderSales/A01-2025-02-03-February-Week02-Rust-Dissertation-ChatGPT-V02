@@ -433,6 +433,17 @@ warning: function `display_amplitude` is never used
 warning: `midi_freq_analyzer` (lib) generated 2 warnings (run `cargo fix --lib -p midi_freq_analyzer` to apply 1 suggestion)
 ```
 
+#### [DEBUG] does not print
+
+
+#### Re: check if display_amplitude() is being called
+
+possibly not
+
+#### Re: Confirm whether real microphone input is affecting the amplitude values.
+
+Assume mic works
+
 ### Priority
 
 Fix 3 band EQ display
