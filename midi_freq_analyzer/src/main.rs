@@ -120,8 +120,8 @@ fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig) -> 
 
     stream.play().expect("Failed to start stream");
 
-    println!("Capturing noise for 2 seconds...");
-    std::thread::sleep(std::time::Duration::from_secs(2));
+    println!("Capturing noise for 1 second...");
+    std::thread::sleep(std::time::Duration::from_secs(1));
     println!("Noise profile captured.");
     
     let buffer = data.lock().unwrap();
