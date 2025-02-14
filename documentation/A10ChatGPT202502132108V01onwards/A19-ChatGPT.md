@@ -234,3 +234,19 @@ which file should be updated
 roughly where code should go (beginning, middle, end)
 
 Concise code blocks
+
+Comment new code lines with // New
+
+- at end of line
+
+Comment old code blocks with // Old
+
+- at top of code block
+
+Comment edited code blocks with // Edited
+
+- at top of code block
+
+Remove Comments slowly and incrementally, from earlier versions as necessary
+
+- when no longer relevant or accurate
