@@ -4,13 +4,16 @@
 
 ### Text and Code Block [formatting added]
 
-Fix: Make display_amplitude() Public
-The error occurs because display_amplitude() is private. Rust functions in a module are private by default.
+#### Fix: Make `display_amplitude()` Public
 
-Solution
-Make display_amplitude() public in fft.rs.
+The error occurs because `display_amplitude()` is private. Rust functions in a module are private by default.
 
-Update fft.rs
+#### Solution
+
+Make `display_amplitude()` public in `fft.rs`.
+
+##### Update fft.rs
+
 Modify the function signature:
 
 rust
@@ -20,15 +23,23 @@ Edit
 ```rust
 // Edited: Make display_amplitude() public
 pub fn display_amplitude(amplitude: f32, silence_count: &mut usize, total_frames: &mut usize) {
-Expected Fix Outcome
-display_amplitude() will now be accessible from main.rs.
-Live amplitude visualization (3-band EQ) should print.
-No breaking changes, minimal modification.
-Next Steps
-Apply the fix.
-Run and confirm 3-band EQ appears.
-Check for additional errors or unexpected behavior.
 ```
+
+#### Expected Fix Outcome
+
+- `display_amplitude()` will now be accessible from `main.rs`.
+
+- Live amplitude visualization (3-band EQ) should print.
+
+- No breaking changes, minimal modification.
+
+#### Next Steps
+
+1. Apply the fix.
+
+2. Run and confirm 3-band EQ appears.
+
+3. Check for additional errors or unexpected behavior.
 
 ### Chat Canvas
 
