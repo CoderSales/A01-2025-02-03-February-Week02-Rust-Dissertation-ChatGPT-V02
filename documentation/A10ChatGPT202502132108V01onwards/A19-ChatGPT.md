@@ -41,3 +41,27 @@ Log Output Managed: ⚠️ Improved but still some unwanted behavior.
 Next Debugging Focus: ⚠️ Fix warning duplication & ensure analyze_amplitude() prints correctly.
 Wrap-Up
 The core functionality works, and major problems like excessive logging and stack overflow are resolved. Further refinements are needed but can be addressed incrementally. 🚀
+
+## In
+
+### Next Steps
+
+Add a timer method.
+
+timer method could ensure that after stage 2 of program has run
+
+Only at this point does a summary of analyze_amplitude() print
+
+Only at this point does a summary of percentage of silence during recording print.
+
+Replace print out for no significant sound detected.
+
+What causes program to stop running currently?
+
+### Priority
+
+low number of small code block(s)
+
+emphasis on avoiding errors
+
+incremental change
