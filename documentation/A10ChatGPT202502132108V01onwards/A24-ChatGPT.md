@@ -452,7 +452,7 @@ Fix 3 band EQ display
 
 Avoid breaking code
 
-## Note
+### Note
 
 was previously called in
 
@@ -469,7 +469,7 @@ on line in snippet:
 
 ```
 
-### legacy analyze_frequencies() method featuring call to display_amplitude()
+#### legacy analyze_frequencies() method featuring call to display_amplitude()
 
 ```rust
 /// Perform FFT and return raw frequency spectrum + top peaks (V01)
@@ -582,3 +582,6 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
 }
 ```
 
+### Priority
+
+brief output
