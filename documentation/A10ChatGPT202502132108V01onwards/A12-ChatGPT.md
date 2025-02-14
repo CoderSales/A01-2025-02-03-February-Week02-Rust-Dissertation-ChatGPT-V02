@@ -40,3 +40,12 @@ fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool,
 3️⃣ Ensure _ bars appear when sound is present.
 
 This should reduce verbosity while keeping output useful and clean! 🚀🔊
+
+## In
+
+Decrease sound warning more
+
+Currently displays numerous times per second.
+
+No more than once in 10 seconds.
+
