@@ -119,10 +119,10 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
 }
 
 fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool, frame: usize, last_warning_time: &mut Instant) {
-    let bars = (amplitude * 50.0) as usize;  // Scale output
+    let bars = (amplitude * 50.0) as usize;  
     let visual = "_".repeat(bars);
     
-    if frame % 10 == 0 {  // Reduce print frequency (every 10 frames)
+    if frame % 10 == 0 {  
         if !visual.is_empty() {
             println!("{}", visual);
             *count = 0;
@@ -132,12 +132,11 @@ fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool,
         }
     }
 
-    // Show warning only **once every 10 seconds** if continuous silence
-    if *count >= 20 && !*last_warning {
+    // ✅ Print warning max 3 times per program run
+    if *count >= 20 && !*last_warning && frame % 300 == 0 {
         let now = Instant::now();
-        if *last_warning_time + Duration::from_secs(10) <= now {
+        if now.duration_since(*last_warning_time) >= Duration::from_secs(10) {
             println!("\n⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
-            *last_warning = true;
             *last_warning_time = now; // Update last warning time
         }
     }

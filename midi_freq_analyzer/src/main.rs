@@ -9,7 +9,23 @@ const MIN_FREQUENCY: f32 = 20.0;
 const MAX_FREQUENCY: f32 = 20000.0;
 const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
 
+use std::time::{Instant, Duration};
+
+
 fn main() {
+    let program_start = Instant::now(); // ✅ Fix: Declare inside main()
+
+    // ✅ Move logging into a separate thread
+    std::thread::spawn(move || {
+        loop {
+            let elapsed = program_start.elapsed().as_secs();
+            if elapsed % 5 == 0 {
+                println!("⏳ Program Running: {} seconds elapsed.", elapsed);
+            }
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+    });
+
     let device = audio::select_audio_device();
     let config = audio::get_audio_config(&device);
 
@@ -25,7 +41,6 @@ fn main() {
     let note_clone = Arc::clone(&note_playing);
     let last_note_clone = Arc::clone(&last_note);
 
-    // Step 1: Capture Baseline Noise
     let noise_profile = if let Ok(profile) = load_noise_profile() {
         println!("Loaded saved noise profile.");
         profile
@@ -56,8 +71,6 @@ fn main() {
                     if adjusted_fundamental >= MIN_FREQUENCY && adjusted_fundamental <= MAX_FREQUENCY {
                         let note_name = frequency_to_note(adjusted_fundamental);
                         if !*note_playing {
-                            
-                            // ✅ **Only print if the note has changed**
                             if *last_note != note_name {
                                 println!("Adjusted Fundamental: {:.2} Hz ({})", adjusted_fundamental, note_name);
                                 *last_note = note_name.clone();
