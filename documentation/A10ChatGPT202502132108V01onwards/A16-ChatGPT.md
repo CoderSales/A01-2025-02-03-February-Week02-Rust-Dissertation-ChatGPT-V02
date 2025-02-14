@@ -95,9 +95,54 @@ Does not interfere with the rest of the logic.
 Next Steps If Issue Persists
 If this still doesn't work, we may need to move last_warning_time outside of analyze_frequencies() and maintain it as a persistent variable between function calls (e.g., using static mut or a global Mutex<Instant>). However, this one-line fix should work first.
 
+## In
 
+Warnings indicate some functions not being called.
 
+```bash
+warning: path statement drops value
+   --> src\fft.rs:109:5
+    |
+109 |     peak_frequencies;
+    |     ^^^^^^^^^^^^^^^^^ help: use `drop` to clarify the intent: `drop(peak_frequencies);`
+    |
+    = note: `#[warn(path_statements)]` on by default
 
+warning: `midi_freq_analyzer` (lib) generated 1 warning (run `cargo fix --lib -p midi_freq_analyzer` to apply 1 suggestion)
+warning: unused variable: `note_name`
+  --> src/main.rs:54:25
+   |
+54 |                     let note_name = frequency_to_note(adjusted_fundamental);
+   |                         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_note_name`
+   |
+   = note: `#[warn(unused_variables)]` on by default
 
+warning: function `analyze_amplitude` is never used
+   --> src/main.rs:204:4
+    |
+204 | fn analyze_amplitude(samples: &[f32]) {
+    |    ^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 2 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.68s
+     Running 
+```
+
+### Idea
+
+Could output time since start of program to console every 5 seconds
+
+Could also output boolean of whter there has been 2 or more prints of no audio in that time
+
+Could add rule that if output time is less than 5 seconds no output of no audio warning.
+
+Ensure that time resets every 5 seconds.
+
+### Adapted From last ChatGPT Output
+
+Next Steps If Issue Persists
+If this still doesn't work, we may need to move last_warning_time outside of analyze_frequencies() and maintain it as a persistent variable between function calls (.... using .... a global Mutex<Instant>).
 
 
