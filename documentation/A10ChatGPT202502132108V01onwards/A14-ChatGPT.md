@@ -221,3 +221,27 @@ Why?
 Fixes incorrect 1000 seconds (16+ minutes) to the intended 10 seconds delay.
 Keeps functionality unchanged.
 Minimal impact—only one line edited. 🚀
+
+## In
+
+redo
+
+stick with current fft.rs
+
+trying to increase delay
+
+even though 1000 seems high, 
+
+in actuality, 
+
+warning printed
+
+rapidly multiple times in less than a second when no sound.
+
+Priority: one line change.
+
+Priority: decrease frequency of no sound warning.
+
+Priority: Try to avoid error.
+
+Priority: incremental change.
