@@ -19,5 +19,5 @@ Fixes unrealistic duration: 10000000000s (317 years) is impractical.
 Keeps delay reasonable: 10s prevents rapid warnings while still providing feedback.
 Minimal change: One-line edit, maintaining program logic.
 
-## Regenerate Out
+## Regenerate Out x2
 
