@@ -78,7 +78,8 @@ pub fn start_timer(silence_count: Arc<Mutex<usize>>, total_frames: Arc<Mutex<usi
 }
 // old, edited, last_warning removed:
 /// Display amplitude visualization and track silence
-fn display_amplitude(amplitude: f32, silence_count: &mut usize, total_frames: &mut usize) {
+// Edited: Make display_amplitude() public
+pub fn display_amplitude(amplitude: f32, silence_count: &mut usize, total_frames: &mut usize) {
     *total_frames += 1; // Track total frames // New
 
     let bars = (amplitude * 50.0) as usize;
