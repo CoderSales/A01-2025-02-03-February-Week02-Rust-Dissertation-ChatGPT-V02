@@ -221,7 +221,7 @@ Ensure proper silence tracking without interfering with other functions.
 Replace redundant warnings with a single final result.
 Let me know if you want any refinements.
 
-## In (Draft)
+## In
 
 ### While reading Out
 
