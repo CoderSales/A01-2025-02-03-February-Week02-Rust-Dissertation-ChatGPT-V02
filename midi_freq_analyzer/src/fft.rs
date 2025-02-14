@@ -128,9 +128,10 @@ fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool,
         }
     }
 
-    // Show warning only if there was NO sound for X iterations
+    // Show warning only **once per program run** if continuous silence
     if *count >= 20 && !*last_warning {
-        println!("⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+        println!("\n⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
         *last_warning = true;
+        *count = 1000; // Ensures warning does not repeat within the run
     }
 }
