@@ -1,3 +1,16 @@
+# ChatGPT
+
+## Out
+
+### Text
+
+The issue preventing the 3-band EQ from displaying was likely due to the refresh rate limitation. I've adjusted the thresholds for bass, mids, and treble, and ensured vertical alignment in the printout. The refresh rate has been modified to every 50 frames (~0.5s) to ensure visibility. Run the program and confirm that the visualization now appears.
+
+### Chat Canvas
+
+fft.rs
+
+```rust
 use rustfft::{FftPlanner, num_complex::Complex}; // Old
 use std::f32::consts::PI; // Old
 use std::sync::{Arc, Mutex}; // New
@@ -89,3 +102,91 @@ fn display_amplitude(amplitude: f32, silence_count: &mut usize, total_frames: &m
         println!("\nBass |{}\nMids |{}\nTreble |{}\n", bass, mids, treble); // Edited for vertical alignment
     }
 }
+```
+
+## In
+
+### Log
+
+Added Code from Chat Canvas to file. [Complete]
+
+### Note
+
+#### snippit containing of edited cod from `fft.rs` > `display_amplitude()`
+
+```rust
+    let bars = (amplitude * 50.0) as usize;
+    let bass = if bars > 30 { "█" } else { " " }; // Edited
+    let mids = if bars > 15 { "█" } else { " " }; // Edited
+    let treble = if bars > 5 { "█" } else { " " }; // Edited
+
+    // Track silence percentage // New
+    if bars == 0 {
+        *silence_count += 1;
+    }
+
+    // Limit refresh rate to every 50 frames (~0.5s) // Edited
+    if *total_frames % 50 == 0 {
+        println!("\nBass |{}\nMids |{}\nTreble |{}\n", bass, mids, treble); // Edited for vertical alignment
+    }
+```
+
+### Manual Test
+
+Runs
+
+Fails to print 3 band EQ
+
+#### CL out
+
+```bash
+⏳ Program Running: 0 seconds elapsed.
+
+Available input devices:
+0: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: CABLE Output (VB-Audio Virtual Cable)
+Select an input device (Enter number): 0
+
+Using input device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+
+Capturing noise profile...
+Capturing noise for 1 second...
+Noise profile captured.
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+🔍 Amplitude Analysis - Min: -0.00000, Max: 0.00000, Mean: -0.00000, Median: 0.00000
+⏳ Program Running: 5 seconds elapsed.
+🔍 Amplitude Analysis - Min: -0.00021, Max: 0.00024, Mean: -0.00000, Median: 0.00000
+⏳ Program Running: 10 seconds elapsed.
+🔍 Amplitude Analysis - Min: -0.00000, Max: 0.00000, Mean: 0.00000, Median: 0.00000
+⏳ Program Running: 15 seconds elapsed.
+🔍 Amplitude Analysis - Min: -0.00003, Max: 0.00003, Mean: 0.00000, Median: 0.00000
+⏳ Program Running: 20 seconds elapsed.
+error: process didn't exit successfully:⏳ Program Running: 0 seconds elapsed.
+
+Available input devices:
+0: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: CABLE Output (VB-Audio Virtual Cable)
+Select an input device (Enter number): 0
+
+Using input device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+
+Capturing noise profile...
+Capturing noise for 1 second...
+Noise profile captured.
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+🔍 Amplitude Analysis - Min: -0.00000, Max: 0.00000, Mean: -0.00000, Median: 0.00000
+⏳ Program Running: 5 seconds elapsed.
+🔍 Amplitude Analysis - Min: -0.00021, Max: 0.00024, Mean: -0.00000, Median: 0.00000
+⏳ Program Running: 10 seconds elapsed.
+🔍 Amplitude Analysis - Min: -0.00000, Max: 0.00000, Mean: 0.00000, Median: 0.00000
+⏳ Program Running: 15 seconds elapsed.
+🔍 Amplitude Analysis - Min: -0.00003, Max: 0.00003, Mean: 0.00000, Median: 0.00000
+⏳ Program Running: 20 seconds elapsed.
+error: process didn't exit successfully:
+```
+
+#### Priority 
+
+Fix with simple workaround if necessary
