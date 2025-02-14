@@ -8,9 +8,13 @@ const MAX_PEAKS: usize = 10;           // Limit detected peaks
 
 const FFT_SIZE: usize = 2048;
 
+use std::time::{Instant, Duration};
+
+
 /// Perform FFT and return raw frequency spectrum + top peaks (V01)
 /// Identify dominant frequency peaks (V02)
 pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
+    let mut last_warning_time = Instant::now();
     let mean = samples.iter().sum::<f32>() / samples.len() as f32;
     let centered_samples: Vec<f32> = samples.iter().map(|&s| s - mean).collect();
 
@@ -31,7 +35,7 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     let mut frame = 0;
 
     for sample in samples {
-        display_amplitude(*sample, &mut count, &mut last_warning, frame);
+        display_amplitude(*sample, &mut count, &mut last_warning, frame, &mut last_warning_time);
         frame += 1;
         count += 1;
     }
@@ -114,10 +118,10 @@ pub fn analyze_frequencies(samples: &[f32]) -> Vec<(f32, f32)> {
     peaks
 }
 
-fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool, frame: usize) {
+fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool, frame: usize, last_warning_time: &mut Instant) {
     let bars = (amplitude * 50.0) as usize;  // Scale output
     let visual = "_".repeat(bars);
-
+    
     if frame % 10 == 0 {  // Reduce print frequency (every 10 frames)
         if !visual.is_empty() {
             println!("{}", visual);
@@ -128,10 +132,13 @@ fn display_amplitude(amplitude: f32, count: &mut usize, last_warning: &mut bool,
         }
     }
 
-    // Show warning only **once per program run** if continuous silence
+    // Show warning only **once every 10 seconds** if continuous silence
     if *count >= 20 && !*last_warning {
-        println!("\n⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
-        *last_warning = true;
-        *count = 1000; // Ensures warning does not repeat within the run
+        let now = Instant::now();
+        if now.duration_since(*last_warning_time) >= Duration::from_secs(1000) {
+            println!("\n⚠️ No significant sound detected! Try increasing volume or checking microphone input.");
+            *last_warning = true;
+            *last_warning_time = now; // Update last warning time
+        }
     }
 }
