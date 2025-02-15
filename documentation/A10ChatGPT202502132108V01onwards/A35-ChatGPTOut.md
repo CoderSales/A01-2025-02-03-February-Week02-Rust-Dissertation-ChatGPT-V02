@@ -2,29 +2,44 @@
 
 ## Out
 
-### Text and Code Blocks
+### Text and Code Blocks [formatted]
 
-Next Steps
-1. Create a new file for live output handling
-Introduce a dedicated module for handling CLI live amplitude updates.
-Keep changes non-breaking by adding new functionality without modifying existing logic.
-2. Create a simple live_output.rs file
-This will continuously print amplitude levels in real time using _ for simplicity.
-The function should accept an amplitude value and print a horizontal meter.
-New File: live_output.rs
+#### Next Steps
+
+##### 1. Create a new file for live output handling
+
+- Introduce a **dedicated module** for handling CLI live amplitude updates.
+
+- Keep changes **non-breaking** by adding new functionality **without modifying existing logic**.
+
+##### 2. Create a simple `live_output.rs` file
+
+- This will **continuously print amplitude levels** in real time using `_` for simplicity.
+
+- The function should accept an amplitude value **and print a horizontal meter**.
+
+##### New File: `live_output.rs`
+
 rust
 Copy
 Edit
+
+```rust
 /// Live amplitude visualization using `_` for simple horizontal bars
 pub fn print_live_amplitude(amplitude: f32) {
     let level = (amplitude * 50.0) as usize; // Scale amplitude
     let bar = "_".repeat(level); // Create bar of `_`
     println!("\r[{}]", bar); // Print inline
 }
-3. Update main.rs to use live_output.rs
+```
+
+3. Update `main.rs` to use `live_output.rs`
+
 rust
 Copy
 Edit
+
+```rust
 mod live_output; // Import new module
 
 let stream = device.build_input_stream(
@@ -38,15 +53,23 @@ let stream = device.build_input_stream(
     err_fn,
     None,
 ).expect("Failed to create stream");
-Expected Fix Outcome
-✅ Real-time amplitude visualization using _
+```
+
+#### Expected Fix Outcome
+
+✅ Real-time amplitude visualization using `_`
+
 ✅ Non-blocking updates
+
 ✅ Does not interfere with frequency analysis
 
-4. Test & Iterate
-Run the program and verify _ bars appear dynamically.
-Adjust scaling if needed for better readability.
-Ensure minimal CPU load (avoid excessive printing).
+##### 4. Test & Iterate
+
+1. **Run the program** and verify `_` bars appear dynamically.
+
+2. **Adjust scaling if needed** for better readability.
+
+3. **Ensure minimal CPU load** (avoid excessive printing).
 
 ## Chat Canvas
 
