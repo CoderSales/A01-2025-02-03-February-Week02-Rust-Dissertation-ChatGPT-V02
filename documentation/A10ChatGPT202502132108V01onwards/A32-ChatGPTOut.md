@@ -4,19 +4,26 @@
 
 ### Text and Code Block
 
-Fix: Ensure Live Amplitude Visualization Works
-The display_amplitude() function is called inside analyze_frequencies(), but it is not executed frequently enough in main.rs.
+#### Fix: Ensure Live Amplitude Visualization Works
 
-Solution
-Move display_amplitude() directly into the input stream processing loop.
+The `display_amplitude()` function is called inside `analyze_frequencies()`, but it is not executed frequently enough in `main.rs`.
+
+#### Solution
+
+0.
+0Move display_amplitude() directly into the input stream processing loop.
 Ensure it updates every frame instead of waiting for 2048 samples.
-Use _ characters for a simple horizontal level meter.
-Update main.rs
+Use `_` characters for a simple horizontal level meter.
+
+#### Update `main.rs`
+
 Modify the input stream callback:
 
 rust
 Copy
 Edit
+
+```rust
 // Edited: Ensure display_amplitude() updates per frame inside stream
 let stream = device.build_input_stream(
     &config,
@@ -41,14 +48,23 @@ let stream = device.build_input_stream(
     err_fn,
     None,
 ).expect("Failed to create stream");
-Expected Fix Outcome
-Live amplitude visualization prints per frame instead of every 2048 samples.
-Horizontal _ bars should appear dynamically.
-No breaking changes, minimal code adjustment.
-Next Steps
-Apply fix.
-Run and confirm _ characters print dynamically.
-Verify if refresh rate needs fine-tuning.
+```
+
+#### Expected Fix Outcome
+
+- Live amplitude visualization prints per frame instead of every 2048 samples.
+
+- Horizontal _ bars should appear dynamically.
+
+- No breaking changes, minimal code adjustment.
+
+#### Next Steps
+
+1. Apply fix.
+
+2. Run and confirm _ characters print dynamically.
+
+3. Verify if refresh rate needs fine-tuning.
 
 ### Chat Canvas
 
