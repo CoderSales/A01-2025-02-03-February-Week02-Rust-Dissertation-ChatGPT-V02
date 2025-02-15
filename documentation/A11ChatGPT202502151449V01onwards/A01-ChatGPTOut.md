@@ -102,9 +102,12 @@ pub fn print_live_amplitude(amplitude: f32) {
 }
 ```
 
-Summary of Fixes
+##### Summary of Fixes
+
 ✅ Throttle CLI updates to every 10ms for better performance.
+
 ✅ Prevent flooding the terminal (avoids high CPU usage).
+
 ✅ Smoother visualization (reduces flickering).
 
 🚀 Try running it and let me know how it performs!
