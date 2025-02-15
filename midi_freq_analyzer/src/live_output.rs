@@ -1,6 +1,23 @@
+use std::time::{Instant, Duration};
+use std::sync::Mutex;
+
+static LAST_UPDATE: Mutex<Option<Instant>> = Mutex::new(None);
+
 /// Live amplitude visualization using `_` for simple horizontal bars
 pub fn print_live_amplitude(amplitude: f32) {
-    let level = (amplitude * 50.0) as usize; // Scale amplitude
-    let bar = "_".repeat(level); // Create bar of `_`
-    println!("\r[{}]", bar); // Print inline
+    let now = Instant::now();
+    let mut last_update = LAST_UPDATE.lock().unwrap();
+
+    // Update only every 10ms
+    if let Some(last) = *last_update {
+        if now.duration_since(last) < Duration::from_millis(10) {
+            return;
+        }
+    }
+    *last_update = Some(now);
+
+    let level = (amplitude * 50.0) as usize;
+    let bar = "_".repeat(level);
+    print!("\r[{}] ", bar); // Inline overwrite
+    std::io::Write::flush(&mut std::io::stdout()).unwrap();
 }
