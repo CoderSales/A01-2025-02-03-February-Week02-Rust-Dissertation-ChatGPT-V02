@@ -2,7 +2,7 @@
 
 ## Chat Out
 
-### Text and Code Blocks [formatting]
+### Text and Code Blocks [formatted]
 
 #### Responses to Your Questions
 
