@@ -18,6 +18,8 @@ pub fn print_live_amplitude(amplitude: f32) {
 
     let level = (amplitude * 50.0) as usize;
     let bar = "_".repeat(level);
-    print!("\r[{}] ", bar); // Inline overwrite
+
+    // Ensure full overwrite by printing spaces first
+    print!("\r{:50}\r[{}] ", " ", bar); 
     std::io::Write::flush(&mut std::io::stdout()).unwrap();
 }

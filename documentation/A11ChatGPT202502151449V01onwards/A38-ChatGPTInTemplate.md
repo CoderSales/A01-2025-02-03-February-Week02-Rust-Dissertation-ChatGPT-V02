@@ -2,7 +2,7 @@
 
 ## In
 
-### files and output
+### files
 
 #### main.rs
 
@@ -22,15 +22,27 @@
 
 ```
 
-#### CL output
+### Reply
+
+#### Observations
+
+#### Manual Testing
+
+- `cargo test` --> []
+
+- `cargo build` --> []
+
+- `cargo run` --> []
+
+- manual_testing_result_status --> []
+
+#### Warnings
+
+#### CL output [ExcludingWarnings]
 
 ```bash
 
 ```
-
-### Reply
-
-#### Observations
 
 #### Evaluation
 

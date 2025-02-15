@@ -246,5 +246,3 @@ fn analyze_amplitude(samples: &[f32]) {
 
     analyze_amplitude(&samples);
 }
-
-
