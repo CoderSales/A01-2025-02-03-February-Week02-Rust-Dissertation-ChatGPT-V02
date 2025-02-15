@@ -73,6 +73,10 @@ let stream = device.build_input_stream(
 
 ## Chat Canvas
 
+### Fft Analysis
+
+#### `fft.rs`
+
 ```rust
 use rustfft::{FftPlanner, num_complex::Complex}; // Old
 use std::f32::consts::PI; // Old

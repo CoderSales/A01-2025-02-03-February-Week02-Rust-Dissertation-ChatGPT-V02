@@ -11,8 +11,12 @@ const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
 
 use std::time::{Instant, Duration};
 
+mod live_output; // Import new module
 
 fn main() {
+
+
+
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
 
     // ✅ Move logging into a separate thread
@@ -55,9 +59,14 @@ fn main() {
     let stream = device.build_input_stream(
         &config,
         move |data: &[f32], _: &_| {
+            // before buffer --> do stream analysis
+            for &sample in data {
+                let amplitude = sample.abs();
+                live_output::print_live_amplitude(amplitude); // Call new function    
+            // buffer related:
             let mut buffer = data_clone.lock().unwrap();
             buffer.extend_from_slice(data);
-
+            // begin analysis once buffer has reached 2048 frames:
             if buffer.len() >= 2048 {
                 let peaks = fft::analyze_frequencies(&buffer[..2048]);
 
