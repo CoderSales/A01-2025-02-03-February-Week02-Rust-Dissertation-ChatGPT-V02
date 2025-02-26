@@ -500,3 +500,19 @@ wasm-bindgen = "0.2.97" → Ensures compatibility.
 winapi features enabled → Fix Windows-related errors.
 🚀 Try this and let me know if the issue persists!
 
+## In
+
+### CL Output
+
+```bash
+$ cargo update
+    Updating crates.io index
+error: failed to select a version for the requirement `wgpu = "^0.24.0"`
+candidate versions found which didn't match: 24.0.1, 24.0.0, 23.0.1, ...
+location searched: crates.io index
+required by package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)`
+```
+
+### Suggestion
+
+edit to wgpu = 24.0.1
