@@ -387,3 +387,64 @@ all possible versions conflict with previously selected packages.
 
 failed to select a version for `wasm-bindgen` which could resolve this conflict
 ```
+
+## Out
+
+The issue is that wasm-bindgen 0.2.100 conflicts with wasm-bindgen 0.2.97 required by wgpu v24.0.0.
+
+✅ Fix: Use Compatible Versions
+Update Cargo.toml to match compatible versions:
+
+toml
+Copy
+Edit
+[package]
+name = "midi_freq_analyzer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cpal = "0.15"
+rustfft = "6.1.0"
+fundsp = "0.14"
+eframe = "0.31.0"   # Latest stable version
+wgpu = "0.18"       # Compatible with eframe 0.31.0
+winapi = { version = "0.3", features = ["winuser", "windef"] }  # Fix Windows errors
+wasm-bindgen = "0.2.97"  # Force compatible version
+🔧 Steps to Fix
+Clean previous builds:
+
+bash
+Copy
+Edit
+cargo clean
+Update dependencies:
+
+bash
+Copy
+Edit
+cargo update
+Try building:
+
+bash
+Copy
+Edit
+cargo build
+🛠 Explanation
+eframe = "0.31.0" → Latest stable version.
+wgpu = "0.18" → Compatible with eframe 0.31.0.
+wasm-bindgen = "0.2.97" → Matches dependency requirements for wgpu.
+🚀 Try this fix and let me know if any errors remain!
+
+## In
+
+### CL Output
+
+```bash
+$ cargo update
+    Updating crates.io index
+error: failed to select a version for the requirement `wgpu = "^0.18"`
+candidate versions found which didn't match: 24.0.1, 24.0.0, 23.0.1, ...
+location searched: crates.io index
+required by package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)`
+```
