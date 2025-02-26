@@ -13,9 +13,14 @@ use std::time::{Instant, Duration};
 
 mod live_output; // Import new module
 mod bitrate;
+mod gui;
 
 fn main() {
 
+
+    if let Err(e) = gui::run_gui() {
+        eprintln!("GUI Error: {:?}", e);
+    }
 
 
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()

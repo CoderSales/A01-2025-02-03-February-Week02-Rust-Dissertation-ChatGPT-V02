@@ -1,7 +1,7 @@
 use rustfft::{FftPlanner, num_complex::Complex}; // Old
 use std::f32::consts::PI; // Old
 use std::sync::{Arc, Mutex}; // New
-use std::time::{Instant, Duration}; // Old, Moved
+use std::time::Duration; // Old, Moved
 use std::thread; // New
 
 const SAMPLE_RATE: f32 = 44100.0; // Old
