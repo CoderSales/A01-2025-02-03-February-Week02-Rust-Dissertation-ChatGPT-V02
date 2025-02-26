@@ -70,20 +70,30 @@ fn main() {
             // buffer related:
             let mut buffer = data_clone.lock().unwrap();
             buffer.extend_from_slice(data);
-            // begin analysis once buffer has reached 2048 frames:
-            if buffer.len() >= 2048 {
-                let peaks = fft::analyze_frequencies(&buffer[..2048]);
+            // Begin analysis once buffer has reached 1024 frames (previously 2048)
+            static mut PRINT_COUNTER: usize = 0; // Track buffer count
 
-                let mut silence_count = 0; // New
-                let mut total_frames = 0; // New
+            if buffer.len() >= 1920 {
+                unsafe {
+                    PRINT_COUNTER += 1;
+                    if PRINT_COUNTER % 100 == 0 {  // Print every 10 buffers
+                        println!("✅ Processing samples... Buffer size: {}", buffer.len());
+                    }
+                }
+                let buffer_len = buffer.len().min(2048);
+                let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+                
+                let mut silence_count = 0;
+                let mut total_frames = 0;
                 
                 let raw_amplitude = buffer.iter().map(|&x| x.abs()).sum::<f32>() / buffer.len() as f32;
-                fft::display_amplitude(raw_amplitude, &mut silence_count, &mut total_frames); // New
-
-                analyze_amplitude(&buffer[..2048]);  
-
+                fft::display_amplitude(raw_amplitude, &mut silence_count, &mut total_frames);
+            
+                analyze_amplitude(&buffer[..buffer_len]); // ✅ Fix applied buffer length 1920 on this device.
+            
                 buffer.clear();
             }
+                        
         },
         err_fn,
         None,
@@ -134,12 +144,12 @@ fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig) -> 
 
     stream.play().expect("Failed to start stream");
 
-    println!("Capturing noise for 1 second...");
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    println!("Capturing noise for 0.5 seconds...");
+    std::thread::sleep(std::time::Duration::from_millis(500));
     println!("Noise profile captured.");
     
     let buffer = data.lock().unwrap();
-    if buffer.len() >= 2048 {
+    if buffer.len() >= 1920 {
         let mut raw_noise = fft::analyze_frequencies(&buffer[..2048])
             .iter()
             .map(|&(freq, _)| freq)
