@@ -173,3 +173,18 @@ The winapi crate disables certain Windows API modules by default.
 The missing features (winuser and windef) need to be explicitly enabled.
 This should fix the issue! 🚀 Let me know if the error persists.
 
+
+## In
+
+### CL Output
+
+```bash
+
+$ cargo update
+    Updating crates.io index
+error: failed to select a version for the requirement `wgpu = "^0.18.0"`
+candidate versions found which didn't match: 24.0.1, 24.0.0, 23.0.1, ...
+location searched: crates.io index
+required by package `eframe v0.25.0`
+    ... which satisfies dependency `eframe = "^0.25"` of package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)`
+```
