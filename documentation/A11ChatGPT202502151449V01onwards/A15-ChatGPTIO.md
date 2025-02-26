@@ -362,4 +362,28 @@ winapi fix applied → Prevents Windows errors.
 🚀 Now, try building and let me know if any errors appear!
 
 
+## In
 
+### CL Output
+
+```bash
+$ cargo update
+    Updating crates.io index
+error: failed to select a version for `wasm-bindgen`.
+    ... required by package `web-sys v0.3.74`
+    ... which satisfies dependency `web-sys = "^0.3.74"` of package `wgpu v24.0.0`
+    ... which satisfies dependency `wgpu = "^24.0.0"` of package `egui-wgpu v0.31.0`
+    ... which satisfies dependency `egui-wgpu = "^0.31.0"` of package `eframe v0.31.0`
+    ... which satisfies dependency `eframe = "^0.31.0"` of package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)`
+versions that meet the requirements `=0.2.97` are: 0.2.97
+
+all possible versions conflict with previously selected packages.
+
+  previously selected package `wasm-bindgen v0.2.100`
+    ... which satisfies dependency `wasm-bindgen = "^0.2.97"` of package `wgpu v24.0.0`
+    ... which satisfies dependency `wgpu = "^24.0.0"` of package `egui-wgpu v0.31.0`
+    ... which satisfies dependency `egui-wgpu = "^0.31.0"` of package `eframe v0.31.0`
+    ... which satisfies dependency `eframe = "^0.31.0"` of package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)`
+
+failed to select a version for `wasm-bindgen` which could resolve this conflict
+```
