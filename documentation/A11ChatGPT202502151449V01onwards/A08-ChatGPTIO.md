@@ -413,3 +413,49 @@ Note for first 15 seconds, program does not seem to capture or display audio.
 
 ## Out
 
+This behavior is likely due to buffering and the initial noise profile capture. Here's why:
+
+Possible Causes & Fixes
+Noise Profile Capture Delays Output
+
+The program captures a 1-second noise profile before analyzing real audio.
+The system might be filtering out quiet initial input as "silence."
+Fix: Reduce the noise capture time from 1 second to 0.5 seconds for faster startup.
+rust
+Copy
+Edit
+println!("Capturing noise for 0.5 seconds...");
+std::thread::sleep(std::time::Duration::from_millis(500));
+FFT Buffer Takes Time to Fill
+
+The buffer must collect 2048 samples before performing an FFT analysis.
+With a sample rate of 48000 Hz, this means:
+2048 / 48000 Hz ≈ 0.042 seconds (~42ms) per FFT frame
+If low amplitude noise is ignored, it could delay printing.
+Fix: Lower the required buffer size to 1024 samples for faster updates.
+rust
+Copy
+Edit
+if buffer.len() >= 1024 { // Change from 2048 to 1024
+Low Initial Input Volume
+
+If there is no sound, display_amplitude() may not print.
+Fix: Ensure it prints at least one [ ] on startup.
+Debugging Initial Frames
+
+Add a debug print to confirm samples are received:
+rust
+Copy
+Edit
+if buffer.len() < 2048 {
+    println!("⚠️ Waiting for samples... Buffer size: {}", buffer.len());
+}
+Next Steps
+Would you like to apply these changes and test again? 🚀
+
+
+
+
+
+
+
