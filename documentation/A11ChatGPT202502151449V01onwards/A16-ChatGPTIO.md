@@ -285,3 +285,61 @@ Ignore warnings for now to keep all functionality open for development.
 If needed, suppress specific warnings using #[allow(dead_code)], #[allow(unused_variables)], etc.
 🚀 Let me know if you need further adjustments!
 
+## In
+
+### Note 
+
+From running
+
+```bash
+cargo run
+```
+
+GUI Opens with record sound and stop buttons.
+
+Output on GUI says Recording... when this is the case and
+
+when stop is pressed, this recording... message goes away.
+
+However, that seems to be the full extent of this.
+
+After closing GUI
+
+the program runs in the CLI as before
+
+which is good
+
+however, it would be good 
+
+if the output
+
+currently in CLI 
+
+could go to the GUI.
+
+Also if 2 gui windows could open. 
+
+so one could give CLI output
+
+and another could give
+
+frequencies display for:
+
+- low
+
+- medium
+
+and
+
+- high
+
+frequencies 
+
+in vertical bars
+
+like a 3 band EQ output metering level
+
+used in professional or commerical audio,
+
+but more simply implemented here.
+
