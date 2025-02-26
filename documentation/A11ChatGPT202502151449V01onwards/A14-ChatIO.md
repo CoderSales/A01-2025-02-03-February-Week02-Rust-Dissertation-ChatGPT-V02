@@ -293,7 +293,18 @@ Your buffer size is 1920 because of the device's default configuration.
 CPAL adapts to what the device allows.
 The fix is to ensure analysis functions handle 1920 samples instead of 2048. 🚀
 
+## In
 
+### Note
 
+#### in main.rs
 
+buffer_len left as variable:
 
+```rust
+                analyze_amplitude(&buffer[..buffer_len]); // ✅ Fix applied buffer length 1920 on this device.
+```
+
+so that this code can run on other devices.
+
+Please wrap up this session here for now.
