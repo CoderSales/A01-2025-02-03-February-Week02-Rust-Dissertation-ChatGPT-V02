@@ -188,3 +188,43 @@ location searched: crates.io index
 required by package `eframe v0.25.0`
     ... which satisfies dependency `eframe = "^0.25"` of package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)`
 ```
+
+## Out
+
+The error occurs because eframe v0.25.0 requires wgpu 0.18.0, but only newer versions (24.0.1, 24.0.0, etc.) are available in the crates.io index.
+
+✅ Fix: Pin wgpu Version
+To resolve this, explicitly set the wgpu dependency to version 0.18 in Cargo.toml:
+
+toml
+Copy
+Edit
+[dependencies]
+eframe = { version = "0.25", features = ["wgpu"] } 
+wgpu = "0.18"
+winapi = { version = "0.3", features = ["winuser", "windef"] }
+Then, run:
+
+bash
+Copy
+Edit
+cargo update
+cargo build
+Alternative Fix (If Above Fails)
+If wgpu 0.18.0 is no longer available, downgrade eframe to a version that supports newer wgpu versions:
+
+toml
+Copy
+Edit
+[dependencies]
+eframe = { version = "0.24", features = ["wgpu"] }
+wgpu = "0.18"
+Then, retry:
+
+bash
+Copy
+Edit
+cargo update
+cargo build
+This ensures compatibility between eframe and wgpu. 🚀 Let me know if you need further adjustments!
+
