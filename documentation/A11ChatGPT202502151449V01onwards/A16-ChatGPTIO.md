@@ -180,3 +180,79 @@ cargo clean
 cargo build
 🚀 Try this and confirm if it compiles successfully!
 
+## In
+
+### Ignore Warnings
+
+Not Actioned: "Fix Unused Warnings in main.rs"
+
+Reason: Keep maximum functionality open for development.
+
+```bash
+cargo fix --allow-dirty
+```
+
+Please explain what this command does.
+
+### CL Output
+
+```bash
+warning: unused variable: `note_clone`
+  --> src/main.rs:53:9
+   |
+53 |     let note_clone = Arc::clone(&note_playing);
+   |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_note_clone`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `last_note_clone`
+  --> src/main.rs:54:9
+   |
+54 |     let last_note_clone = Arc::clone(&last_note);
+   |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_last_note_clone`
+
+warning: unused variable: `noise_profile`
+  --> src/main.rs:56:9
+   |
+56 |     let noise_profile = if let Ok(profile) = load_noise_profile() {
+   |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_noise_profile`
+
+warning: unused variable: `peaks`
+  --> src/main.rs:89:21
+   |
+89 |                 let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+   |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_peaks`
+
+warning: constant `MIN_FREQUENCY` is never used
+ --> src/main.rs:8:7
+  |
+8 | const MIN_FREQUENCY: f32 = 20.0;
+  |       ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` on by default
+
+warning: constant `MAX_FREQUENCY` is never used
+ --> src/main.rs:9:7
+  |
+9 | const MAX_FREQUENCY: f32 = 20000.0;
+  |       ^^^^^^^^^^^^^
+
+warning: function `subtract_noise` is never used
+   --> src/main.rs:114:4
+    |
+114 | fn subtract_noise(frequency: f32, noise_profile: &Vec<f32>) -> f32 {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `frequency_to_note` is never used
+   --> src/main.rs:201:4
+    |
+201 | fn frequency_to_note(frequency: f32) -> String {
+    |    ^^^^^^^^^^^^^^^^^
+
+warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 8 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 09s
+```
+
+### Evaluation
+
+Good that it builds successfully.
