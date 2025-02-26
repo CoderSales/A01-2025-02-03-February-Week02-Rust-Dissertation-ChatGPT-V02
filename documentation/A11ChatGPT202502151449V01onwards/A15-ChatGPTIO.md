@@ -142,3 +142,34 @@ For more information about an error, try `rustc --explain E0432`.
 error: could not compile `eframe` (lib) due to 2 previous errors
 warning: build failed, waiting for other jobs to finish...
 ```
+
+## Out
+
+The error suggests that winapi::um::winuser and winapi::shared::windef are missing because eframe requires the winuser and windef features of winapi, which are not enabled by default.
+
+✅ Fix: Enable winuser & windef features in Cargo.toml
+Modify Cargo.toml and explicitly enable these features for winapi:
+
+toml
+Copy
+Edit
+[dependencies]
+eframe = { version = "0.25", features = ["wgpu"] } 
+winapi = { version = "0.3", features = ["winuser", "windef"] }
+Alternative Fix (If Above Fails)
+If the issue persists, try running:
+
+bash
+Copy
+Edit
+cargo clean
+cargo update
+cargo build
+Then run cargo test again.
+
+Why This Happens
+eframe internally uses winapi to interact with Windows GUI elements.
+The winapi crate disables certain Windows API modules by default.
+The missing features (winuser and windef) need to be explicitly enabled.
+This should fix the issue! 🚀 Let me know if the error persists.
+
