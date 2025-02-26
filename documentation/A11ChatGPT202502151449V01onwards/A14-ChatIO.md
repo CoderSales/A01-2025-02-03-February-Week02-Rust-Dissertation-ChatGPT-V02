@@ -308,3 +308,32 @@ buffer_len left as variable:
 so that this code can run on other devices.
 
 Please wrap up this session here for now.
+
+## Out
+
+Session Wrap-Up 🚀
+✅ Key Fixes & Learnings:
+
+Buffer Size Adjustment:
+
+The device determined the buffer size (1920 samples), not CPAL or hardcoded values.
+Using buffer_len ensures compatibility with other devices.
+Verbose Output Reduction:
+
+Printing 1 in every 100 buffers reduced excessive console logs.
+Fixed Index Out of Bounds Issue:
+
+Previously expected 2048 samples but actual buffer was 1920, leading to errors.
+Now using buffer[..buffer_len] prevents this issue.
+Next Steps (For Future Debugging)
+🔹 If running on another device, check the buffer size dynamically using:
+
+rust
+Copy
+Edit
+println!("🔍 Actual Buffer Size: {}", buffer.len());
+🔹 For latency tuning:
+
+Consider adjusting CPAL’s buffer_size config.
+Experiment with different frame sizes for smoother audio processing.
+Session closed. Ready for next steps when you are! 🚀
