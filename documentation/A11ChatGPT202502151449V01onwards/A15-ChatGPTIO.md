@@ -318,3 +318,48 @@ required by package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Document
 if you are looking for the prerelease package it needs to be specified explicitly
     eframe = { version = "0.26.0-alpha.2" }
 ```
+
+## Out
+
+The issue is that eframe 24.0.1 does not exist. The latest stable version is 0.31.0, and wgpu must be compatible with it.
+
+✅ Fix: Use Compatible Versions
+Update Cargo.toml:
+
+toml
+Copy
+Edit
+[package]
+name = "midi_freq_analyzer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cpal = "0.15"
+rustfft = "6.1.0"
+fundsp = "0.14"
+eframe = "0.31.0"   # Latest stable version
+wgpu = "0.17.0"     # Compatible version with eframe 0.31.0
+winapi = { version = "0.3", features = ["winuser", "windef"] }  # Fix Windows errors
+🔧 Steps to Apply the Fix
+Clean and update:
+
+bash
+Copy
+Edit
+cargo clean
+cargo update
+Try building:
+
+bash
+Copy
+Edit
+cargo build
+🛠 Explanation
+eframe = "0.31.0" → Latest stable version.
+wgpu = "0.17.0" → Compatible with eframe 0.31.0.
+winapi fix applied → Prevents Windows errors.
+🚀 Now, try building and let me know if any errors appear!
+
+
+
