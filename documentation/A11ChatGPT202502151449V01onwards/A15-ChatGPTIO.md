@@ -228,3 +228,59 @@ cargo update
 cargo build
 This ensures compatibility between eframe and wgpu. 🚀 Let me know if you need further adjustments!
 
+## In
+
+### CL Output
+
+```bash
+$ cargo update
+    Updating crates.io index
+error: failed to select a version for the requirement `wgpu = "^0.18"`
+candidate versions found which didn't match: 24.0.1, 24.0.0, 23.0.1, ...
+location searched: crates.io index
+required by package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)`
+```
+
+### Suggestion
+
+Can we use the latest possible packages?
+
+### CL Output following Alternative fix
+
+```bash
+$ cargo update
+    Updating crates.io index
+error: failed to select a version for the requirement `wgpu = "^0.18"`
+candidate versions found which didn't match: 24.0.1, 24.0.0, 23.0.1, ...
+location searched: crates.io index
+required by package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)`
+```
+
+## Out
+
+Yes, we should use the latest compatible versions of wgpu and eframe. Here’s the fix:
+
+✅ Fix: Use Latest Versions
+1️⃣ Update Cargo.toml
+Modify Cargo.toml to use the latest compatible versions:
+
+toml
+Copy
+Edit
+[dependencies]
+eframe = "24.0.1"   # Use the latest version available
+wgpu = "24.0.1"     # Ensure it matches the version `eframe` expects
+winapi = { version = "0.3", features = ["winuser", "windef"] }  # Fix Windows errors
+2️⃣ Run Updates
+After modifying Cargo.toml, run:
+
+bash
+Copy
+Edit
+cargo update
+cargo build
+3️⃣ Verify Fix
+If cargo build succeeds, the dependency issue is resolved. If another error appears, post the new output, and I'll refine the solution.
+
+🚀 This ensures you’re using the latest Rust ecosystem packages!
+
