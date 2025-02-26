@@ -220,3 +220,54 @@ note: the function `display_amplitude` is defined here
 74 | fn display_amplitude(amplitude: f32, silence_count: &mut usize, total_frames: &mut usize) {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ```
+
+## Out
+
+Issues Identified
+Function run_gui() Not Found
+
+gui.rs defines launch_gui(), but main.rs calls gui::run_gui().
+Fix: Change main.rs to call launch_gui().
+Private epi Module in eframe
+
+eframe::epi was removed in later versions.
+Fix: Remove epi and update function signatures.
+Private display_amplitude() in fft.rs
+
+Function is private, but main.rs calls it.
+Fix: Add pub before fn display_amplitude.
+Required Fixes
+✅ Update main.rs
+Change:
+
+rust
+Copy
+Edit
+if let Err(e) = gui::run_gui() {
+To:
+
+rust
+Copy
+Edit
+if let Err(e) = gui::launch_gui() {
+✅ Fix gui.rs
+Remove epi:
+
+rust
+Copy
+Edit
+use eframe::egui; // Remove `epi`
+✅ Fix fft.rs
+Make display_amplitude() public:
+
+rust
+Copy
+Edit
+pub fn display_amplitude(amplitude: f32, silence_count: &mut usize, total_frames: &mut usize) {
+Next Steps
+Apply the fixes and recompile with cargo run.
+Confirm that:
+The GUI launches properly.
+CLI logs are redirected to the GUI.
+Frequency meter updates as expected.
+
