@@ -66,7 +66,293 @@ Now, it won't panic when the buffer size is below 2048. 🚀
 
 ## In
 
+Issue with verbose output.
 
+Also buffer size is 1920.
+
+### CL Output
+
+```bash
+⏳ Program Running: 0 seconds elapsed.
+
+Available input devices:
+0: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: CABLE Output (VB-Audio Virtual Cable)
+Select an input device (Enter number):
+
+🎵 Audio Configuration:
+ - Sample Format: f32
+ - Channels: 2
+ - Sample Rate: 48000 Hz
+ - Bit Depth: 32 bits
+ - Calculated Bitrate: 3072000 bps (3072 kbps)
+
+Using input device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+
+Capturing noise profile...
+Capturing noise for 0.5 seconds...
+Noise profile captured.
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+[] ✅ Processing samples... Buffer size: 1920     
+🔍 Amplitude Analysis - Min: -0.00000, Max: 0.00000, Mean: -0.00000, Median: 0.00000
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[___] ✅ Processing samples... Buffer size: 1920  
+[] ✅ Processing samples... Buffer size: 1920
+[___] ✅ Processing samples... Buffer size: 1920
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[__] ✅ Processing samples... Buffer size: 1920   
+[_] ✅ Processing samples... Buffer size: 1920    
+[__] ✅ Processing samples... Buffer size: 1920   
+[_] ✅ Processing samples... Buffer size: 1920    
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920
+[_] ✅ Processing samples... Buffer size: 1920
+[_] ✅ Processing samples... Buffer size: 1920    
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[___] ✅ Processing samples... Buffer size: 1920  
+[] ✅ Processing samples... Buffer size: 1920     
+[] ⏳ Program Running: 5 seconds elapsed.
+✅ Processing samples... Buffer size: 1920
+[___] ✅ Processing samples... Buffer size: 1920  
+[______] ✅ Processing samples... Buffer size: 1920
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[____] ✅ Processing samples... Buffer size: 1920 
+[___] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[____] ✅ Processing samples... Buffer size: 1920 
+[_] ✅ Processing samples... Buffer size: 1920
+[___] ✅ Processing samples... Buffer size: 1920  
+[__] ✅ Processing samples... Buffer size: 1920   
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920
+[_____] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[_____] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[___] ✅ Processing samples... Buffer size: 1920  
+[] ✅ Processing samples... Buffer size: 1920     
+[_____] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[__] ✅ Processing samples... Buffer size: 1920
+[_____] ✅ Processing samples... Buffer size: 1920
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[_____] ✅ Processing samples... Buffer size: 1920
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[__] ✅ Processing samples... Buffer size: 1920   
+[__] ✅ Processing samples... Buffer size: 1920   
+[_] ✅ Processing samples... Buffer size: 1920    
+[___] ✅ Processing samples... Buffer size: 1920  
+[___] ✅ Processing samples... Buffer size: 1920  
+[] ✅ Processing samples... Buffer size: 1920
+[__] ✅ Processing samples... Buffer size: 1920   
+[__] ✅ Processing samples... Buffer size: 1920   
+[__] ✅ Processing samples... Buffer size: 1920
+[_] ✅ Processing samples... Buffer size: 1920
+[_________] ✅ Processing samples... Buffer size: 1920
+[______] ✅ Processing samples... Buffer size: 1920
+[_________] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[__] ✅ Processing samples... Buffer size: 1920   
+[] ✅ Processing samples... Buffer size: 1920
+[_] ✅ Processing samples... Buffer size: 1920    
+[_] ✅ Processing samples... Buffer size: 1920    
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[__] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920
+[_] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+🔍 Amplitude Analysis - Min: -0.00012, Max: 0.00013, Mean: -0.00000, Median: -0.00001
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920
+```
 
 
 
