@@ -499,3 +499,4 @@ wgpu = "0.24.0" → Matches eframe's dependencies.
 wasm-bindgen = "0.2.97" → Ensures compatibility.
 winapi features enabled → Fix Windows-related errors.
 🚀 Try this and let me know if the issue persists!
+
