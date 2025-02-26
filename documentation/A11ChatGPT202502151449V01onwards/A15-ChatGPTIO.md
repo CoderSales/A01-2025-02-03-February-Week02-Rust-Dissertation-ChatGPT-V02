@@ -284,3 +284,37 @@ If cargo build succeeds, the dependency issue is resolved. If another error appe
 
 🚀 This ensures you’re using the latest Rust ecosystem packages!
 
+## In
+
+### Cargo.toml
+
+```toml
+[package]
+name = "midi_freq_analyzer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cpal = "0.15"
+rustfft = "6.1.0"
+fundsp = "0.14"
+eframe = "24.0.1"   # Use the latest version available
+wgpu = "24.0.1"     # Ensure it matches the version `eframe` expects
+winapi = { version = "0.3", features = ["winuser", "windef"] }  # Fix Windows errors
+```
+
+### CL Output
+
+```bash
+$ cargo clean
+     Removed 0 files
+
+$ cargo update
+    Updating crates.io index
+error: failed to select a version for the requirement `eframe = "^24.0.1"`
+candidate versions found which didn't match: 0.31.0, 0.30.0, 0.29.1, ...
+location searched: crates.io index
+required by package `midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)`
+if you are looking for the prerelease package it needs to be specified explicitly
+    eframe = { version = "0.26.0-alpha.2" }
+```
