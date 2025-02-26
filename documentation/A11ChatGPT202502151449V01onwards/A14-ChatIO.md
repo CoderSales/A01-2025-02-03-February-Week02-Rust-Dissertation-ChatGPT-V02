@@ -337,3 +337,8 @@ println!("🔍 Actual Buffer Size: {}", buffer.len());
 Consider adjusting CPAL’s buffer_size config.
 Experiment with different frame sizes for smoother audio processing.
 Session closed. Ready for next steps when you are! 🚀
+
+## In 
+
+Please make simple gui in separate file.
+
