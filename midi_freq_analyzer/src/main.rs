@@ -12,6 +12,7 @@ const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
 use std::time::{Instant, Duration};
 
 mod live_output; // Import new module
+mod bitrate;
 
 fn main() {
 
@@ -31,7 +32,9 @@ fn main() {
     });
 
     let device = audio::select_audio_device();
-    let config = audio::get_audio_config(&device);
+    let config = audio::get_audio_config(&device); // ✅ Define config first
+
+    bitrate::print_audio_bitrate(&config);
 
     println!("\nUsing input device: {}\n", device.name().unwrap());
 

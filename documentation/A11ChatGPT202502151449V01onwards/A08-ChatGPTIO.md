@@ -372,7 +372,40 @@ This ensures config is defined before passing it to print_audio_bitrate().
 ✅ This will fix error[E0425]: cannot find value config in this scope
 🚀 Now cargo test and cargo run should work without breaking anything.
 
+## In
 
+⏳ Program Running: 0 seconds elapsed.
+
+Available input devices:
+0: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: CABLE Output (VB-Audio Virtual Cable)
+Select an input device (Enter number): 0
+
+🎵 Audio Configuration:
+ - Sample Format: f32
+ - Channels: 2
+ - Sample Rate: 48000 Hz
+ - Bit Depth: 32 bits
+ - Calculated Bitrate: 3072000 bps (3072 kbps)
+
+Using input device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+
+Capturing noise profile...
+Capturing noise for 1 second...
+⏳ Program Running: 5 seconds elapsed.
+Noise profile captured.
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+[] 🔍 Amplitude Analysis - Min: -0.00000, Max: 0.00000, Mean: -0.00000, Median: 0.00000
+[] ⏳ Program Running: 10 seconds elapsed.
+[] 🔍 Amplitude Analysis - Min: -0.00013, Max: 0.00008, Mean: -0.00000, Median: 0.00002
+[] ⏳ Program Running: 15 seconds elapsed.
+[] 🔍 Amplitude Analysis - Min: -0.16707, Max: 0.15722, Mean: 0.00062, Median: -0.00050
+[______________________] ⏳ Program Running: 20 seconds elapsed.
+[_] 🔍 Amplitude Analysis - Min: -0.21784, Max: 0.36785, Mean: 0.00073, Median: -0.01291
+[________] ⏳ Program Running: 25 seconds elapsed.
+[] 🔍 Amplitude Analysis - Min: -0.00002, Max: 0.00002, Mean: -0.00000, Median: 0.00000
+[___] error: process didn't exit successfully: `C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer\target\debug\midi_freq_analyzer.exe` (exit code: 0xc000013a, STATUS_CONTROL_C_EXIT)
 
 
 
