@@ -89,3 +89,56 @@ cargo run
 This will launch the GUI instead of running the CLI-based terminal app.
 
 Let me know if you need modifications! 🚀
+
+## In
+
+### CL Out
+
+During cargo test
+
+Compiling numerous crates / packages / libraries:
+
+```bash
+   Compiling webbrowser v0.8.15
+   Compiling accesskit_winit v0.16.1
+   Compiling egui-winit v0.25.0
+   Compiling eframe v0.25.0
+error[E0432]: unresolved import `winapi::um::winuser`
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\eframe-0.25.0\src\native\app_icon.rs:83:9
+    |
+83  |     use winapi::um::winuser;
+    |         ^^^^^^^^^^^^^^^^^^^ no `winuser` in `um`
+    |
+note: found an item that was configured out
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\winapi-0.3.9\src\um\mod.rs:290:37
+    |
+290 | #[cfg(feature = "winuser")] pub mod winuser;
+    |                                     ^^^^^^^
+note: the item is gated behind the `winuser` feature
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\winapi-0.3.9\src\um\mod.rs:290:7
+    |
+290 | #[cfg(feature = "winuser")] pub mod winuser;
+    |       ^^^^^^^^^^^^^^^^^^^
+
+error[E0433]: failed to resolve: could not find `windef` in `shared`
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\eframe-0.25.0\src\native\app_icon.rs:104:26
+    |
+104 |     ) -> winapi::shared::windef::HICON {
+    |                          ^^^^^^ could not find `windef` in `shared`
+    |
+note: found an item that was configured out
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\winapi-0.3.9\src\shared\mod.rs:81:36
+    |
+81  | #[cfg(feature = "windef")] pub mod windef;
+    |                                    ^^^^^^
+note: the item is gated behind the `windef` feature
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\winapi-0.3.9\src\shared\mod.rs:81:7
+    |
+81  | #[cfg(feature = "windef")] pub mod windef;
+    |       ^^^^^^^^^^^^^^^^^^
+
+Some errors have detailed explanations: E0432, E0433.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `eframe` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+```
