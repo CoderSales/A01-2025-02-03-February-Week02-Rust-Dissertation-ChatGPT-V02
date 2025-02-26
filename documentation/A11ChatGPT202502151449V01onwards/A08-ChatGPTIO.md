@@ -374,6 +374,7 @@ This ensures config is defined before passing it to print_audio_bitrate().
 
 ## In
 
+```bash
 ⏳ Program Running: 0 seconds elapsed.
 
 Available input devices:
@@ -406,7 +407,9 @@ Listening for audio... Press Ctrl+C to stop.
 [________] ⏳ Program Running: 25 seconds elapsed.
 [] 🔍 Amplitude Analysis - Min: -0.00002, Max: 0.00002, Mean: -0.00000, Median: 0.00000
 [___] error: process didn't exit successfully: `C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer\target\debug\midi_freq_analyzer.exe` (exit code: 0xc000013a, STATUS_CONTROL_C_EXIT)
+```
 
+Note for first 15 seconds, program does not seem to capture or display audio.
 
-
+## Out
 
