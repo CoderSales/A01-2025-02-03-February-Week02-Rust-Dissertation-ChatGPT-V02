@@ -263,3 +263,13 @@ warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 5 warnings
 error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 2 previous errors; 5 warnings emitted
 ```
 
+## Out
+
+Issue Analysis:
+The error stems from attempting to spawn eframe::run_native in a separate thread, which is causing issues because NativeOptions includes non-Send trait objects. Rust does not allow non-Send objects to be sent across threads safely.
+
+Minimal Fix:
+Modify launch_gui() so that both GUIs run on the main thread, instead of attempting to use `thread
+
+A network error occurred. Please check your connection and try again. If this issue persists please contact us through our help center at help.openai.com.
+
