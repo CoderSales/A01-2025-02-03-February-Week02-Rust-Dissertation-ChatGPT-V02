@@ -193,3 +193,25 @@ struct FrequencyMeter {
 
 ```
 ?
+
+## Out
+
+The correct way is:
+
+rust
+Copy
+Edit
+#[derive(Default, Clone)] // Combine both
+struct FrequencyMeter {
+    low_freq: Arc<Mutex<f32>>,
+    mid_freq: Arc<Mutex<f32>>,
+    high_freq: Arc<Mutex<f32>>,
+}
+Why?
+#[derive(Default, Clone)] applies both traits in one line.
+The first approach (two separate struct definitions) overwrites the first definition.
+The second approach (#[derive(Default)] #[derive(Clone)]) works but is redundant—better to combine into one line.
+✅ Best Practice: Keep all derive attributes together. 🚀
+
+## In
+
