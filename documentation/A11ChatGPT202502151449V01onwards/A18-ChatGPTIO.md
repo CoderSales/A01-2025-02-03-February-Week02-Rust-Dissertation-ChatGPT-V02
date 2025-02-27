@@ -271,3 +271,35 @@ The GUI launches properly.
 CLI logs are redirected to the GUI.
 Frequency meter updates as expected.
 
+## In
+
+### CL Output
+
+```bash
+error[E0433]: failed to resolve: use of undeclared crate or module `epi`
+  --> src\gui.rs:15:6
+   |
+15 | impl epi::App for AudioApp {
+   |      ^^^ use of undeclared crate or module `epi`
+
+error[E0433]: failed to resolve: use of undeclared crate or module `epi`
+  --> src\gui.rs:20:59
+   |
+20 |     fn update(&mut self, ctx: &egui::Context, frame: &mut epi::Frame) {
+   |                                                           ^^^ use of undeclared crate or module `epi`
+
+error[E0433]: failed to resolve: use of undeclared crate or module `epi`
+  --> src\gui.rs:59:6
+   |
+59 | impl epi::App for FrequencyMeter {
+   |      ^^^ use of undeclared crate or module `epi`
+
+error[E0433]: failed to resolve: use of undeclared crate or module `epi`
+  --> src\gui.rs:63:59
+   |
+63 |     fn update(&mut self, ctx: &egui::Context, frame: &mut epi::Frame) {
+   |                                                           ^^^ use of undeclared crate or module `epi`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 4 previous errors
+```
