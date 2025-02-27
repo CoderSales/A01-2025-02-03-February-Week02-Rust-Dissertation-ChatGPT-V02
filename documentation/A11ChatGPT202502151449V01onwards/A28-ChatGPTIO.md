@@ -267,3 +267,40 @@ For more information about this error, try `rustc --explain E0603`.
 warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 6 warnings
 error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 1 previous error; 6 warnings emitted
 ```
+
+## Out
+
+Fix for AudioApp is private (E0603)
+Issue
+The error occurs because AudioApp is declared as struct AudioApp in gui.rs, which means it's private by default. Rust modules make structs private unless explicitly marked as pub.
+
+Fix
+Modify gui.rs and make AudioApp public:
+
+rust
+Copy
+Edit
+pub struct AudioApp {
+This allows main.rs to access gui::AudioApp.
+
+Warnings (Unused Variables)
+These can be fixed by prefixing with an underscore (_) if they are intentionally unused.
+
+Modify main.rs:
+
+rust
+Copy
+Edit
+let _note_clone = Arc::clone(&note_playing);
+let _last_note_clone = Arc::clone(&last_note);
+let _noise_profile = if let Ok(profile) = load_noise_profile() { profile } else { vec![] };
+let _peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+Next Steps
+Modify gui.rs (pub struct AudioApp)
+Run:
+bash
+Copy
+Edit
+cargo check
+Share the output if further issues appear. 🚀
+
