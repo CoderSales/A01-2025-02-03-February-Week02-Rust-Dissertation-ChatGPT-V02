@@ -304,3 +304,25 @@ Edit
 cargo check
 Share the output if further issues appear. 🚀
 
+## In
+
+### Not changed:
+
+Warnings (Unused Variables)
+These can be fixed by prefixing with an underscore (_) if they are intentionally unused.
+
+Modify main.rs:
+
+rust
+Copy
+Edit
+let _note_clone = Arc::clone(&note_playing);
+let _last_note_clone = Arc::clone(&last_note);
+let _noise_profile = if let Ok(profile) = load_noise_profile() { profile } else { vec![] };
+let _peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+
+____
+
+## In
+
+No errors
