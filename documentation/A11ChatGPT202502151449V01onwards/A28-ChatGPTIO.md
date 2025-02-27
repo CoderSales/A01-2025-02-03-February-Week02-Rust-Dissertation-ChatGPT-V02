@@ -166,4 +166,104 @@ Edit
 cargo check
 If further issues arise, I can provide additional refinements. Let me know what the next error output is! 🚀
 
+## In
 
+### Re: 3. Fix mut buffer Warning
+
+```text
+3. Fix mut buffer Warning
+Issue
+The warning states that mut buffer inside the closure is unnecessary.
+
+Fix
+Remove the mut from:
+
+rust
+Copy
+Edit
+let mut buffer = buffer.lock().unwrap();
+Updated:
+
+rust
+Copy
+Edit
+let buffer = buffer.lock().unwrap();
+```
+
+let mut buffer = buffer.lock().unwrap();
+
+was not found.
+
+Closest was:
+
+2 occurrences of:
+
+`                let mut buffer = buffer_clone.lock().unwrap();`
+
+also this was only a warning, not fixing these.
+
+So, left as it was.
+
+### CL Output
+
+```bash
+$ cargo check
+    Checking midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)
+error[E0603]: struct `AudioApp` is private
+  --> src/main.rs:81:20
+   |
+81 |     let app = gui::AudioApp::default();
+   |                    ^^^^^^^^ private struct
+   |
+note: the struct `AudioApp` is defined here
+  --> src\gui.rs:7:1
+   |
+7  | struct AudioApp {
+   | ^^^^^^^^^^^^^^^
+
+warning: unused variable: `app`
+  --> src\gui.rs:86:9
+   |
+86 |     let app = AudioApp {
+   |         ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: variable does not need to be mutable
+  --> src/main.rs:39:21
+   |
+39 |                 let mut buffer = buffer_clone.lock().unwrap();
+   |                     ----^^^^^^
+   |                     |
+   |                     help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `note_clone`
+   --> src/main.rs:118:9
+    |
+118 |     let note_clone = Arc::clone(&note_playing);
+    |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_note_clone`
+
+warning: unused variable: `last_note_clone`
+   --> src/main.rs:119:9
+    |
+119 |     let last_note_clone = Arc::clone(&last_note);
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_last_note_clone`
+
+warning: unused variable: `noise_profile`
+   --> src/main.rs:121:9
+    |
+121 |     let noise_profile = if let Ok(profile) = load_noise_profile() {
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_noise_profile`
+
+warning: unused variable: `peaks`
+   --> src/main.rs:154:21
+    |
+154 |                 let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+    |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_peaks`
+
+For more information about this error, try `rustc --explain E0603`.
+warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 6 warnings
+error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 1 previous error; 6 warnings emitted
+```
