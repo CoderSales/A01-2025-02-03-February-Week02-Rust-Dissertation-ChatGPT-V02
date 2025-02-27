@@ -1,7 +1,9 @@
 use midi_freq_analyzer::audio;
 use midi_freq_analyzer::fft;
-use cpal::traits::{StreamTrait, DeviceTrait};
+use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::sync::{Arc, Mutex};
+use std::thread;
+
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 
@@ -15,11 +17,76 @@ mod live_output; // Import new module
 mod bitrate;
 mod gui;
 
+
+
+// new:
+
+fn start_audio_io() {
+    let host = cpal::default_host();
+    let device = host.default_output_device().expect("No output device found");
+    let config = device.default_output_config().unwrap();
+
+    let sample_rate = config.sample_rate().0;
+    let buffer_size = 1920;
+
+    let buffer = Arc::new(Mutex::new(vec![0.0f32; buffer_size]));
+
+    let buffer_clone = Arc::clone(&buffer);
+    let stream = device
+        .build_output_stream(
+            &config.into(),
+            move |data: &mut [f32], _| {
+                let mut buffer = buffer_clone.lock().unwrap(); 
+                data.copy_from_slice(&buffer[..data.len()]);
+            },
+            move |err| eprintln!("Stream error: {:?}", err),
+            None, 
+        )
+        .unwrap();
+
+    stream.play().unwrap();
+
+    thread::spawn(move || {
+        let buffer_clone = Arc::clone(&buffer);
+        loop {
+            {
+                let mut buffer = buffer_clone.lock().unwrap();
+                for i in 0..buffer_size {
+                    buffer[i] = (i as f32 / sample_rate as f32).sin();
+                }
+            }
+            thread::sleep(Duration::from_millis(10));
+        }
+    });
+    
+    loop {
+        thread::sleep(Duration::from_secs(1)); // Keep main thread alive
+    }
+}
+
+
+
+
 fn main() {
+    thread::spawn(|| start_audio_io()); // Run audio processing in background
+
+
+    // launch_gui(); // Run GUI (Audio Analyzer + Frequency Meter)
 
 
     gui::launch_gui();  // Remove if let Err(e)
 
+    // Define options and app before calling eframe::run_native():
+    let options = eframe::NativeOptions::default(); 
+    let app = gui::AudioApp::default();  
+    
+    eframe::run_native(
+        "Audio Analyzer",
+        options.clone(),
+        Box::new(|_cc| Ok(Box::new(app))),
+    )
+    .unwrap();
+    
 
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
 
@@ -227,8 +294,6 @@ fn frequency_to_note(frequency: f32) -> String {
 
     closest_note
 }
-
-// use std::time::{Instant, Duration};  // Add at top of file
 
 fn analyze_amplitude(samples: &[f32]) {
     static mut LAST_ANALYSIS_TIME: Option<Instant> = None;

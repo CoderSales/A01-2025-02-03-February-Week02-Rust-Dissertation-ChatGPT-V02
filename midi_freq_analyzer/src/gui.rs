@@ -1,32 +1,34 @@
-use eframe::egui; // Remove `epi`
+use eframe::{egui, App, NativeOptions};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
 #[derive(Default)]
-struct AudioApp {
+pub struct AudioApp {
     status_message: String,
-    log_output: Arc<Mutex<String>>, // Shared log output
-    low_freq: Arc<Mutex<f32>>,      // Low frequency meter
-    mid_freq: Arc<Mutex<f32>>,      // Mid frequency meter
-    high_freq: Arc<Mutex<f32>>,     // High frequency meter
+    log_output: Arc<Mutex<String>>,
+    low_freq: Arc<Mutex<f32>>,
+    mid_freq: Arc<Mutex<f32>>,
+    high_freq: Arc<Mutex<f32>>,
 }
 
-impl eframe::App for AudioApp {
-
+impl App for AudioApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("🎵 Audio Analyzer");
             ui.separator();
-            
+
             if ui.button("▶ Record").clicked() {
                 self.status_message = "Recording...".to_string();
+                
                 let log_output = Arc::clone(&self.log_output);
                 thread::spawn(move || {
+                    let mut log = log_output.lock().unwrap();
+                    *log = String::new(); // Reset logs when recording starts
+
                     for i in 1..=10 {
                         thread::sleep(Duration::from_millis(500));
-                        let mut log = log_output.lock().unwrap();
-                        log.push_str(&format!("✅ Processing samples... {}", i));
+                        log.push_str(&format!("✅ Processing samples... {}\n", i));
                     }
                 });
             }
@@ -37,42 +39,44 @@ impl eframe::App for AudioApp {
 
             ui.label(&self.status_message);
             ui.separator();
-            
-            // Display real-time CLI output in the GUI
+
+            // Display logs
             let log = self.log_output.lock().unwrap();
             ui.add_sized([400.0, 200.0], egui::TextEdit::multiline(&mut log.clone()));
         });
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 struct FrequencyMeter {
     low_freq: Arc<Mutex<f32>>,
     mid_freq: Arc<Mutex<f32>>,
     high_freq: Arc<Mutex<f32>>,
 }
 
-impl eframe::App for FrequencyMeter {
+impl App for FrequencyMeter {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("🎚 Frequency Levels");
-            
+
             let low = *self.low_freq.lock().unwrap();
             let mid = *self.mid_freq.lock().unwrap();
             let high = *self.high_freq.lock().unwrap();
-            
+
             ui.add(egui::ProgressBar::new(low).show_percentage());
-            ui.label("Low Frequencies");
+            ui.label("Low Frequencies (20Hz - 250Hz)");
+
             ui.add(egui::ProgressBar::new(mid).show_percentage());
-            ui.label("Mid Frequencies");
+            ui.label("Mid Frequencies (250Hz - 4kHz)");
+
             ui.add(egui::ProgressBar::new(high).show_percentage());
-            ui.label("High Frequencies");
+            ui.label("High Frequencies (4kHz - 20kHz)");
         });
     }
 }
 
 pub fn launch_gui() {
-    let options = eframe::NativeOptions::default();
+    let options = NativeOptions::default();
 
     let log_output = Arc::new(Mutex::new(String::new()));
     let low_freq = Arc::new(Mutex::new(0.0));
@@ -93,19 +97,16 @@ pub fn launch_gui() {
         high_freq,
     };
 
-    // Run Audio Analyzer window
-    eframe::run_native(
-        "Audio Analyzer",
-        options.clone(),  // Clone options to prevent move error
-        Box::new(|_cc| Ok(Box::new(app))),  // ✅ Wrapped in Ok()
-    )
-    .unwrap();
+    // Run GUI1 & GUI2 in separate threads
+    thread::spawn(move || {
+    });
 
-    // Run Frequency Meter window
+    thread::sleep(Duration::from_millis(100)); // Prevent UI conflicts
+
     eframe::run_native(
         "Frequency Meter",
         options,
-        Box::new(|_cc| Ok(Box::new(freq_meter))),  // ✅ Wrapped in Ok()
+        Box::new(|_cc| Ok(Box::new(freq_meter))),
     )
     .unwrap();
 }
