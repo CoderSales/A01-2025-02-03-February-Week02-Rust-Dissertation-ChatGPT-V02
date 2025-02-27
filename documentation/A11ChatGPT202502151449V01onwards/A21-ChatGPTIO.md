@@ -120,3 +120,75 @@ Next Steps
 Run: cargo check ✅
 Run: cargo run 🚀
 Confirm both GUI windows open properly.
+
+## In
+
+### From Window 1
+
+When Record button pressed 
+
+```bash
+✅ Processing samples... 1✅ Processing samples... 2✅ Processing samples... 3✅ Processing samples... 4✅ Processing samples... 5✅ Processing samples... 6✅ Processing samples... 7✅ Processing samples... 8✅ Processing samples... 9✅ Processing samples... 10✅ Processing samples... 1✅ Processing samples... 2✅ Processing samples... 3✅ Processing samples... 4✅ Processing samples... 5✅ Processing samples... 6✅ Processing samples... 1✅ Processing samples... 7✅ Processing samples... 2✅ Processing samples... 8✅ Processing samples... 3✅ Processing samples... 9✅ Processing samples... 4✅ Processing samples... 10✅ Processing samples... 5✅ Processing samples... 6✅ Processing samples... 7✅ Processing samples... 8✅ Processing samples... 9✅ Processing samples... 10
+```
+
+Note Each time Record button pressed starts counting again
+
+Also seemingly when Stop pressed.
+
+### From Window 2
+
+no bass mid or treble
+
+also left right horizontal not vertical
+
+Neither live nor historical
+
+all 3 levels at 0 here.
+
+### From CLI
+
+Usual:
+
+```bash
+⏳ Program Running: 0 seconds elapsed.
+
+Available input devices:
+0: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: CABLE Output (VB-Audio Virtual Cable)
+Select an input device (Enter number): 0
+
+🎵 Audio Configuration:
+ - Sample Format: f32
+ - Channels: 2
+ - Sample Rate: 48000 Hz
+ - Bit Depth: 32 bits
+ - Calculated Bitrate: 3072000 bps (3072 kbps)
+
+Using input device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+
+Capturing noise profile...
+⏳ Program Running: 5 seconds elapsed.
+Capturing noise for 0.5 seconds...
+Noise profile captured.
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+[] 🔍 Amplitude Analysis - Min: -0.00000, Max: 0.00000, Mean: -0.00000, Median: 0.00000
+[] ✅ Processing samples... Buffer size: 1920     
+```
+
+### General
+
+recorded file does not persist.
+
+Although this is not the point.
+
+Is it possible to switch every 10 ms between input and output?
+
+so that what ever was recorded is then played out?
+
+Also is it possible to
+
+have CLI and both windows run in parallel, not sequentially but concurrently?
+
+Or on a round robin basis to update all three?
+
