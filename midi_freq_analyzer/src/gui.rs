@@ -2,6 +2,7 @@ use eframe::{egui, App, NativeOptions};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
+use cpal::traits::{DeviceTrait, HostTrait};
 
 #[derive(Default)]
 pub struct AudioApp {
@@ -20,11 +21,11 @@ impl App for AudioApp {
 
             if ui.button("▶ Record").clicked() {
                 self.status_message = "Recording...".to_string();
-                
+
                 let log_output = Arc::clone(&self.log_output);
                 thread::spawn(move || {
                     let mut log = log_output.lock().unwrap();
-                    *log = String::new(); // Reset logs when recording starts
+                    *log = String::new();
 
                     for i in 1..=10 {
                         thread::sleep(Duration::from_millis(500));
@@ -40,7 +41,6 @@ impl App for AudioApp {
             ui.label(&self.status_message);
             ui.separator();
 
-            // Display logs
             let log = self.log_output.lock().unwrap();
             ui.add_sized([400.0, 200.0], egui::TextEdit::multiline(&mut log.clone()));
         });
@@ -63,20 +63,31 @@ impl App for FrequencyMeter {
             let mid = *self.mid_freq.lock().unwrap();
             let high = *self.high_freq.lock().unwrap();
 
-            ui.add(egui::ProgressBar::new(low).show_percentage());
-            ui.label("Low Frequencies (20Hz - 250Hz)");
-
-            ui.add(egui::ProgressBar::new(mid).show_percentage());
-            ui.label("Mid Frequencies (250Hz - 4kHz)");
-
-            ui.add(egui::ProgressBar::new(high).show_percentage());
-            ui.label("High Frequencies (4kHz - 20kHz)");
+            ui.vertical(|ui| {
+                ui.add(egui::ProgressBar::new(low).show_percentage());
+                ui.label("Low Frequencies (20Hz - 250Hz)");
+                ui.add(egui::ProgressBar::new(mid).show_percentage());
+                ui.label("Mid Frequencies (250Hz - 4kHz)");
+                ui.add(egui::ProgressBar::new(high).show_percentage());
+                ui.label("High Frequencies (4kHz - 20kHz)");
+            });
         });
     }
 }
 
 pub fn launch_gui() {
     let options = NativeOptions::default();
+    let host = cpal::default_host();
+    let devices = host.devices().expect("Failed to get audio devices");
+    let mut selected_device = None;
+
+    for device in devices {
+        println!("Found device: {}", device.name().unwrap_or("Unknown".to_string()));
+        if device.name().unwrap_or("Unknown".to_string()).contains("Microphone") {
+            selected_device = Some(device);
+            break;
+        }
+    }
 
     let log_output = Arc::new(Mutex::new(String::new()));
     let low_freq = Arc::new(Mutex::new(0.0));
@@ -97,11 +108,12 @@ pub fn launch_gui() {
         high_freq,
     };
 
-    // Run GUI1 & GUI2 in separate threads
-    thread::spawn(move || {
-    });
-
-    thread::sleep(Duration::from_millis(100)); // Prevent UI conflicts
+    eframe::run_native(
+        "Audio Analyzer",
+        options.clone(),
+        Box::new(|_cc| Ok(Box::new(app))),
+    )
+    .unwrap();
 
     eframe::run_native(
         "Frequency Meter",
