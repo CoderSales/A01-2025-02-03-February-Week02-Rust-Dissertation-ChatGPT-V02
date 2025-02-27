@@ -343,3 +343,71 @@ Fixes Send trait error.
 GUI windows launch one after another (User must close one to open the next).
 Retains all functionality.
 Try running it now with cargo run. 🚀
+
+## In
+
+### Priority
+
+Minimal Response.
+
+Wrap up this session.
+
+To be continued.
+
+No instructions for that now please.
+
+### CL Output
+
+```bash
+Found device: FxSound Speakers (FxSound Audio Enhancer)
+Found device: CABLE Input (VB-Audio Virtual Cable)
+Found device: Speakers (Realtek(R) Audio)
+Found device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+thread 'cpal_wasapi_out' panicked at src/main.rs:40:45:
+range end index 2112 out of range for slice of length 1920
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+thread '<unnamed>' panicked at src/main.rs:53:54:
+called `Result::unwrap()` on an `Err` value: PoisonError { .. }
+⏳ Program Running: 0 seconds elapsed.
+
+Available input devices:
+0: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: CABLE Output (VB-Audio Virtual Cable)
+Select an input device (Enter number): 0
+
+🎵 Audio Configuration:
+ - Sample Format: f32
+ - Channels: 2
+ - Sample Rate: 48000 Hz
+ - Bit Depth: 32 bits
+ - Calculated Bitrate: 3072000 bps (3072 kbps)
+
+Using input device: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+
+Capturing noise profile...
+Capturing noise for 0.5 seconds...
+Noise profile captured.
+Noise profile captured.
+Listening for audio... Press Ctrl+C to stop.
+[] 🔍 Amplitude Analysis - Min: -0.00000, Max: 0.00000, Mean: -0.00000, Median: 0.00000
+[_] ⏳ Program Running: 5 seconds elapsed.
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920    
+[] 🔍 Amplitude Analysis - Min: -0.01072, Max: 0.01249, Mean: -0.00027, Median: -0.00044
+[] ⏳ Program Running: 10 seconds elapsed.
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[_] ✅ Processing samples... Buffer size: 1920    
+[__] 🔍 Amplitude Analysis - Min: -0.12664, Max: 0.14021, Mean: -0.00235, Median: -0.01008
+[_____] ⏳ Program Running: 15 seconds elapsed.   
+[] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920
+[_____] 🔍 Amplitude Analysis - Min: -0.10733, Max: 0.10900, Mean: -0.00259, Median: -0.00031
+[__] ⏳ Program Running: 20 seconds elapsed.      
+[_____] ✅ Processing samples... Buffer size: 1920
+[] ✅ Processing samples... Buffer size: 1920     
+[] ✅ Processing samples... Buffer size: 1920     
+[] 🔍 Amplitude Analysis - Min: -0.00008, Max: 0.00006, Mean: 0.00000, Median: 0.00000
+[____] ⏳ Program Running: 25 seconds elapsed.
+[] ✅ Processing samples... Buffer size: 1920     
+```
