@@ -303,3 +303,55 @@ error[E0433]: failed to resolve: use of undeclared crate or module `epi`
 For more information about this error, try `rustc --explain E0433`.
 error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 4 previous errors
 ```
+
+## Out
+
+Issue
+The epi module was removed in eframe 0.22+. Your gui.rs still references epi::App and epi::Frame.
+
+Fix
+✅ Replace epi::App with eframe::App
+Change:
+
+rust
+Copy
+Edit
+impl epi::App for AudioApp {
+To:
+
+rust
+Copy
+Edit
+impl eframe::App for AudioApp {
+And:
+
+rust
+Copy
+Edit
+impl epi::App for FrequencyMeter {
+To:
+
+rust
+Copy
+Edit
+impl eframe::App for FrequencyMeter {
+✅ Replace epi::Frame with eframe::Frame
+Change:
+
+rust
+Copy
+Edit
+fn update(&mut self, ctx: &egui::Context, frame: &mut epi::Frame) {
+To:
+
+rust
+Copy
+Edit
+fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+Apply these changes in all occurrences in gui.rs.
+
+Next Steps
+Make these changes in gui.rs.
+Run cargo check to verify the fix.
+If no errors, run cargo run to launch the GUI.
+
