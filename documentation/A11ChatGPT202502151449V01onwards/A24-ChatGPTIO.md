@@ -329,3 +329,158 @@ fn analyze_amplitude(samples: &[f32]) {
     analyze_amplitude(&samples);
 }
 ```
+
+## Out
+
+### Text
+
+main.rs has been updated in the canvas as requested. Let me know if you need further modifications or fixes.
+
+### Canvas / main.rs
+
+```rust
+use midi_freq_analyzer::audio;
+use midi_freq_analyzer::fft;
+use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
+
+const MIN_FREQUENCY: f32 = 20.0;
+const MAX_FREQUENCY: f32 = 20000.0;
+const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
+
+use std::time::{Instant, Duration};
+
+mod live_output; // Import new module
+mod bitrate;
+mod gui;
+
+// new:
+
+fn start_audio_io() {
+    let host = cpal::default_host();
+    let device = host.default_output_device().expect("No output device found");
+    let config = device.default_output_config().unwrap();
+
+    let sample_rate = config.sample_rate().0;
+    let buffer_size = 1920;
+
+    let buffer = Arc::new(Mutex::new(vec![0.0f32; buffer_size]));
+
+    let stream = device
+        .build_output_stream(
+            &config.into(),
+            move |data: &mut [f32], _| {
+                let mut buffer = buffer.lock().unwrap();
+                data.copy_from_slice(&buffer[..data.len()]);
+            },
+            move |err| eprintln!("Stream error: {:?}", err),
+            None, // ✅ Fix: Add this argument        
+        )
+        .unwrap();
+
+    stream.play().unwrap();
+
+    thread::spawn(move || {
+        loop {
+            {
+                let mut buffer = buffer.lock().unwrap();
+                for i in 0..buffer_size {
+                    buffer[i] = (i as f32 / sample_rate as f32).sin(); // Example: sine wave
+                }
+            }
+            thread::sleep(Duration::from_millis(10));
+        }
+    });
+
+    loop {
+        thread::sleep(Duration::from_secs(1)); // Keep main thread alive
+    }
+}
+
+fn main() {
+    thread::spawn(|| start_audio_io()); // Run audio processing in background
+
+    gui::launch_gui();  // Remove if let Err(e)
+
+    let program_start = Instant::now(); // ✅ Fix: Declare inside main()
+
+    // ✅ Move logging into a separate thread
+    std::thread::spawn(move || {
+        loop {
+            let elapsed = program_start.elapsed().as_secs();
+            if elapsed % 5 == 0 {
+                println!("⏳ Program Running: {} seconds elapsed.", elapsed);
+            }
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+    });
+
+    let device = audio::select_audio_device();
+    let config = audio::get_audio_config(&device); // ✅ Define config first
+
+    bitrate::print_audio_bitrate(&config);
+
+    println!("\nUsing input device: {}\n", device.name().unwrap());
+
+    let data = Arc::new(Mutex::new(Vec::new()));
+    let note_playing = Arc::new(Mutex::new(false));
+    let last_note = Arc::new(Mutex::new("".to_string())); // Track last note
+
+    let err_fn = |err| eprintln!("Error: {:?}", err);
+
+    let data_clone = Arc::clone(&data);
+    let note_clone = Arc::clone(&note_playing);
+    let last_note_clone = Arc::clone(&last_note);
+
+    let noise_profile = if let Ok(profile) = load_noise_profile() {
+        println!("Loaded saved noise profile.");
+        profile
+    } else {
+        println!("Capturing noise profile...");
+        let profile = capture_noise_profile(&device, &config);
+        save_noise_profile(&profile);
+        profile
+    };
+
+    let stream = device.build_input_stream(
+        &config,
+        move |data: &[f32], _: &_| {
+            for &sample in data {
+                let amplitude = sample.abs();
+                live_output::print_live_amplitude(amplitude);
+            }
+            let mut buffer = data_clone.lock().unwrap();
+            buffer.extend_from_slice(data);
+            static mut PRINT_COUNTER: usize = 0;
+
+            if buffer.len() >= 1920 {
+                unsafe {
+                    PRINT_COUNTER += 1;
+                    if PRINT_COUNTER % 100 == 0 {
+                        println!("✅ Processing samples... Buffer size: {}", buffer.len());
+                    }
+                }
+                let buffer_len = buffer.len().min(2048);
+                let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+                let mut silence_count = 0;
+                let mut total_frames = 0;
+                let raw_amplitude = buffer.iter().map(|&x| x.abs()).sum::<f32>() / buffer.len() as f32;
+                fft::display_amplitude(raw_amplitude, &mut silence_count, &mut total_frames);
+                analyze_amplitude(&buffer[..buffer_len]);
+                buffer.clear();
+            }
+        },
+        err_fn,
+        None,
+    ).expect("Failed to create stream");
+
+    stream.play().expect("Failed to start stream");
+
+    println!("Listening for audio... Press Ctrl+C to stop.");
+    std::thread::sleep(std::time::Duration::from_secs(30));
+}
+```
