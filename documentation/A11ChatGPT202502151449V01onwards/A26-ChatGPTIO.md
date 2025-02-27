@@ -293,3 +293,62 @@ fn save_noise_profile(noise_profile: &Vec<f32>) {
 
 The functions have been added to the end of main.rs in the Canvas. Let me know if you need further modifications.
 
+## In
+
+### Suggestion
+
+Please, 
+
+without checking earlier lines, as much as possible,
+
+just add the following lines to the end of 
+
+main.rs in canvas tab:
+
+```rust
+/// **Load noise profile from file**
+fn load_noise_profile() -> Result<Vec<f32>, std::io::Error> {
+    let mut file = OpenOptions::new().read(true).open(NOISE_PROFILE_FILE)?;
+    let mut content = String::new();
+    file.read_to_string(&mut content)?;
+
+    let noise_profile: Vec<f32> = content.lines()
+        .filter_map(|line| line.parse::<f32>().ok())
+        .collect();
+
+    Ok(noise_profile)
+}
+
+/// Converts a frequency to the closest musical note
+fn frequency_to_note(frequency: f32) -> String {
+    let a4_freq = 440.0;
+    let semitone_ratio = 2.0_f32.powf(1.0 / 12.0);
+
+    let note_names = [
+        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+    ];
+
+    let mut closest_note = "Unknown".to_string();
+    let mut min_diff = f32::MAX;
+    let mut best_index = 0;
+    let mut best_octave = 4;
+
+    for i in -48..=48 { // Covers ~4 octaves up/down
+        let note_freq = a4_freq * semitone_ratio.powf(i as f32);
+        let diff = (frequency - note_freq).abs();
+
+        if diff < min_diff {
+            min_diff = diff;
+            best_index = ((i + 9) % 12) as usize;
+            best_octave = 4 + (i + 9) / 12;
+        }
+    }
+
+    // Ensure the index is within bounds
+    if best_index < note_names.len() {
+        closest_note = format!("{}{}", note_names[best_index], best_octave);
+    }
+
+    closest_note
+}
+```
