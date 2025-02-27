@@ -276,3 +276,70 @@ A network error occurred. Please check your connection and try again. If this is
 ## In
 
 Regenerate with last Chat Input
+
+## Out
+
+The errors are due to attempting to run eframe::run_native inside thread::spawn, which requires Send. NativeOptions contains non-Send elements, causing this issue.
+
+Fix: Run GUIs Sequentially Instead of in Separate Threads
+rust
+Copy
+Edit
+pub fn launch_gui() {
+    let options = NativeOptions::default();
+    let host = cpal::default_host();
+    let devices = host.devices().expect("Failed to get audio devices");
+    let mut selected_device = None;
+
+    for device in devices {
+        println!("Found device: {}", device.name().unwrap_or("Unknown".to_string()));
+        if device.name().unwrap_or("Unknown".to_string()).contains("Microphone") {
+            selected_device = Some(device);
+            break;
+        }
+    }
+
+    let log_output = Arc::new(Mutex::new(String::new()));
+    let low_freq = Arc::new(Mutex::new(0.0));
+    let mid_freq = Arc::new(Mutex::new(0.0));
+    let high_freq = Arc::new(Mutex::new(0.0));
+
+    let app = AudioApp {
+        status_message: "Idle".to_string(),
+        log_output: Arc::clone(&log_output),
+        low_freq: Arc::clone(&low_freq),
+        mid_freq: Arc::clone(&mid_freq),
+        high_freq: Arc::clone(&high_freq),
+    };
+
+    let freq_meter = FrequencyMeter {
+        low_freq,
+        mid_freq,
+        high_freq,
+    };
+
+    eframe::run_native(
+        "Audio Analyzer",
+        options.clone(),
+        Box::new(|_cc| Ok(Box::new(app))),
+    )
+    .unwrap();
+
+    eframe::run_native(
+        "Frequency Meter",
+        options,
+        Box::new(|_cc| Ok(Box::new(freq_meter))),
+    )
+    .unwrap();
+}
+Changes
+Removed thread::spawn for eframe::run_native
+eframe::run_native is not thread-safe and should not be run inside thread::spawn.
+Runs GUIs sequentially instead.
+Retained Audio Device Selection
+Detects Microphone or Virtual Audio Cable.
+Effect
+Fixes Send trait error.
+GUI windows launch one after another (User must close one to open the next).
+Retains all functionality.
+Try running it now with cargo run. 🚀
