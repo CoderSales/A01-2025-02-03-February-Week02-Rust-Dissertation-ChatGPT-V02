@@ -452,3 +452,77 @@ fn analyze_amplitude(samples: &[f32]) {
     analyze_amplitude(&samples);
 }
 ```
+
+## Out
+
+### Text
+
+Your main.rs is now in a dedicated workspace for further modifications. Let me know the next steps or specific issues you want to address!
+
+### Canvas / main.rs
+
+```rust
+use midi_freq_analyzer::audio;
+use midi_freq_analyzer::fft;
+use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
+
+const MIN_FREQUENCY: f32 = 20.0;
+const MAX_FREQUENCY: f32 = 20000.0;
+const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
+
+use std::time::{Instant, Duration};
+
+mod live_output;
+mod bitrate;
+mod gui;
+
+fn start_audio_io() {
+    let host = cpal::default_host();
+    let device = host.default_output_device().expect("No output device found");
+    let config = device.default_output_config().unwrap();
+
+    let sample_rate = config.sample_rate().0;
+    let buffer_size = 1920;
+
+    let buffer = Arc::new(Mutex::new(vec![0.0f32; buffer_size]));
+
+    let stream = device
+        .build_output_stream(
+            &config.into(),
+            move |data: &mut [f32], _| {
+                let mut buffer = buffer.lock().unwrap();
+                data.copy_from_slice(&buffer[..data.len()]);
+            },
+            move |err| eprintln!("Stream error: {:?}", err),
+            None,
+        )
+        .unwrap();
+
+    stream.play().unwrap();
+
+    thread::spawn(move || {
+        loop {
+            {
+                let mut buffer = buffer.lock().unwrap();
+                for i in 0..buffer_size {
+                    buffer[i] = (i as f32 / sample_rate as f32).sin();
+                }
+            }
+            thread::sleep(Duration::from_millis(10));
+        }
+    });
+
+    loop {
+        thread::sleep(Duration::from_secs(1));
+    }
+}
+
+fn main() {
+    thread::spawn(|| start_audio_io());
+    gui::launch_gui();
+}
+```
