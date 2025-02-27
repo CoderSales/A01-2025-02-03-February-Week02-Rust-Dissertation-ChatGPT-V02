@@ -65,3 +65,104 @@ error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 
 Try not to change code in canvas,
 
 Give suggestions as text and code blocks.
+
+## Out
+
+Suggestions for Fixing Errors
+1. Fix options and app Not Found Errors (E0425)
+Issue
+The variables options and app are referenced inside main.rs but are not defined. These likely need to be declared before being used.
+
+Fix
+Define options and app before calling eframe::run_native():
+
+rust
+Copy
+Edit
+let options = eframe::NativeOptions::default(); 
+let app = gui::AudioApp::default();  // Ensure this matches the correct struct in `gui.rs`
+Updated Code Snippet
+Modify main.rs:
+
+rust
+Copy
+Edit
+let options = eframe::NativeOptions::default(); 
+let app = gui::AudioApp::default();  
+
+eframe::run_native(
+    "Audio Analyzer",
+    options.clone(),
+    Box::new(|_cc| Ok(Box::new(app))),
+)
+.unwrap();
+2. Fix buffer Move Error (E0382)
+Issue
+The buffer variable is moved inside a closure and then attempted to be used in another thread. Arc<Mutex<>> should be properly cloned before being used.
+
+Fix
+Use Arc::clone(&buffer) before passing it into multiple closures.
+
+Updated Code Snippet
+Modify start_audio_io():
+
+rust
+Copy
+Edit
+let buffer = Arc::new(Mutex::new(vec![0.0f32; buffer_size]));
+
+let buffer_clone = Arc::clone(&buffer);
+let stream = device
+    .build_output_stream(
+        &config.into(),
+        move |data: &mut [f32], _| {
+            let mut buffer = buffer_clone.lock().unwrap(); 
+            data.copy_from_slice(&buffer[..data.len()]);
+        },
+        move |err| eprintln!("Stream error: {:?}", err),
+        None, 
+    )
+    .unwrap();
+Similarly, modify:
+
+rust
+Copy
+Edit
+thread::spawn(move || {
+    let buffer_clone = Arc::clone(&buffer);
+    loop {
+        {
+            let mut buffer = buffer_clone.lock().unwrap();
+            for i in 0..buffer_size {
+                buffer[i] = (i as f32 / sample_rate as f32).sin();
+            }
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+});
+3. Fix mut buffer Warning
+Issue
+The warning states that mut buffer inside the closure is unnecessary.
+
+Fix
+Remove the mut from:
+
+rust
+Copy
+Edit
+let mut buffer = buffer.lock().unwrap();
+Updated:
+
+rust
+Copy
+Edit
+let buffer = buffer.lock().unwrap();
+Next Steps
+After applying these fixes, rerun:
+
+bash
+Copy
+Edit
+cargo check
+If further issues arise, I can provide additional refinements. Let me know what the next error output is! 🚀
+
