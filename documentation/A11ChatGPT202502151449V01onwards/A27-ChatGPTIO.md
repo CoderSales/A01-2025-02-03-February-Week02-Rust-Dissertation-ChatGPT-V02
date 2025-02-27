@@ -397,3 +397,7 @@ For more information about an error, try `rustc --explain E0382`.
 warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 2 warnings
 error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 3 previous errors; 2 warnings emitted
 ```
+
+## Out
+
+I have updated main.rs in the canvas with the provided changes. Let me know if you need further modifications.
