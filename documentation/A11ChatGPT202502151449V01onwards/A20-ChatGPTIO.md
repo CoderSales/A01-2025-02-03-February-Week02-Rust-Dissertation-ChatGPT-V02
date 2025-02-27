@@ -215,3 +215,143 @@ The second approach (#[derive(Default)] #[derive(Clone)]) works but is redundant
 
 ## In
 
+### CL Output
+
+```bash
+error[E0599]: no method named `clone` found for struct `FrequencyMeter` in the current scope
+  --> src\gui.rs:97:39
+   |
+49 | struct FrequencyMeter {
+   | --------------------- method `clone` not found for this struct
+...
+97 |     let freq_meter_clone = freq_meter.clone(); // Clone before second use
+   |                                       ^^^^^ method not found in `FrequencyMeter`
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `clone`, perhaps you need to implement it:
+           candidate #1: `Clone`
+
+error[E0308]: mismatched types
+  --> src/main.rs:21:12
+   |
+21 |     if let Err(e) = gui::launch_gui() {
+   |            ^^^^^^   ----------------- this expression has type `()`
+   |            |
+   |            expected `()`, found `Result<_, _>`
+   |
+   = note: expected unit type `()`
+                   found enum `Result<_, _>`
+
+Some errors have detailed explanations: E0308, E0599.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 2 previous errors
+
+steph@Laptop7JA MINGW64 ~/OneDrive/Documents/48-Rust/A06ChatGPT/A01-proj/A03Project01/A01-proj/A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT/midi_freq_analyzer/src (main)
+$ cargo check
+    Checking midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)
+error[E0277]: `(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)` cannot be sent between threads safely
+   --> src\gui.rs:99:19
+    |
+99  |       thread::spawn(move || {
+    |  _____-------------_^
+    | |     |
+    | |     required by a bound introduced by this call
+100 | |         if let Err(e) = eframe::run_native(
+101 | |             "Audio Analyzer",
+102 | |             options,
+...   |
+106 | |         }
+107 | |     });
+    | |_____^ `(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)` cannot be sent between threads safely
+    |
+    = help: the trait `Send` is not implemented for `(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)`, which is required by `{closure@src\gui.rs:99:19: 99:26}: Send`
+    = note: required for `Unique<(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)>` to implement `Send`
+note: required because it appears within the type `Box<(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)>`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\alloc\src\boxed.rs:235:12
+note: required because it appears within the type `Option<Box<(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)>>`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\core\src\option.rs:571:10
+note: required because it appears within the type `NativeOptions`
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\eframe-0.31.0\src\epi.rs:279:12
+    |
+279 | pub struct NativeOptions {
+    |            ^^^^^^^^^^^^^
+note: required because it's used within this closure
+   --> src\gui.rs:99:19
+    |
+99  |     thread::spawn(move || {
+    |                   ^^^^^^^
+note: required by a bound in `spawn`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\std\src\thread\mod.rs:672:1
+help: use parentheses to call this trait object
+    |
+107 |     }(/* &mut EventLoopBuilder<UserEvent> */));
+    |      ++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: `(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)` cannot be sent between threads safely
+   --> src\gui.rs:99:19
+    |
+99  |       thread::spawn(move || {
+    |  _____-------------_^
+    | |     |
+    | |     required by a bound introduced by this call
+100 | |         if let Err(e) = eframe::run_native(
+101 | |             "Audio Analyzer",
+102 | |             options,
+...   |
+106 | |         }
+107 | |     });
+    | |_____^ `(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)` cannot be sent between threads safely
+    |
+    = help: the trait `Send` is not implemented for `(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)`, which is required by `{closure@src\gui.rs:99:19: 99:26}: Send`
+    = note: required for `Unique<(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)>` to implement `Send`
+note: required because it appears within the type `Box<(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)>`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\alloc\src\boxed.rs:235:12
+note: required because it appears within the type `Option<Box<(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)>>`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\core\src\option.rs:571:10
+note: required because it appears within the type `NativeOptions`
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\eframe-0.31.0\src\epi.rs:279:12
+    |
+279 | pub struct NativeOptions {
+    |            ^^^^^^^^^^^^^
+note: required because it's used within this closure
+   --> src\gui.rs:99:19
+    |
+99  |     thread::spawn(move || {
+    |                   ^^^^^^^
+note: required by a bound in `spawn`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\std\src\thread\mod.rs:672:1
+help: use parentheses to call this trait object
+    |
+107 |     }(/* ViewportBuilder */));
+    |      +++++++++++++++++++++++
+
+warning: unused variable: `note_clone`
+  --> src/main.rs:51:9
+   |
+51 |     let note_clone = Arc::clone(&note_playing);
+   |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_note_clone`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `last_note_clone`
+  --> src/main.rs:52:9
+   |
+52 |     let last_note_clone = Arc::clone(&last_note);
+   |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_last_note_clone`
+
+warning: unused variable: `noise_profile`
+  --> src/main.rs:54:9
+   |
+54 |     let noise_profile = if let Ok(profile) = load_noise_profile() {
+   |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_noise_profile`
+
+warning: unused variable: `peaks`
+  --> src/main.rs:87:21
+   |
+87 |                 let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+   |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_peaks`
+
+For more information about this error, try `rustc --explain E0277`.
+warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 4 warnings
+error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 2 previous errors; 4 warnings emitted
+```
