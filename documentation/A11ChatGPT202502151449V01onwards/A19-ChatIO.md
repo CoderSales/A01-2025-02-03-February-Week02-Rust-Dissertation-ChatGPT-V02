@@ -274,3 +274,140 @@ For more information about this error, try `rustc --explain E0277`.
 warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 5 warnings
 error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 1 previous error; 5 warnings emitted
 ```
+
+## Out
+
+Fix for ? Operator in Thread Closure (E0277)
+The error occurs because the ? operator is used inside thread::spawn, but thread::spawn requires a closure returning () rather than a Result.
+
+✅ Solution: Manually handle the error instead of using ?
+Replace:
+
+rust
+Copy
+Edit
+thread::spawn(move || {
+    eframe::run_native(
+        "Audio Analyzer",
+        options,
+        Box::new(|_cc| Ok(Box::new(app))),
+    )?;
+});
+With:
+
+rust
+Copy
+Edit
+thread::spawn(move || {
+    if let Err(e) = eframe::run_native(
+        "Audio Analyzer",
+        options,
+        Box::new(|_cc| Ok(Box::new(app))),
+    ) {
+        eprintln!("Error launching Audio Analyzer: {:?}", e);
+    }
+});
+And do the same for Frequency Meter:
+
+rust
+Copy
+Edit
+if let Err(e) = eframe::run_native(
+    "Frequency Meter",
+    options,
+    Box::new(|_cc| Ok(Box::new(freq_meter))),
+) {
+    eprintln!("Error launching Frequency Meter: {:?}", e);
+}
+Fix for unused variable: frame
+✅ Solution: Prefix it with _frame in fn update():
+
+rust
+Copy
+Edit
+fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+Final Steps
+Apply these fixes to gui.rs.
+Run cargo check to confirm no errors.
+Run cargo run to test the GUI launch.
+This should resolve the issue! 🚀
+
+## In
+
+### CL Output
+
+```bash
+warning: unused variable: `app`
+  --> src\gui.rs:81:9
+   |
+81 |     let app = AudioApp {
+   |         ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+error[E0382]: use of moved value: `options`
+   --> src\gui.rs:107:9
+    |
+75  |     let options = eframe::NativeOptions::default();
+    |         ------- move occurs because `options` has type `NativeOptions`, which does not implement the `Copy` trait
+...
+98  |         options,
+    |         ------- value moved here
+...
+107 |         options,
+    |         ^^^^^^^ value used here after move
+
+error[E0382]: use of moved value: `freq_meter`
+   --> src\gui.rs:108:18
+    |
+89  |     let freq_meter = FrequencyMeter {
+    |         ---------- move occurs because `freq_meter` has type `FrequencyMeter`, which does not implement the `Copy` trait
+...
+99  |         Box::new(|_cc| Ok(Box::new(freq_meter))),
+    |                  -----             ---------- variable moved due to use in closure
+    |                  |
+    |                  value moved into closure here
+...
+108 |         Box::new(|_cc| Ok(Box::new(freq_meter))),
+    |                  ^^^^^             ---------- use occurs due to use in closure
+    |                  |
+    |                  value used here after move
+    |
+note: if `FrequencyMeter` implemented `Clone`, you could clone the value
+   --> src\gui.rs:49:1
+    |
+49  | struct FrequencyMeter {
+    | ^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+...
+99  |         Box::new(|_cc| Ok(Box::new(freq_meter))),
+    |                                    ---------- you could clone this value
+
+warning: unused variable: `note_clone`
+  --> src/main.rs:53:9
+   |
+53 |     let note_clone = Arc::clone(&note_playing);
+   |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_note_clone`
+
+warning: unused variable: `last_note_clone`
+  --> src/main.rs:54:9
+   |
+54 |     let last_note_clone = Arc::clone(&last_note);
+   |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_last_note_clone`
+
+warning: unused variable: `noise_profile`
+  --> src/main.rs:56:9
+   |
+56 |     let noise_profile = if let Ok(profile) = load_noise_profile() {
+   |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_noise_profile`
+
+warning: unused variable: `peaks`
+  --> src/main.rs:89:21
+   |
+89 |                 let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+   |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_peaks`
+
+For more information about this error, try `rustc --explain E0382`.
+warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 5 warnings
+error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 2 previous errors; 5 warnings emitted
+
+```
