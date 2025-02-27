@@ -61,3 +61,62 @@ For more information about this error, try `rustc --explain E0308`.
 warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 4 warnings
 error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 2 previous errors; 4 warnings emitted
 ```
+
+## Out
+
+The error is due to eframe::run_native() expecting a Result<Box<dyn App>, Box<dyn Error + Send + Sync>>, but you're providing Box<AudioApp> and Box<FrequencyMeter> directly.
+
+Fix
+Wrap the return values inside Ok() to match the expected type.
+
+Fixed launch_gui()
+rust
+Copy
+Edit
+pub fn launch_gui() {
+    let options = eframe::NativeOptions::default();
+
+    let log_output = Arc::new(Mutex::new(String::new()));
+    let low_freq = Arc::new(Mutex::new(0.0));
+    let mid_freq = Arc::new(Mutex::new(0.0));
+    let high_freq = Arc::new(Mutex::new(0.0));
+
+    let app = AudioApp {
+        status_message: "Idle".to_string(),
+        log_output: Arc::clone(&log_output),
+        low_freq: Arc::clone(&low_freq),
+        mid_freq: Arc::clone(&mid_freq),
+        high_freq: Arc::clone(&high_freq),
+    };
+
+    let freq_meter = FrequencyMeter {
+        low_freq,
+        mid_freq,
+        high_freq,
+    };
+
+    // Run Audio Analyzer window
+    eframe::run_native(
+        "Audio Analyzer",
+        options.clone(),  // Clone options to prevent move error
+        Box::new(|_cc| Ok(Box::new(app))),  // ✅ Wrapped in Ok()
+    )
+    .unwrap();
+
+    // Run Frequency Meter window
+    eframe::run_native(
+        "Frequency Meter",
+        options,
+        Box::new(|_cc| Ok(Box::new(freq_meter))),  // ✅ Wrapped in Ok()
+    )
+    .unwrap();
+}
+Changes Made
+Wrapped the Box::new(app) and Box::new(freq_meter) inside Ok()
+This matches the expected type: Result<Box<dyn App>, Box<dyn Error + Send + Sync>>
+Cloned options before first use to avoid move errors.
+Used .unwrap() to handle errors cleanly.
+Next Steps
+Run: cargo check ✅
+Run: cargo run 🚀
+Confirm both GUI windows open properly.
