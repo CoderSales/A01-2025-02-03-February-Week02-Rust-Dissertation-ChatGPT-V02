@@ -361,3 +361,88 @@ For more information about this error, try `rustc --explain E0277`.
 warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 4 warnings
 error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 2 previous errors; 4 warnings emitted
 ```
+
+## Out
+
+You're encountering multiple issues related to threading, trait implementations, and API changes in eframe. Here's how to fix them:
+
+Fix for Clone on FrequencyMeter
+The struct FrequencyMeter contains Arc<Mutex<f32>>, which already implements Clone. So the correct way is:
+
+rust
+Copy
+Edit
+#[derive(Default, Clone)]
+struct FrequencyMeter {
+    low_freq: Arc<Mutex<f32>>,
+    mid_freq: Arc<Mutex<f32>>,
+    high_freq: Arc<Mutex<f32>>,
+}
+Reason: Arc<T> implements Clone, so #[derive(Clone)] works directly.
+
+Fix for Threading Issue
+The NativeOptions struct is not Send, meaning it can't be moved into a separate thread with thread::spawn. Instead, keep GUI execution in the main thread.
+
+✅ Solution: Run GUIs Sequentially
+Modify launch_gui() to remove thread::spawn:
+
+rust
+Copy
+Edit
+pub fn launch_gui() {
+    let options = eframe::NativeOptions::default();
+
+    let log_output = Arc::new(Mutex::new(String::new()));
+    let low_freq = Arc::new(Mutex::new(0.0));
+    let mid_freq = Arc::new(Mutex::new(0.0));
+    let high_freq = Arc::new(Mutex::new(0.0));
+
+    let app = AudioApp {
+        status_message: "Idle".to_string(),
+        log_output: Arc::clone(&log_output),
+        low_freq: Arc::clone(&low_freq),
+        mid_freq: Arc::clone(&mid_freq),
+        high_freq: Arc::clone(&high_freq),
+    };
+
+    let freq_meter = FrequencyMeter {
+        low_freq,
+        mid_freq,
+        high_freq,
+    };
+
+    // Run both GUIs sequentially
+    eframe::run_native(
+        "Audio Analyzer",
+        options.clone(),  // Clone options to avoid move error
+        Box::new(|_cc| Box::new(app)),
+    )
+    .unwrap();
+
+    eframe::run_native(
+        "Frequency Meter",
+        options,
+        Box::new(|_cc| Box::new(freq_meter)),
+    )
+    .unwrap();
+}
+Changes made:
+Removed thread::spawn → eframe::run_native() is not Send, so it must run on the main thread.
+Cloned options → Prevents "value used after move" error.
+Fix for mismatched types in main.rs
+You're calling gui::launch_gui() inside an if let Err(e) check:
+
+rust
+Copy
+Edit
+if let Err(e) = gui::launch_gui() {
+But launch_gui() returns (), not Result<_, _>. Fix:
+
+rust
+Copy
+Edit
+gui::launch_gui();  // Remove if let Err(e)
+Final Steps
+Run: cargo clean && cargo check
+Confirm GUI opens both windows correctly.
+Test frequency meters updating values. 🚀
