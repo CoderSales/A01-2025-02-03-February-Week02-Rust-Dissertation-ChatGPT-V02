@@ -139,3 +139,127 @@ pub fn launch_gui() {
 
 Updated Canvas / Gui Dual Windows with vertical layout for GUI1 and reinstated functionality for device selection. Minimal changes applied incrementally.
 
+## In
+
+### CL Output
+
+```bash
+$ cargo check
+    Checking midi_freq_analyzer v0.1.0 (C:\Users\steph\OneDrive\Documents\48-Rust\A06ChatGPT\A01-proj\A03Project01\A01-proj\A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT\midi_freq_analyzer)
+error[E0277]: `(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)` cannot be sent between threads safely
+   --> src\gui.rs:111:19
+    |
+111 |       thread::spawn(move || {
+    |  _____-------------_^
+    | |     |
+    | |     required by a bound introduced by this call
+112 | |         eframe::run_native(
+113 | |             "Audio Analyzer",
+114 | |             options.clone(),
+...   |
+117 | |         .unwrap();
+118 | |     });
+    | |_____^ `(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)` cannot be sent between threads safely
+    |
+    = help: the trait `Send` is not implemented for `(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)`, which is required by `{closure@src\gui.rs:111:19: 111:26}: Send`
+    = note: required for `Unique<(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)>` to implement `Send`
+note: required because it appears within the type `Box<(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)>`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\alloc\src\boxed.rs:235:12
+note: required because it appears within the type `Option<Box<(dyn for<'a> FnOnce(&'a mut EventLoopBuilder<UserEvent>) + 'static)>>`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\core\src\option.rs:571:10
+note: required because it appears within the type `NativeOptions`
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\eframe-0.31.0\src\epi.rs:279:12
+    |
+279 | pub struct NativeOptions {
+    |            ^^^^^^^^^^^^^
+note: required because it's used within this closure
+   --> src\gui.rs:111:19
+    |
+111 |     thread::spawn(move || {
+    |                   ^^^^^^^
+note: required by a bound in `spawn`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\std\src\thread\mod.rs:672:1
+help: use parentheses to call this trait object
+    |
+118 |     }(/* &mut EventLoopBuilder<UserEvent> */));
+    |      ++++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: `(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)` cannot be sent between threads safely
+   --> src\gui.rs:111:19
+    |
+111 |       thread::spawn(move || {
+    |  _____-------------_^
+    | |     |
+    | |     required by a bound introduced by this call
+112 | |         eframe::run_native(
+113 | |             "Audio Analyzer",
+114 | |             options.clone(),
+...   |
+117 | |         .unwrap();
+118 | |     });
+    | |_____^ `(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)` cannot be sent between threads safely
+    |
+    = help: the trait `Send` is not implemented for `(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)`, which is required by `{closure@src\gui.rs:111:19: 111:26}: Send`
+    = note: required for `Unique<(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)>` to implement `Send`
+note: required because it appears within the type `Box<(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)>`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\alloc\src\boxed.rs:235:12
+note: required because it appears within the type `Option<Box<(dyn FnOnce(ViewportBuilder) -> ViewportBuilder + 'static)>>`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\core\src\option.rs:571:10
+note: required because it appears within the type `NativeOptions`
+   --> C:\Users\steph\.cargo\registry\src\index.crates.io-6f17d22bba15001f\eframe-0.31.0\src\epi.rs:279:12
+    |
+279 | pub struct NativeOptions {
+    |            ^^^^^^^^^^^^^
+note: required because it's used within this closure
+   --> src\gui.rs:111:19
+    |
+111 |     thread::spawn(move || {
+    |                   ^^^^^^^
+note: required by a bound in `spawn`
+   --> /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14\library\std\src\thread\mod.rs:672:1
+help: use parentheses to call this trait object
+    |
+118 |     }(/* ViewportBuilder */));
+    |      +++++++++++++++++++++++
+
+warning: variable does not need to be mutable
+  --> src/main.rs:39:21
+   |
+39 |                 let mut buffer = buffer_clone.lock().unwrap();
+   |                     ----^^^^^^
+   |                     |
+   |                     help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `note_clone`
+   --> src/main.rs:118:9
+    |
+118 |     let note_clone = Arc::clone(&note_playing);
+    |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_note_clone`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `last_note_clone`
+   --> src/main.rs:119:9
+    |
+119 |     let last_note_clone = Arc::clone(&last_note);
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_last_note_clone`
+
+warning: unused variable: `noise_profile`
+   --> src/main.rs:121:9
+    |
+121 |     let noise_profile = if let Ok(profile) = load_noise_profile() {
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_noise_profile`
+
+warning: unused variable: `peaks`
+   --> src/main.rs:154:21
+    |
+154 |                 let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+    |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_peaks`
+
+For more information about this error, try `rustc --explain E0277`.
+warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 5 warnings
+error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 2 previous errors; 5 warnings emitted
+```
+
