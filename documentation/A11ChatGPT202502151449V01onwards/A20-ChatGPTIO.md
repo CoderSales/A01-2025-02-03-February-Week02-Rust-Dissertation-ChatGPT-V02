@@ -218,6 +218,12 @@ The second approach (#[derive(Default)] #[derive(Clone)]) works but is redundant
 ### CL Output
 
 ```bash
+cargo check
+```
+
+gives
+
+```bash
 error[E0599]: no method named `clone` found for struct `FrequencyMeter` in the current scope
   --> src\gui.rs:97:39
    |
