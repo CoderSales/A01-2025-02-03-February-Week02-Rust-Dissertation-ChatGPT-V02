@@ -326,3 +326,39 @@ ____
 ## In
 
 No errors
+
+## Out
+
+Good progress! No errors, just some warnings. If you want a cleaner build, consider:
+
+Fix unused variables:
+Prefix them with _ if they're intentionally unused:
+
+rust
+Copy
+Edit
+let _note_clone = Arc::clone(&note_playing);
+let _last_note_clone = Arc::clone(&last_note);
+let _noise_profile = if let Ok(profile) = load_noise_profile() { profile } else { vec![] };
+let _peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+Remove unnecessary mut:
+
+rust
+Copy
+Edit
+let buffer = buffer_clone.lock().unwrap();
+If you want to keep warnings off, you can use:
+
+rust
+Copy
+Edit
+#[allow(unused_variables)]
+before a function.
+
+Let me know if you need another step! 🚀
+
+## In 
+
+Ignore Warnings.
+
+Make next one a minimal Response please.
