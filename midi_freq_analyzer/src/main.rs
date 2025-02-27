@@ -18,9 +18,7 @@ mod gui;
 fn main() {
 
 
-    if let Err(e) = gui::run_gui() {
-        eprintln!("GUI Error: {:?}", e);
-    }
+    gui::launch_gui();  // Remove if let Err(e)
 
 
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
