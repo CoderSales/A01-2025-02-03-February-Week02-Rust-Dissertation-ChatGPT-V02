@@ -85,3 +85,34 @@ Run cargo run to confirm two GUI windows open.
 
 ## In
 
+### CL Output
+
+```bash
+error[E0599]: no method named `clone` found for struct `FrequencyMeter` in the current scope
+  --> src\gui.rs:97:39
+   |
+49 | struct FrequencyMeter {
+   | --------------------- method `clone` not found for this struct
+...
+97 |     let freq_meter_clone = freq_meter.clone(); // Clone before second use
+   |                                       ^^^^^ method not found in `FrequencyMeter`
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `clone`, perhaps you need to implement it:
+           candidate #1: `Clone`
+
+error[E0308]: mismatched types
+  --> src/main.rs:21:12
+   |
+21 |     if let Err(e) = gui::launch_gui() {
+   |            ^^^^^^   ----------------- this expression has type `()`
+   |            |
+   |            expected `()`, found `Result<_, _>`
+   |
+   = note: expected unit type `()`
+                   found enum `Result<_, _>`
+
+Some errors have detailed explanations: E0308, E0599.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 2 previous errors
+```
