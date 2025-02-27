@@ -142,3 +142,135 @@ For more information about an error, try `rustc --explain E0061`.
 warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 1 warning
 error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 8 previous errors; 1 warning emitted
 ```
+
+## Out
+
+Fixes for Errors in gui.rs
+1. name method is not a member of eframe::App
+✅ Solution: Remove fn name(&self) -> &str from both AudioApp and FrequencyMeter.
+
+2. show_percentage(false) method takes no arguments
+✅ Solution: Remove false from .show_percentage(false), so update:
+
+rust
+Copy
+Edit
+ui.add(egui::ProgressBar::new(low).show_percentage());
+ui.add(egui::ProgressBar::new(mid).show_percentage());
+ui.add(egui::ProgressBar::new(high).show_percentage());
+3. eframe::run_native() now requires three arguments
+✅ Solution: Update run_native() calls to pass a window title as the first argument:
+
+rust
+Copy
+Edit
+eframe::run_native(
+    "Audio Analyzer", // Add window title
+    options,
+    Box::new(|_cc| Box::new(app)),
+);
+And for the second window:
+
+rust
+Copy
+Edit
+eframe::run_native(
+    "Frequency Meter",
+    options,
+    Box::new(|_cc| Box::new(freq_meter)),
+);
+4. launch_gui() returns () but Result expected in main.rs
+✅ Solution: Change launch_gui() to return Result<(), eframe::Error>.
+
+Modify the function:
+
+rust
+Copy
+Edit
+pub fn launch_gui() -> Result<(), eframe::Error> {
+Then update the run_native() calls inside launch_gui():
+
+rust
+Copy
+Edit
+eframe::run_native(
+    "Audio Analyzer",
+    options,
+    Box::new(|_cc| Ok(Box::new(app))),
+)?;
+
+thread::sleep(Duration::from_millis(100)); // Prevent UI conflict
+
+eframe::run_native(
+    "Frequency Meter",
+    options,
+    Box::new(|_cc| Ok(Box::new(freq_meter))),
+)?;
+
+Ok(())
+5. frame is an unused variable
+✅ Solution: Prefix it with _frame in fn update(), like this:
+
+rust
+Copy
+Edit
+fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+Final Steps
+Apply all fixes in gui.rs.
+Run cargo check to verify no syntax errors.
+Run cargo run to test the GUI.
+This should resolve all errors! 🚀
+
+
+## In
+
+### CL Output
+
+```bash
+error[E0277]: the `?` operator can only be used in a closure that returns `Result` or `Option` (or another type that implements `FromResidual`)
+   --> src\gui.rs:102:10
+    |
+97  |     thread::spawn(move || {
+    |                   ------- this function should return `Result` or `Option` to accept `?`
+...
+102 |         )?;
+    |          ^ cannot use the `?` operator in a closure that returns `()`
+    |
+    = help: the trait `FromResidual<Result<Infallible, eframe::Error>>` is not implemented for `()`
+
+warning: unused variable: `frame`
+  --> src\gui.rs:57:47
+   |
+57 |     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+   |                                               ^^^^^ help: if this is intentional, prefix it with an underscore: `_frame`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `note_clone`
+  --> src/main.rs:53:9
+   |
+53 |     let note_clone = Arc::clone(&note_playing);
+   |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_note_clone`
+
+warning: unused variable: `last_note_clone`
+  --> src/main.rs:54:9
+   |
+54 |     let last_note_clone = Arc::clone(&last_note);
+   |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_last_note_clone`
+
+warning: unused variable: `noise_profile`
+  --> src/main.rs:56:9
+   |
+56 |     let noise_profile = if let Ok(profile) = load_noise_profile() {
+   |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_noise_profile`
+
+warning: unused variable: `peaks`
+  --> src/main.rs:89:21
+   |
+89 |                 let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+   |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_peaks`
+
+For more information about this error, try `rustc --explain E0277`.
+warning: `midi_freq_analyzer` (bin "midi_freq_analyzer") generated 5 warnings
+error: could not compile `midi_freq_analyzer` (bin "midi_freq_analyzer") due to 1 previous error; 5 warnings emitted
+```
