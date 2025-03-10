@@ -13,9 +13,12 @@ const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
 
 use std::time::{Instant, Duration};
 
+use lua_ui::init_lua_ui;
+
 mod live_output; // Import new module
 mod bitrate;
 mod gui;
+mod lua_ui;
 
 
 
