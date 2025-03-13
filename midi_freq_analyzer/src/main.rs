@@ -11,6 +11,9 @@ const MIN_FREQUENCY: f32 = 20.0;
 const MAX_FREQUENCY: f32 = 20000.0;
 const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
 
+static mut PRINT_COUNTER: usize = 0;  // ✅ Declare `PRINT_COUNTER` globally
+
+
 use std::time::{Instant, Duration};
 
 use lua_ui::init_lua_ui;
@@ -33,6 +36,7 @@ fn start_audio_io() {
     let buffer_size = 1920;
 
     let buffer = Arc::new(Mutex::new(vec![0.0f32; buffer_size]));
+    // let buffer = Arc::new(Mutex::new(vec))
 
     let buffer_clone = Arc::clone(&buffer);
     let stream = device
@@ -52,16 +56,18 @@ fn start_audio_io() {
     thread::spawn(move || {
         let buffer_clone = Arc::clone(&buffer);
         loop {
-            {
-                let mut buffer = buffer_clone.lock().unwrap();
+            if let Ok(mut buffer) = buffer_clone.lock() {
+                // ✅ Remove `data`, keep buffer processing
                 for i in 0..buffer_size {
                     buffer[i] = (i as f32 / sample_rate as f32).sin();
                 }
+            } else {
+                eprintln!("⚠️ Skipped buffer update due to PoisonError");
             }
             thread::sleep(Duration::from_millis(10));
         }
     });
-    
+        
     loop {
         thread::sleep(Duration::from_secs(1)); // Keep main thread alive
     }
@@ -71,14 +77,33 @@ fn start_audio_io() {
 
 
 fn main() {
-    thread::spawn(|| start_audio_io()); // Run audio processing in background
+    use std::collections::HashSet;
+    let panicked_threads = Arc::new(Mutex::new(HashSet::<String>::new()));
+    
+    
+    static mut PRINT_COUNTER: usize = 0;  // ✅ Declare before use
+
+
+    let panicked_threads_clone = Arc::clone(&panicked_threads);
+    thread::spawn(move || {
+        let thread_name = "Audio Processing Thread".to_string();
+        if let Err(_) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            start_audio_io();
+        })) {
+            eprintln!("⚠️ Thread panicked: {}", thread_name);
+            let mut list = panicked_threads_clone.lock().unwrap();
+            list.insert(thread_name);
+        }
+    }); // Run audio processing in background
 
 
     // launch_gui(); // Run GUI (Audio Analyzer + Frequency Meter)
 
 
-    gui::launch_gui();  // Remove if let Err(e)
-
+    if let Err(e) = gui::launch_gui() {
+        eprintln!("GUI failed: {:?}", e);
+    }
+    
     // Define options and app before calling eframe::run_native():
     let options = eframe::NativeOptions::default(); 
     let app = gui::AudioApp::default();  
@@ -115,7 +140,7 @@ fn main() {
     let note_playing = Arc::new(Mutex::new(false));
     let last_note = Arc::new(Mutex::new("".to_string())); // Track last note
 
-    let err_fn = |err| eprintln!("Error: {:?}", err);
+    let err_fn: Box<dyn Fn(cpal::StreamError)> = Box::new(|err| eprintln!("Error: {:?}", err));
 
     let data_clone = Arc::clone(&data);
     let note_clone = Arc::clone(&note_playing);
@@ -132,51 +157,58 @@ fn main() {
     };
 
     // Edited: Ensure display_amplitude() is called live inside input stream processing
-    let stream = device.build_input_stream(
-        &config,
+    let stream = setup_audio_stream(&device, &config, Arc::clone(&data));
+}
+
+fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_clone: Arc<Mutex<Vec<f32>>>) -> cpal::Stream {
+    device.build_input_stream(
+        config,
         move |data: &[f32], _: &_| {
-            // before buffer --> do stream analysis
+            // ✅ Live amplitude analysis
             for &sample in data {
                 let amplitude = sample.abs();
-                live_output::print_live_amplitude(amplitude); // Call new function    
+                live_output::print_live_amplitude(amplitude);
             }
-            // buffer related:
-            let mut buffer = data_clone.lock().unwrap();
-            buffer.extend_from_slice(data);
-            // Begin analysis once buffer has reached 1024 frames (previously 2048)
-            static mut PRINT_COUNTER: usize = 0; // Track buffer count
 
-            if buffer.len() >= 1920 {
-                unsafe {
-                    PRINT_COUNTER += 1;
-                    if PRINT_COUNTER % 100 == 0 {  // Print every 10 buffers
-                        println!("✅ Processing samples... Buffer size: {}", buffer.len());
+            // ✅ Buffer handling inside `setup_audio_stream`
+            match data_clone.lock() {
+                Ok(mut buffer) => {
+                    buffer.extend_from_slice(data);
+            
+                    if buffer.len() >= 1920 {
+                        unsafe {
+                            PRINT_COUNTER += 1;
+                            if PRINT_COUNTER % 100 == 0 {
+                                println!("✅ Processing samples... Buffer size: {}", buffer.len());
+                            }
+                        }
+                        let buffer_len = buffer.len().min(data.len());
+                        let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
+            
+                        let mut silence_count = 0;
+                        let mut total_frames = 0;
+            
+                        let raw_amplitude = buffer.iter().map(|&x| x.abs()).sum::<f32>() / buffer.len() as f32;
+                        fft::display_amplitude(raw_amplitude, &mut silence_count, &mut total_frames);
+            
+                        analyze_amplitude(&buffer[..buffer_len]);
+            
+                        buffer.clear();
                     }
                 }
-                let buffer_len = buffer.len().min(2048);
-                let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
-                
-                let mut silence_count = 0;
-                let mut total_frames = 0;
-                
-                let raw_amplitude = buffer.iter().map(|&x| x.abs()).sum::<f32>() / buffer.len() as f32;
-                fft::display_amplitude(raw_amplitude, &mut silence_count, &mut total_frames);
-            
-                analyze_amplitude(&buffer[..buffer_len]); // ✅ Fix applied buffer length 1920 on this device.
-            
-                buffer.clear();
-            }
-                        
-        },
-        err_fn,
+                Err(poisoned) => {
+                    eprintln!("⚠️ Skipping buffer update: Mutex is poisoned.");
+                    // let mut buffer = poisoned.into_inner();
+                    // buffer.extend_from_slice(data);
+                }
+            }            
+    },
+        move |err| eprintln!("Stream error: {:?}", err),
         None,
-    ).expect("Failed to create stream");
-
-    stream.play().expect("Failed to start stream");
-
-    println!("Listening for audio... Press Ctrl+C to stop.");
-    std::thread::sleep(std::time::Duration::from_secs(30));
+    ).expect("Failed to create stream")
 }
+
+
 
 /// **Subtract noise profile from frequency reading with proper limit**
 fn subtract_noise(frequency: f32, noise_profile: &Vec<f32>) -> f32 {
@@ -203,18 +235,21 @@ fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig) -> 
     let data = Arc::new(Mutex::new(Vec::new()));
 
     let data_clone = Arc::clone(&data);
-    let err_fn = |err| eprintln!("Error: {:?}", err);
+    let err_fn: Box<dyn Fn(cpal::StreamError) + Send> = Box::new(|err| eprintln!("Error: {:?}", err));
 
     let stream = device.build_input_stream(
-        config,
+        &config,  // ✅ Correct
         move |data: &[f32], _: &_| {
-            let mut buffer = data_clone.lock().unwrap();
-            buffer.extend_from_slice(data);
+            if let Ok(mut buffer) = data_clone.lock() {
+                buffer.extend_from_slice(data);
+            } else {
+                eprintln!("⚠️ Skipped buffer update due to PoisonError");
+            }
         },
         err_fn,
         None,
     ).expect("Failed to create stream");
-
+    
     stream.play().expect("Failed to start stream");
 
     println!("Capturing noise for 0.5 seconds...");
@@ -330,3 +365,4 @@ fn analyze_amplitude(samples: &[f32]) {
 
     analyze_amplitude(&samples);
 }
+
