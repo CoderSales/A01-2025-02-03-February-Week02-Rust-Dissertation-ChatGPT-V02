@@ -93,10 +93,10 @@ pub fn launch_gui() -> Result<()> { // ✅ Change return type
     }
 
     // ✅ Define frequency variables before cloning
-    let low_freq = Arc::new(Mutex::new(0.0));
-    let mid_freq = Arc::new(Mutex::new(0.0));
-    let high_freq = Arc::new(Mutex::new(0.0));
-
+    let low_freq = Arc::new(Mutex::new(0.5)); // Default values
+    let mid_freq = Arc::new(Mutex::new(0.7));
+    let high_freq = Arc::new(Mutex::new(0.9));
+    
     let log_output = Arc::new(Mutex::new(String::new()));
     let low_freq_lua = Arc::clone(&low_freq);
     let mid_freq_lua = Arc::clone(&mid_freq);
@@ -118,8 +118,14 @@ pub fn launch_gui() -> Result<()> { // ✅ Change return type
     lua.globals().set("eq", eq_table)?;
 
     // ✅ Example Lua script (Runs at startup)
-    lua.load("eq.set_eq(0.5, 0.7, 0.9)").exec()?; 
-
+    let low = *low_freq.lock().unwrap();
+    let mid = *mid_freq.lock().unwrap();
+    let high = *high_freq.lock().unwrap();
+    
+    println!("🔍 Initial Lua Frequency Values - Low: {}, Mid: {}, High: {}", low, mid, high);
+    
+    lua.load(format!("eq.set_eq({}, {}, {})", low, mid, high)).exec()?;
+        
     let app = AudioApp {
         status_message: "Idle".to_string(),
         log_output: Arc::new(Mutex::new(String::new())),
