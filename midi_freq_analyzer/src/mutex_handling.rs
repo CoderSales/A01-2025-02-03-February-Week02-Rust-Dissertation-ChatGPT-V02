@@ -2,7 +2,9 @@ use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 
 pub fn create_buffer(buffer_size: usize) -> Arc<Mutex<Vec<f32>>> {
-    Arc::new(Mutex::new(vec![0.0f32; buffer_size]))
+    let buffer = Arc::new(Mutex::new(vec![0.0f32; buffer_size]));
+    println!("🔍 Created Mutex buffer at {:p}", Arc::as_ptr(&buffer));
+    buffer
 }
 
 pub fn create_panicked_threads() -> Arc<Mutex<HashSet<String>>> {
