@@ -34,29 +34,32 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
     let data = Arc::new(Mutex::new(Vec::new()));
 
     let data_clone = Arc::clone(&data);
-    let data_clone_for_loop = Arc::clone(&data); // ✅ Create separate reference
+    let data_clone_for_loop = Arc::clone(&data); // ✅ Separate reference for main loop
 
     let err_fn: Box<dyn Fn(cpal::StreamError) + Send> = Box::new(|err| eprintln!("Error: {:?}", err));
 
     let stream = device.build_input_stream(
         &config,  // ✅ Correct
-        move |data: &[f32], _: &_| {
-            for &sample in data {
-                let amplitude = sample.abs();
-                live_output::print_live_amplitude(amplitude);
-            }
-    
-            if let Ok(mut buffer) = data_clone.lock() {
-                buffer.extend_from_slice(data);
-            } else {
-                static mut ERROR_COUNT: usize = 0;
-                unsafe {
-                    ERROR_COUNT += 1;
-                    if ERROR_COUNT % 10 == 0 { // Print every 10th error
-                        eprintln!("⚠️ Skipping buffer update due to PoisonError ({} occurrences)", ERROR_COUNT);
-                    }
+        {
+            let data_clone = Arc::clone(&data_clone); // ✅ Capture inside closure
+            move |data: &[f32], _: &_| {
+                for &sample in data {
+                    let amplitude = sample.abs();
+                    live_output::print_live_amplitude(amplitude);
                 }
-            }            
+        
+                if let Ok(mut buffer) = data_clone.lock() {
+                    buffer.extend_from_slice(data);
+                } else {
+                    static mut ERROR_COUNT: usize = 0;
+                    unsafe {
+                        ERROR_COUNT += 1;
+                        if ERROR_COUNT % 10 == 0 { // Print every 10th error
+                            eprintln!("⚠️ Skipping buffer update due to PoisonError ({} occurrences)", ERROR_COUNT);
+                        }
+                    }
+                }            
+            }
         },
         move |err| eprintln!("Stream error: {:?}", err),
         None,
