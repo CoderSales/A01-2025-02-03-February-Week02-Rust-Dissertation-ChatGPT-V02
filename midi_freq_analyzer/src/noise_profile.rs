@@ -34,6 +34,8 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
     let data = Arc::new(Mutex::new(Vec::new()));
 
     let data_clone = Arc::clone(&data);
+    let data_clone_for_loop = Arc::clone(&data); // ✅ Create separate reference
+
     let err_fn: Box<dyn Fn(cpal::StreamError) + Send> = Box::new(|err| eprintln!("Error: {:?}", err));
 
     let stream = device.build_input_stream(
@@ -66,8 +68,9 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
 
     loop {
         // 🔹 Step 1: Capture 10ms of input
-        if let Ok(buffer) = data_clone.lock() {
-            println!("🎤 Capturing audio input... Sample: {:?}", &buffer[..buffer.len().min(10)]); // Print first 10 samples
+        if let Ok(buffer) = data_clone_for_loop.lock() {  // ✅ Use separate reference
+            let sample_size = buffer.len().min(10); // Prevent out-of-bounds
+            println!("🎤 Capturing audio input... Sample: {:?}", &buffer[..sample_size]);
         }
         std::thread::sleep(std::time::Duration::from_millis(10));
 
@@ -78,11 +81,11 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
         println!("🔊 Playing back processed audio...");
         std::thread::sleep(std::time::Duration::from_millis(10));
     };
-    
+
     let buffer = data.lock().unwrap();
     if buffer.len() >= BUFFER_SIZE {
         let mut raw_noise = fft::analyze_frequencies(&buffer[..BUFFER_SIZE])
-                .iter()
+            .iter()
             .map(|&(freq, _)| freq)
             .collect::<Vec<f32>>();
 
