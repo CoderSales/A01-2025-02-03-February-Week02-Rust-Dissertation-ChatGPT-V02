@@ -14,7 +14,9 @@ pub fn create_panicked_threads() -> Arc<Mutex<HashSet<String>>> {
 }
 
 pub fn create_shared_data() -> Arc<Mutex<Vec<f32>>> {
-    Arc::new(Mutex::new(Vec::new()))
+    let shared_data = Arc::new(Mutex::new(Vec::new()));
+    println!("🔍 Created Mutex shared_data at {:p}", Arc::as_ptr(&shared_data));
+    shared_data
 }
 
 pub fn create_note_playing() -> Arc<Mutex<bool>> {
