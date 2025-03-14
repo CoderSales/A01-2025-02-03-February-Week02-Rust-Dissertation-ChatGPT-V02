@@ -11,6 +11,12 @@ use crate::live_output;
 use crate::BUFFER_SIZE;
 
 
+// use crate::audio_playback::play_audio;  // ✅ Use crate:: to refer to the correct module
+// use audio_playback::play_audio;  // ✅ Import function
+
+use super::audio_playback::play_audio;
+
+
 const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
 
 
@@ -34,69 +40,42 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
     let data = Arc::new(Mutex::new(Vec::new()));
 
     let data_clone = Arc::clone(&data);
-    let data_clone_for_loop = Arc::clone(&data); // ✅ Separate reference for main loop
 
     let err_fn: Box<dyn Fn(cpal::StreamError) + Send> = Box::new(|err| eprintln!("Error: {:?}", err));
 
     let stream = device.build_input_stream(
-        &config,  // ✅ Correct
+        &config,  
         {
-            let data_clone = Arc::clone(&data_clone); // ✅ Capture inside closure
+            let data_clone = Arc::clone(&data_clone);
             move |data: &[f32], _: &_| {
                 for &sample in data {
                     let amplitude = sample.abs();
                     live_output::print_live_amplitude(amplitude);
                 }
-        
+
                 if let Ok(mut buffer) = data_clone.lock() {
                     buffer.extend_from_slice(data);
                 } else {
                     static mut ERROR_COUNT: usize = 0;
                     unsafe {
                         ERROR_COUNT += 1;
-                        if ERROR_COUNT % 10 == 0 { // Print every 10th error
+                        if ERROR_COUNT % 10 == 0 {
                             eprintln!("⚠️ Skipping buffer update due to PoisonError ({} occurrences)", ERROR_COUNT);
                         }
                     }
-                }            
+                }
             }
         },
         move |err| eprintln!("Stream error: {:?}", err),
         None,
     ).expect("Failed to create stream");
-        
+
     stream.play().expect("Failed to start stream");
 
     println!("🔊 Running 30ms Audio Processing Cycle... Press Ctrl+C to stop.");
 
-    loop {
-        // 🔹 Step 1: Capture 10ms of input
-        if let Ok(buffer) = data_clone_for_loop.lock() {  // ✅ Use separate reference
-            let sample_size = buffer.len().min(10); // Prevent out-of-bounds
-            println!("🎤 Capturing audio input... Sample: {:?}", &buffer[..sample_size]);
-        }
-        std::thread::sleep(std::time::Duration::from_millis(10));
-
-        // 🔹 Step 2: Pause briefly
-        std::thread::sleep(std::time::Duration::from_millis(10));
-    
-        // 🔹 Step 3: Play back output for 10ms
-        println!("🔊 Playing back processed audio...");
-        std::thread::sleep(std::time::Duration::from_millis(10));
-    };
-
-    let buffer = data.lock().unwrap();
-    if buffer.len() >= BUFFER_SIZE {
-        let mut raw_noise = fft::analyze_frequencies(&buffer[..BUFFER_SIZE])
-            .iter()
-            .map(|&(freq, _)| freq)
-            .collect::<Vec<f32>>();
-
-        if raw_noise.len() > 5 {
-            raw_noise.sort_by(|a, b| a.partial_cmp(b).unwrap()); // Sort for median calculation
-            noise_samples = raw_noise[raw_noise.len() / 2..].to_vec(); // Keep only the higher half
-        }
-    }
+    // ✅ Call the new playback function
+    play_audio(Arc::clone(&data));
 
     stream.pause().expect("Failed to pause stream");
     println!("Noise profile captured.");

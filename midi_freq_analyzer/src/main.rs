@@ -25,7 +25,6 @@ mod gui;
 mod lua_ui;
 
 mod noise_profile;
-use noise_profile::get_or_capture_noise_profile;
 
 const BUFFER_SIZE: usize = 2048; // Unified buffer size
 
@@ -41,6 +40,11 @@ use mutex_handling::*;
 
 mod device_selection;
 use device_selection::select_audio_device;
+
+// mod noise_profile;  // ✅ Ensure correct module path
+// use noise_profile::get_or_capture_noise_profile;
+
+use crate::noise_profile::get_or_capture_noise_profile;
 
 
 // new:
