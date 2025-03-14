@@ -193,8 +193,6 @@ fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_c
     
 }
 
-
-
 /// **Subtract noise profile from frequency reading with proper limit**
 fn subtract_noise(frequency: f32, noise_profile: &Vec<f32>) -> f32 {
     if noise_profile.is_empty() {
@@ -279,4 +277,3 @@ fn analyze_amplitude(samples: &[f32]) {
 
     analyze_amplitude(&samples);
 }
-
