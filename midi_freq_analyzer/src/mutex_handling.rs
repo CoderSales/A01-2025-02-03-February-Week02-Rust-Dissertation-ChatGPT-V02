@@ -26,5 +26,7 @@ pub fn create_note_playing() -> Arc<Mutex<bool>> {
 }
 
 pub fn create_last_note() -> Arc<Mutex<String>> {
-    Arc::new(Mutex::new("".to_string()))
+    let last_note = Arc::new(Mutex::new("".to_string()));
+    println!("🔍 Created Mutex last_note at {:p}", Arc::as_ptr(&last_note));
+    last_note
 }
