@@ -15,6 +15,9 @@ static mut PRINT_COUNTER: usize = 0;  // ✅ Declare `PRINT_COUNTER` globally
 
 
 use std::time::{Instant, Duration};
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
+
 
 use lua_ui::init_lua_ui;
 
@@ -156,51 +159,38 @@ fn main() {
 }
 
 fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_clone: Arc<Mutex<Vec<f32>>>) -> cpal::Stream {
+    let poison_flag = Arc::new(AtomicBool::new(false));
+    let poison_flag_clone = Arc::clone(&poison_flag);
+    let poison_flag_thread = Arc::clone(&poison_flag);
     device.build_input_stream(
-        config,
+        &config,
         move |data: &[f32], _: &_| {
+            let poison_flag_clone = Arc::clone(&poison_flag); // ✅ Capture inside closure
+    
             // ✅ Live amplitude analysis
             for &sample in data {
                 let amplitude = sample.abs();
                 live_output::print_live_amplitude(amplitude);
             }
-
+    
             // ✅ Buffer handling inside `setup_audio_stream`
             match data_clone.lock() {
                 Ok(mut buffer) => {
                     buffer.extend_from_slice(data);
-            
-                    if buffer.len() >= 1920 {
-                        unsafe {
-                            PRINT_COUNTER += 1;
-                            if PRINT_COUNTER % 100 == 0 {
-                                println!("✅ Processing samples... Buffer size: {}", buffer.len());
-                            }
-                        }
-                        let buffer_len = buffer.len().min(data.len());
-                        let peaks = fft::analyze_frequencies(&buffer[..buffer_len]);
-            
-                        let mut silence_count = 0;
-                        let mut total_frames = 0;
-            
-                        let raw_amplitude = buffer.iter().map(|&x| x.abs()).sum::<f32>() / buffer.len() as f32;
-                        fft::display_amplitude(raw_amplitude, &mut silence_count, &mut total_frames);
-            
-                        analyze_amplitude(&buffer[..buffer_len]);
-            
-                        buffer.clear();
-                    }
+                    poison_flag_clone.store(false, Ordering::Relaxed); // Reset flag on successful lock
                 }
                 Err(poisoned) => {
-                    eprintln!("⚠️ Skipping buffer update: Mutex is poisoned.");
-                    // let mut buffer = poisoned.into_inner();
-                    // buffer.extend_from_slice(data);
+                    if !poison_flag_clone.load(Ordering::Relaxed) {
+                        eprintln!("⚠️ Skipping buffer update: Mutex is poisoned.");
+                        poison_flag_clone.store(true, Ordering::Relaxed); // Suppress repeated logs
+                    }
                 }
-            }            
-    },
+            }
+        },
         move |err| eprintln!("Stream error: {:?}", err),
         None,
     ).expect("Failed to create stream")
+    
 }
 
 

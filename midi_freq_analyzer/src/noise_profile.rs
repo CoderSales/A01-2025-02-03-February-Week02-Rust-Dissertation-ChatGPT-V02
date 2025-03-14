@@ -1,6 +1,8 @@
 use std::fs::{OpenOptions, File};
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
 use cpal::{Device, StreamConfig};
 use cpal::traits::DeviceTrait;
 use cpal::traits::StreamTrait;
@@ -44,8 +46,14 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
             if let Ok(mut buffer) = data_clone.lock() {
                 buffer.extend_from_slice(data);
             } else {
-                eprintln!("⚠️ Skipped buffer update due to PoisonError");
-            }
+                static mut ERROR_COUNT: usize = 0;
+                unsafe {
+                    ERROR_COUNT += 1;
+                    if ERROR_COUNT % 10 == 0 { // Print every 10th error
+                        eprintln!("⚠️ Skipping buffer update due to PoisonError ({} occurrences)", ERROR_COUNT);
+                    }
+                }
+            }            
         },
         move |err| eprintln!("Stream error: {:?}", err),
         None,
