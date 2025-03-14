@@ -20,7 +20,9 @@ pub fn create_shared_data() -> Arc<Mutex<Vec<f32>>> {
 }
 
 pub fn create_note_playing() -> Arc<Mutex<bool>> {
-    Arc::new(Mutex::new(false))
+    let note_playing = Arc::new(Mutex::new(false));
+    println!("🔍 Created Mutex note_playing at {:p}", Arc::as_ptr(&note_playing));
+    note_playing
 }
 
 pub fn create_last_note() -> Arc<Mutex<String>> {
