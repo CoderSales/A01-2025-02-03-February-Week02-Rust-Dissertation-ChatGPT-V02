@@ -66,7 +66,9 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
 
     loop {
         // 🔹 Step 1: Capture 10ms of input
-        println!("🎤 Capturing audio input... Sample: {:?}", &buffer[..10]); // Print first 10 samples
+        if let Ok(buffer) = data_clone.lock() {
+            println!("🎤 Capturing audio input... Sample: {:?}", &buffer[..buffer.len().min(10)]); // Print first 10 samples
+        }
         std::thread::sleep(std::time::Duration::from_millis(10));
 
         // 🔹 Step 2: Pause briefly
