@@ -35,6 +35,11 @@ use buffer_handling::handle_buffer_lock;
 mod thread_manager;
 use thread_manager::spawn_thread;
 
+
+mod mutex_handling;
+use mutex_handling::*;
+
+
 // new:
 
 fn start_audio_io() {
@@ -45,8 +50,7 @@ fn start_audio_io() {
     let sample_rate = config.sample_rate().0;
     let buffer_size = BUFFER_SIZE;
 
-    let buffer = Arc::new(Mutex::new(vec![0.0f32; buffer_size]));
-    // let buffer = Arc::new(Mutex::new(vec))
+    let buffer = create_buffer(BUFFER_SIZE);
 
     let buffer_clone = Arc::clone(&buffer);
     let stream = device
@@ -85,7 +89,7 @@ fn start_audio_io() {
 
 fn main() {
     use std::collections::HashSet;
-    let panicked_threads = Arc::new(Mutex::new(HashSet::<String>::new()));
+    let panicked_threads = create_panicked_threads();
     
     
     static mut PRINT_COUNTER: usize = 0;  // ✅ Declare before use
@@ -143,9 +147,9 @@ fn main() {
 
     println!("\nUsing input device: {}\n", device.name().unwrap());
 
-    let data = Arc::new(Mutex::new(Vec::new()));
-    let note_playing = Arc::new(Mutex::new(false));
-    let last_note = Arc::new(Mutex::new("".to_string())); // Track last note
+    let data = create_shared_data();
+    let note_playing = create_note_playing();
+    let last_note = create_last_note(); // Track last note
 
     let err_fn: Box<dyn Fn(cpal::StreamError)> = Box::new(|err| eprintln!("Error: {:?}", err));
 
