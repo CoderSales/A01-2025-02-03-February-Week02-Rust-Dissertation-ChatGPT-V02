@@ -62,10 +62,19 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
         
     stream.play().expect("Failed to start stream");
 
-    println!("🔊 Capturing noise profile... Press Ctrl+C to stop.");
-    
+    println!("🔊 Running 30ms Audio Processing Cycle... Press Ctrl+C to stop.");
+
     loop {
-        std::thread::sleep(std::time::Duration::from_millis(100)); // Keep running
+        // 🔹 Step 1: Capture 10ms of input
+        println!("🎤 Capturing audio input...");
+        std::thread::sleep(std::time::Duration::from_millis(10));
+
+        // 🔹 Step 2: Pause briefly
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    
+        // 🔹 Step 3: Play back output for 10ms
+        println!("🔊 Playing back processed audio...");
+        std::thread::sleep(std::time::Duration::from_millis(10));
     };
     
     let buffer = data.lock().unwrap();
