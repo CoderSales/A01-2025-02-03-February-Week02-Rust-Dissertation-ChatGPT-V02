@@ -8,6 +8,7 @@ use cpal::traits::DeviceTrait;
 use cpal::traits::StreamTrait;
 use crate::fft;
 use crate::live_output;
+use crate::BUFFER_SIZE;
 
 
 const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
@@ -66,9 +67,9 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
     println!("Noise profile captured.");
     
     let buffer = data.lock().unwrap();
-    if buffer.len() >= 1920 {
-        let mut raw_noise = fft::analyze_frequencies(&buffer[..2048])
-            .iter()
+    if buffer.len() >= BUFFER_SIZE {
+        let mut raw_noise = fft::analyze_frequencies(&buffer[..BUFFER_SIZE])
+                .iter()
             .map(|&(freq, _)| freq)
             .collect::<Vec<f32>>();
 

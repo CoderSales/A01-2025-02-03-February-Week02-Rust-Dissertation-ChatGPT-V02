@@ -13,11 +13,9 @@ const MAX_FREQUENCY: f32 = 20000.0;
 
 static mut PRINT_COUNTER: usize = 0;  // ✅ Declare `PRINT_COUNTER` globally
 
-
 use std::time::{Instant, Duration};
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
-
 
 use lua_ui::init_lua_ui;
 
@@ -29,6 +27,10 @@ mod lua_ui;
 mod noise_profile;
 use noise_profile::get_or_capture_noise_profile;
 
+const BUFFER_SIZE: usize = 2048; // Unified buffer size
+
+mod buffer_handling;
+use buffer_handling::handle_buffer_lock;
 
 // new:
 
@@ -38,7 +40,7 @@ fn start_audio_io() {
     let config = device.default_output_config().unwrap();
 
     let sample_rate = config.sample_rate().0;
-    let buffer_size = 1920;
+    let buffer_size = BUFFER_SIZE;
 
     let buffer = Arc::new(Mutex::new(vec![0.0f32; buffer_size]));
     // let buffer = Arc::new(Mutex::new(vec))
@@ -61,15 +63,12 @@ fn start_audio_io() {
     thread::spawn(move || {
         let buffer_clone = Arc::clone(&buffer);
         loop {
-            if let Ok(mut buffer) = buffer_clone.lock() {
-                // ✅ Remove `data`, keep buffer processing
+            handle_buffer_lock(&buffer_clone, |buffer| {
                 for i in 0..buffer_size {
                     buffer[i] = (i as f32 / sample_rate as f32).sin();
                 }
-            } else {
-                eprintln!("⚠️ Skipped buffer update due to PoisonError");
-            }
-            thread::sleep(Duration::from_millis(10));
+            });
+                        thread::sleep(Duration::from_millis(10));
         }
     });
         
@@ -181,7 +180,11 @@ fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_c
                 }
                 Err(poisoned) => {
                     if !poison_flag_clone.load(Ordering::Relaxed) {
-                        eprintln!("⚠️ Skipping buffer update: Mutex is poisoned.");
+                        static POISON_ERROR_LOGGED: AtomicBool = AtomicBool::new(false);
+                        if !POISON_ERROR_LOGGED.load(Ordering::Relaxed) {
+                            eprintln!("⚠️ Mutex poisoned! {:?}", poisoned);
+                            POISON_ERROR_LOGGED.store(true, Ordering::Relaxed); // Prevent further logs
+                        }
                         poison_flag_clone.store(true, Ordering::Relaxed); // Suppress repeated logs
                     }
                 }
