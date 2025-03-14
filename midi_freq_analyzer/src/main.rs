@@ -58,7 +58,8 @@ fn start_audio_io() {
             &config.into(),
             move |data: &mut [f32], _| {
                 let mut buffer = buffer_clone.lock().unwrap(); 
-                data.copy_from_slice(&buffer[..data.len()]);
+                let buffer_len = buffer.len().min(2048); // Ensure within bounds
+                let safe_slice = &buffer[..buffer_len]; // Safe indexing
             },
             move |err| eprintln!("Stream error: {:?}", err),
             None, 
