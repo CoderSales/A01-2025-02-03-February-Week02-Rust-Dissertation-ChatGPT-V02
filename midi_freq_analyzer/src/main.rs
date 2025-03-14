@@ -39,40 +39,59 @@ use thread_manager::spawn_thread;
 mod mutex_handling;
 use mutex_handling::*;
 
+mod device_selection;
+use device_selection::select_audio_device;
+
 
 // new:
 
 fn start_audio_io() {
     let host = cpal::default_host();
-    let device = host.default_output_device().expect("No output device found");
-    let config = device.default_output_config().unwrap();
+    
+    let input_device = select_audio_device(&host, true);
+    let output_device = select_audio_device(&host, false);
+    
+    println!("\n🎤 Selected Input Device: {}", input_device.name().unwrap());
+    println!("🔊 Selected Output Device: {}", output_device.name().unwrap());
+    
+    let config = audio::get_audio_config(&input_device); // ✅ Define config first
+    
+    bitrate::print_audio_bitrate(&config);
+    
+    println!("\nUsing input device: {}\n", input_device.name().unwrap());
+    
+    let data = create_shared_data();
+    let note_playing = create_note_playing();
+    let last_note = create_last_note(); // Track last note
+    
+    let noise_profile = get_or_capture_noise_profile(&input_device, &config);
+    
+    let buffer = create_buffer(BUFFER_SIZE); // ✅ Ensure buffer exists
+    let buffer_clone = Arc::clone(&buffer); // ✅ Clone before using
+    
+    let sample_rate = config.sample_rate.0; // ✅ Fix: Remove `()` & move before stream creation
 
-    let sample_rate = config.sample_rate().0;
-    let buffer_size = BUFFER_SIZE;
 
-    let buffer = create_buffer(BUFFER_SIZE);
-
-    let buffer_clone = Arc::clone(&buffer);
-    let stream = device
+    let stream = output_device
         .build_output_stream(
             &config.into(),
             move |data: &mut [f32], _| {
-                let mut buffer = buffer_clone.lock().unwrap(); 
-                let buffer_len = buffer.len().min(2048); // Ensure within bounds
-                let safe_slice = &buffer[..buffer_len]; // Safe indexing
+                let mut buffer = buffer_clone.lock().unwrap();
+                let safe_len = buffer.len().min(data.len()); // ✅ Prevent out-of-bounds errors
+                data.copy_from_slice(&buffer[..safe_len]); // ✅ Safe indexing
             },
             move |err| eprintln!("Stream error: {:?}", err),
-            None, 
+            None,
         )
         .unwrap();
-
+    
     stream.play().unwrap();
 
     spawn_thread(move || {
         let buffer_clone = Arc::clone(&buffer);
         loop {
             handle_buffer_lock(&buffer_clone, |buffer| {
-                for i in 0..buffer_size {
+                for i in 0..BUFFER_SIZE {
                     buffer[i] = (i as f32 / sample_rate as f32).sin();
                 }
             });
