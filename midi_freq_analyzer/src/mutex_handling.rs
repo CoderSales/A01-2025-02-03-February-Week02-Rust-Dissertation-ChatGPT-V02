@@ -8,7 +8,9 @@ pub fn create_buffer(buffer_size: usize) -> Arc<Mutex<Vec<f32>>> {
 }
 
 pub fn create_panicked_threads() -> Arc<Mutex<HashSet<String>>> {
-    Arc::new(Mutex::new(HashSet::new()))
+    let panicked_threads = Arc::new(Mutex::new(HashSet::new()));
+    println!("🔍 Created Mutex panicked_threads at {:p}", Arc::as_ptr(&panicked_threads));
+    panicked_threads
 }
 
 pub fn create_shared_data() -> Arc<Mutex<Vec<f32>>> {
