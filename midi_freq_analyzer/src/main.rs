@@ -32,6 +32,9 @@ const BUFFER_SIZE: usize = 2048; // Unified buffer size
 mod buffer_handling;
 use buffer_handling::handle_buffer_lock;
 
+mod thread_manager;
+use thread_manager::spawn_thread;
+
 // new:
 
 fn start_audio_io() {
@@ -60,7 +63,7 @@ fn start_audio_io() {
 
     stream.play().unwrap();
 
-    thread::spawn(move || {
+    spawn_thread(move || {
         let buffer_clone = Arc::clone(&buffer);
         loop {
             handle_buffer_lock(&buffer_clone, |buffer| {
@@ -89,7 +92,7 @@ fn main() {
 
 
     let panicked_threads_clone = Arc::clone(&panicked_threads);
-    thread::spawn(move || {
+    spawn_thread(move || {
         let thread_name = "Audio Processing Thread".to_string();
         if let Err(_) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             start_audio_io();
@@ -123,7 +126,7 @@ fn main() {
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
 
     // ✅ Move logging into a separate thread
-    std::thread::spawn(move || {
+    spawn_thread(move || {
         loop {
             let elapsed = program_start.elapsed().as_secs();
             if elapsed % 5 == 0 {
