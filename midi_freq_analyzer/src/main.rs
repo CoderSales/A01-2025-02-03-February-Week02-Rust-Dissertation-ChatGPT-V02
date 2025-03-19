@@ -38,8 +38,10 @@ use thread_manager::spawn_thread;
 mod mutex_handling;
 use mutex_handling::*;
 
+// use device_selection::select_audio_device;
 mod device_selection;
 use device_selection::select_audio_device;
+
 
 // mod noise_profile;  // ✅ Ensure correct module path
 // use noise_profile::get_or_capture_noise_profile;
@@ -152,7 +154,9 @@ fn main() {
     
 
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
-
+    let host = cpal::default_host(); // ✅ Define `host` first
+    let device = device_selection::select_audio_device(&host, true); // ✅ Pass arguments
+            
     // ✅ Move logging into a separate thread
     spawn_thread(move || {
         loop {
@@ -164,7 +168,6 @@ fn main() {
         }
     });
 
-    let device = audio::select_audio_device();
     let config = audio::get_audio_config(&device); // ✅ Define config first
 
     bitrate::print_audio_bitrate(&config);

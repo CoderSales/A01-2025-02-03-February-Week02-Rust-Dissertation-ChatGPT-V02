@@ -3,6 +3,10 @@ name = "midi_freq_analyzer"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "midi_freq_analyzer"
+path = "src/lib.rs"
+
 [dependencies]
 mlua = { version = "0.9", features = ["lua54", "vendored"] }
 cpal = "0.15"

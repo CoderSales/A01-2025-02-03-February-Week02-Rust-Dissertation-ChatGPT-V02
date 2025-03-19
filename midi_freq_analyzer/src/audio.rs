@@ -1,26 +1,48 @@
 use cpal::traits::{DeviceTrait, HostTrait}; // ✅ Fix import
 use cpal::{StreamConfig, Device};
-use std::io;
+// use std::io;
+// mod device_selection;  // ❌ Remove this line
+// mod device_selection;  // ✅ Ensure module is declared at the top
+use crate::device_selection::select_audio_device; // ✅ Import correctly from main.rs
+// use super::device_selection::select_audio_device;  // ✅ Use `super::` to access module
+
+
+// use std::io::{self, Write}; // ✅ Fix missing `flush()` method
+use std::io::{self, Write}; // ✅ Keep only one correct import
+
+
 
 /// **User selects an input device at startup**
-pub fn select_audio_device() -> Device {
+pub fn choose_audio_device(is_input: bool) -> Device {
     let host = cpal::default_host();
-    let devices: Vec<_> = host.input_devices().unwrap().collect();
+    let devices: Vec<_> = if is_input {
+        host.input_devices().unwrap().collect()
+    } else {
+        host.output_devices().unwrap().collect()
+    };
 
-    println!("\nAvailable input devices:");
+    println!("\nAvailable {} devices:", if is_input { "input" } else { "output" });
     for (i, device) in devices.iter().enumerate() {
         println!("{}: {}", i, device.name().unwrap_or("Unknown".to_string()));
     }
 
-    print!("Select an input device (Enter number): ");
-    io::Write::flush(&mut io::stdout()).unwrap();
+    print!("Select {} device (Enter number): ", if is_input { "input" } else { "output" });
+    std::io::stdout().flush().unwrap();
 
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
-    let index = input.trim().parse::<usize>().unwrap_or(0);
+    let index = loop {
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input).unwrap();
+        if let Ok(num) = input.trim().parse::<usize>() {
+            if num < devices.len() {
+                break num;
+            }
+        }
+        println!("Invalid selection. Please enter a valid number.");
+    };
 
-    devices.get(index).cloned().expect("Invalid selection, using default.")
+    devices.get(index).expect("Invalid selection").clone()
 }
+
 
 
 /// **Gets default input device if user skips selection**
@@ -32,11 +54,10 @@ pub fn get_audio_device() -> Device {
         println!("- {}", device.name().unwrap_or("Unknown".to_string()));
     }
 
-    // Select VB-Audio Virtual Cable if available, otherwise default input device
     host.input_devices()
         .unwrap()
         .find(|d| d.name().unwrap_or_default().contains("CABLE Output"))
-        .or_else(|| host.default_input_device())
+        .or_else(|| host.default_input_device()) // ✅ Keep only one fallback
         .expect("No suitable audio input device found")
 }
 
