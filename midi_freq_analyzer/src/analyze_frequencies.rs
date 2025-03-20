@@ -4,26 +4,7 @@ use std::thread;
 use std::time::Duration;
 use cpal::traits::{DeviceTrait, HostTrait};
 use mlua::{Lua, Result};
-
-pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
-    let mut low = 0.0;
-    let mut mid = 0.0;
-    let mut high = 0.0;
-    
-    for (i, &sample) in samples.iter().enumerate() {
-        let freq = (i as f32) * (44100.0 / samples.len() as f32);
-        if freq < 250.0 {
-            low += sample.abs();
-        } else if freq < 4000.0 {
-            mid += sample.abs();
-        } else {
-            high += sample.abs();
-        }
-    }
-
-    (low, mid, high)
-}
-
+use crate::analyze_frequencies::analyze_frequencies;
 
 #[derive(Default)]
 pub struct AudioApp {
