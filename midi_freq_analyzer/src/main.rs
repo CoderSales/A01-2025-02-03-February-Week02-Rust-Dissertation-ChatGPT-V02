@@ -17,7 +17,24 @@ mod bitrate;
 mod gui;
 mod lua_ui;
 mod noise_profile;
-const BUFFER_SIZE: usize = 2048;
+// const BUFFER_SIZE: usize = 2048;
+
+
+// let output_size = output_config.buffer_size().unwrap_or(960); // fallback
+// let buffer = create_buffer(output_size);
+
+// let _host = cpal::default_host();
+// let input_device = cpal::default_host().default_input_device().expect("No default input device");
+// let output_device = cpal::default_host().default_output_device().expect("No default output device");
+// // println!("\n🎤 Selected Input Device: {}", input_device.name().unwrap());
+// // println!("🔊 Selected Output Device: {}", output_device.name().unwrap());
+// let output_config = audio::get_audio_config(&output_device);// ✅ Define config first
+// bitrate::print_audio_bitrate(&output_config);
+
+
+
+// const BUFFER_SIZE: usize = output_size; // or just remove this const entirely // ❌ INVALID
+// const BUFFER_SIZE: usize = 960;
 mod buffer_handling;
 use buffer_handling::handle_buffer_lock;
 mod thread_manager;
@@ -32,16 +49,24 @@ fn start_audio_io() {
     let _host = cpal::default_host();
     let input_device = cpal::default_host().default_input_device().expect("No default input device");
     let output_device = cpal::default_host().default_output_device().expect("No default output device");
-    // println!("\n🎤 Selected Input Device: {}", input_device.name().unwrap());
-    // println!("🔊 Selected Output Device: {}", output_device.name().unwrap());
-    let output_config = audio::get_audio_config(&output_device);// ✅ Define config first
+
+    let output_config = audio::get_audio_config(&output_device);
+    // let output_size = output_config.sample_rate.0 as usize / 50; // e.g., ~960 at 48kHz (20ms chunk)
+    let output_size = 960; // fallback, or determine dynamically later
+
+
     bitrate::print_audio_bitrate(&output_config);
+
+    let buffer = create_buffer(output_size);
+
+
     println!("\nUsing input device: {}\n", input_device.name().unwrap());
     // let data = create_shared_data();
     // let note_playing = create_note_playing();
     // let last_note = create_last_note(); // Track last note
     // let noise_profile = get_or_capture_noise_profile(&input_device, &output_config);
-    let buffer = create_buffer(BUFFER_SIZE); // ✅ Ensure buffer exists
+    // let buffer = create_buffer(960);
+    let buffer = create_buffer(output_size);
     let buffer_clone = Arc::clone(&buffer); // ✅ Clone before using
     let sample_rate = output_config.sample_rate.0; // ✅ Fix: Remove `()` & move before stream creation
     let stream = output_device
@@ -49,20 +74,46 @@ fn start_audio_io() {
             &output_config.into(),
             move |data: &mut [f32], _| {
                 let buffer = buffer_clone.lock().unwrap();
-                let safe_len = buffer.len().min(data.len()); // ✅ Prevent out-of-bounds errors
                 let offset = buffer.len().saturating_sub(data.len());
                 for (i, sample) in data.iter_mut().enumerate() {
                     *sample = buffer.get(i + offset).unwrap_or(&0.0) * 10.0;
-                }                
-                let peak = data.iter().cloned().fold(0.0_f32, f32::max);
-                println!("🔊 Output peak: {:.6}", peak);
+                }
+            
+                let output_peak = data.iter().cloned().fold(0.0_f32, f32::max);
+                let input_peak = buffer.iter().cloned().fold(0.0_f32, f32::max);
+                let max = input_peak;
+            
+                // Simple EQ bar visualization
+                let bar = |val: f32| if val > 0.002 { "|-|" } else { "|_|" };
+                let bass_bar = bar(max * 0.8);
+                let mid_bar = bar(max * 0.9);
+                let high_bar = bar(max);
+            
+                // Overwrite last 4 lines
+                use std::io::{stdout, Write};
+
+                print!("\x1B[4F\x1B[0J"); // move up 4 lines, clear below
+                
+                print!(
+                    "🔊 Output peak: {:.6}\n🎧 Output buffer size: {}, Input buffer size: {}\n🎵 Bass: {} Mid: {} High: {} 🎚 Max amplitude: {:.6}\n🎙️ Input peak: {:.6}\n",
+                    output_peak,
+                    data.len(),
+                    buffer.len(),
+                    bass_bar,
+                    mid_bar,
+                    high_bar,
+                    max,
+                    input_peak
+                );
+                stdout().flush().unwrap();
             },
             move |err| eprintln!("Stream error: {:?}", err),
             None,
         )
         .expect("❌ Failed to build output stream: Unsupported config");
-    stream.play().unwrap();
     println!("Using output device: {}", output_device.name().unwrap());
+    println!("\n\n\n\n"); // 4 blank lines to reserve overwrite space
+    stream.play().unwrap();
     // spawn_thread(move || {
     //     let buffer_clone = Arc::clone(&buffer);
     //     loop {
@@ -143,26 +194,23 @@ fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_c
             let data_clone = Arc::clone(&data_clone);
             move |data: &[f32], _: &_| {
                 let mut buffer = data_clone.lock().unwrap();
-                println!("🎧 Output buffer size: {}, Input buffer size: {}", data.len(), buffer.len());
+
+                let buffer_len = buffer.len();
+                let data_len = data.len();
+
+                println!("🎧 Output buffer size: {}, Input buffer size: {}", data_len, buffer_len);
 
                 let (_low, _mid, _high) = analyze_frequencies(data);
                 let max = data.iter().cloned().fold(0.0_f32, f32::max);
                 println!("🎚 Max amplitude: {:.6}", max);
 
-                let len = buffer.len();
-                let incoming = data.len();
-                if len + incoming > BUFFER_SIZE {
-                    buffer.drain(..len + incoming - BUFFER_SIZE);
+                if buffer_len + data_len > 960 {
+                    buffer.drain(..buffer_len + data_len - 960);
                 }
                 buffer.extend_from_slice(data);
-                
+
                 let input_peak = data.iter().cloned().fold(0.0_f32, f32::max);
                 println!("🎙️ Input peak: {:.6}", input_peak);
-
-                if buffer.len() > BUFFER_SIZE {
-                    let len = buffer.len();
-                    buffer.drain(..len - BUFFER_SIZE);
-                }
             }
         },
         move |err| eprintln!("Stream error: {:?}", err),
