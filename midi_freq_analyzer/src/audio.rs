@@ -28,5 +28,8 @@ pub fn get_audio_device() -> Device {
 
 /// **Retrieves default audio config**
 pub fn get_audio_config(device: &Device) -> StreamConfig {
-    device.default_input_config().unwrap().into()
+    device.default_input_config()
+        .or_else(|_| device.default_output_config())
+        .expect("❌ No supported input or output config found")
+        .into()
 }

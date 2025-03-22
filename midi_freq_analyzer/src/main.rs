@@ -34,28 +34,30 @@ fn start_audio_io() {
     let output_device = cpal::default_host().default_output_device().expect("No default output device");
     // println!("\n🎤 Selected Input Device: {}", input_device.name().unwrap());
     // println!("🔊 Selected Output Device: {}", output_device.name().unwrap());
-    let config = audio::get_audio_config(&output_device);// ✅ Define config first
-    bitrate::print_audio_bitrate(&config);
+    let output_config = audio::get_audio_config(&output_device);// ✅ Define config first
+    bitrate::print_audio_bitrate(&output_config);
     println!("\nUsing input device: {}\n", input_device.name().unwrap());
     // let data = create_shared_data();
     // let note_playing = create_note_playing();
     // let last_note = create_last_note(); // Track last note
-    // let noise_profile = get_or_capture_noise_profile(&input_device, &config);
+    // let noise_profile = get_or_capture_noise_profile(&input_device, &output_config);
     let buffer = create_buffer(BUFFER_SIZE); // ✅ Ensure buffer exists
     let buffer_clone = Arc::clone(&buffer); // ✅ Clone before using
-    let sample_rate = config.sample_rate.0; // ✅ Fix: Remove `()` & move before stream creation
+    let sample_rate = output_config.sample_rate.0; // ✅ Fix: Remove `()` & move before stream creation
     let stream = output_device
-        .build_output_stream(
-            &config.into(),
+        .build_output_stream(   // 🔥 panics here
+            &output_config.into(),
             move |data: &mut [f32], _| {
                 let buffer = buffer_clone.lock().unwrap();
                 let safe_len = buffer.len().min(data.len()); // ✅ Prevent out-of-bounds errors
-                data.copy_from_slice(&buffer[..safe_len]); // ✅ Safe indexing
+                for (i, sample) in data.iter_mut().enumerate() { // safer logic than previously
+                    *sample = *buffer.get(i).unwrap_or(&0.0);
+                }                
             },
             move |err| eprintln!("Stream error: {:?}", err),
             None,
         )
-        .unwrap();
+        .expect("❌ Failed to build output stream: Unsupported config");
     stream.play().unwrap();
     println!("Using output device: {}", output_device.name().unwrap());
     spawn_thread(move || {
