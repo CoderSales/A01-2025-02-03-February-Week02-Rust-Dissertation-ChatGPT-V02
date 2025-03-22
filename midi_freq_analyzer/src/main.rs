@@ -18,6 +18,8 @@ mod gui;
 mod lua_ui;
 mod noise_profile;
 // const BUFFER_SIZE: usize = 2048;
+mod constants;
+use crate::constants::BUFFER_SIZE;
 
 
 // let output_size = output_config.buffer_size().unwrap_or(960); // fallback
@@ -52,7 +54,7 @@ fn start_audio_io() {
 
     let output_config = audio::get_audio_config(&output_device);
     // let output_size = output_config.sample_rate.0 as usize / 50; // e.g., ~960 at 48kHz (20ms chunk)
-    let output_size = 960; // fallback, or determine dynamically later
+    let output_size = BUFFER_SIZE; // fallback, or determine dynamically later
 
 
     bitrate::print_audio_bitrate(&output_config);
@@ -204,8 +206,8 @@ fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_c
                 let max = data.iter().cloned().fold(0.0_f32, f32::max);
                 println!("🎚 Max amplitude: {:.6}", max);
 
-                if buffer_len + data_len > 960 {
-                    buffer.drain(..buffer_len + data_len - 960);
+                if buffer_len + data_len > BUFFER_SIZE {
+                    buffer.drain(..buffer_len + data_len - BUFFER_SIZE);
                 }
                 buffer.extend_from_slice(data);
 
