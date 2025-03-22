@@ -10,7 +10,7 @@ use crate::create_buffer;
 
 
 pub fn start_audio_io(output_gain: Arc<Mutex<f32>>) {
-    let input_gain = Arc::new(Mutex::new(1.0));
+    let input_gain = Arc::new(Mutex::new(3.0)); // temporary boost
     let input_gain_clone = Arc::clone(&input_gain);
 
     let output_gain = Arc::new(Mutex::new(1.0)); // default gain = 1.0
@@ -42,6 +42,10 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>) {
                 let buffer = buffer_clone.lock().unwrap();
                 let offset = buffer.len().saturating_sub(data.len());
                 for (i, sample) in data.iter_mut().enumerate() {
+                    let input_amp = *input_gain_clone.lock().unwrap();
+                    let raw_input = *buffer.get(i + offset).unwrap_or(&0.0);
+                    println!("🎤 Raw Input: {}, Gain: {}", raw_input, input_amp);
+
                     let gain = *output_gain_clone.lock().unwrap();
                     *sample = buffer.get(i + offset).unwrap_or(&0.0) * gain;
                 }
@@ -76,6 +80,8 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>) {
         .expect("❌ Failed to build output stream: Unsupported config");
     println!("Using output device: {}", output_device.name().unwrap());
     println!("\n\n\n\n");
+    std::thread::sleep(std::time::Duration::from_millis(500));
+
     
     let input_config = audio::get_audio_config(&input_device);
     let data_clone_for_input = Arc::clone(&buffer);

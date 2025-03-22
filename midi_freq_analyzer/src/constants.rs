@@ -1,1 +1,1 @@
-pub const BUFFER_SIZE: usize = 960;
+pub const BUFFER_SIZE: usize = 2048;
