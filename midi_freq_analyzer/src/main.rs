@@ -1,3 +1,18 @@
+mod constants;
+mod audio_io;
+mod stream_setup;
+mod noise;
+mod notes;
+mod analysis;
+
+use constants::BUFFER_SIZE;
+use audio_io::start_audio_io;
+use stream_setup::setup_audio_stream;
+use noise::subtract_noise;
+use notes::frequency_to_note;
+use analysis::analyze_amplitude;
+
+
 use midi_freq_analyzer::audio;
 use midi_freq_analyzer::fft;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
@@ -18,8 +33,6 @@ mod gui;
 mod lua_ui;
 mod noise_profile;
 // const BUFFER_SIZE: usize = 2048;
-mod constants;
-use crate::constants::BUFFER_SIZE;
 
 
 // let output_size = output_config.buffer_size().unwrap_or(960); // fallback
@@ -47,105 +60,24 @@ mod device_selection;
 use crate::noise_profile::get_or_capture_noise_profile;
 use crate::fft::analyze_frequencies;
 
-fn start_audio_io() {
-    let _host = cpal::default_host();
-    let input_device = cpal::default_host().default_input_device().expect("No default input device");
-    let output_device = cpal::default_host().default_output_device().expect("No default output device");
-
-    let output_config = audio::get_audio_config(&output_device);
-    // let output_size = output_config.sample_rate.0 as usize / 50; // e.g., ~960 at 48kHz (20ms chunk)
-    let output_size = BUFFER_SIZE; // fallback, or determine dynamically later
+mod list_inputs; // add at top
+use crate::list_inputs::print_input_devices;
 
 
-    bitrate::print_audio_bitrate(&output_config);
-
-    let buffer = create_buffer(output_size);
-
-
-    println!("\nUsing input device: {}\n", input_device.name().unwrap());
-    // let data = create_shared_data();
-    // let note_playing = create_note_playing();
-    // let last_note = create_last_note(); // Track last note
-    // let noise_profile = get_or_capture_noise_profile(&input_device, &output_config);
-    // let buffer = create_buffer(960);
-    let buffer = create_buffer(output_size);
-    let buffer_clone = Arc::clone(&buffer); // ✅ Clone before using
-    let sample_rate = output_config.sample_rate.0; // ✅ Fix: Remove `()` & move before stream creation
-    let stream = output_device
-        .build_output_stream(   // 🔥 panics here
-            &output_config.into(),
-            move |data: &mut [f32], _| {
-                let buffer = buffer_clone.lock().unwrap();
-                let offset = buffer.len().saturating_sub(data.len());
-                for (i, sample) in data.iter_mut().enumerate() {
-                    *sample = buffer.get(i + offset).unwrap_or(&0.0) * 10.0;
-                }
-            
-                let output_peak = data.iter().cloned().fold(0.0_f32, f32::max);
-                let input_peak = buffer.iter().cloned().fold(0.0_f32, f32::max);
-                let max = input_peak;
-            
-                // Simple EQ bar visualization
-                let bar = |val: f32| if val > 0.002 { "|-|" } else { "|_|" };
-                let bass_bar = bar(max * 0.8);
-                let mid_bar = bar(max * 0.9);
-                let high_bar = bar(max);
-            
-                // Overwrite last 4 lines
-                use std::io::{stdout, Write};
-
-                print!("\x1B[4F\x1B[0J"); // move up 4 lines, clear below
-                
-                print!(
-                    "🔊 Output peak: {:.6}\n🎧 Output buffer size: {}, Input buffer size: {}\n🎵 Bass: {} Mid: {} High: {} 🎚 Max amplitude: {:.6}\n🎙️ Input peak: {:.6}\n",
-                    output_peak,
-                    data.len(),
-                    buffer.len(),
-                    bass_bar,
-                    mid_bar,
-                    high_bar,
-                    max,
-                    input_peak
-                );
-                stdout().flush().unwrap();
-            },
-            move |err| eprintln!("Stream error: {:?}", err),
-            None,
-        )
-        .expect("❌ Failed to build output stream: Unsupported config");
-    println!("Using output device: {}", output_device.name().unwrap());
-    println!("\n\n\n\n"); // 4 blank lines to reserve overwrite space
-    stream.play().unwrap();
-    // spawn_thread(move || {
-    //     let buffer_clone = Arc::clone(&buffer);
-    //     loop {
-    //         handle_buffer_lock(&buffer_clone, |buffer| {
-    //             for i in 0..BUFFER_SIZE {
-    //                 buffer[i] = (i as f32 / sample_rate as f32).sin();
-    //             }
-    //         });
-    //                     thread::sleep(Duration::from_millis(10));
-    //     }
-    // });
-    let input_config = audio::get_audio_config(&input_device);
-    let data_clone_for_input = Arc::clone(&buffer);
-    let input_stream = setup_audio_stream(&input_device, &input_config, data_clone_for_input);
-    input_stream.play().unwrap();
-
-    loop {
-        thread::sleep(Duration::from_secs(1)); // Keep main thread alive
-    }
-
-}
 
 
 fn main() {
+    print_input_devices(); // always runs at start
+
+    start_audio_io(); // call directly, not in thread
+    gui::launch_gui().unwrap(); // optional: run after
+
     let panicked_threads = create_panicked_threads();
     let panicked_threads_clone = Arc::clone(&panicked_threads);
     spawn_thread(move || {
         let thread_name = "Audio Processing Thread".to_string();
         if let Err(_) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            start_audio_io();
+            audio_io::start_audio_io();
         })) {
             eprintln!("⚠️ Thread panicked: {}", thread_name);
             let mut list = panicked_threads_clone.lock().unwrap();
@@ -188,120 +120,3 @@ fn main() {
     });
 }
 
-
-fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_clone: Arc<Mutex<Vec<f32>>>) -> cpal::Stream {
-    device.build_input_stream(
-        &config,
-        {
-            let data_clone = Arc::clone(&data_clone);
-            move |data: &[f32], _: &_| {
-                let mut buffer = data_clone.lock().unwrap();
-
-                let buffer_len = buffer.len();
-                let data_len = data.len();
-
-                println!("🎧 Output buffer size: {}, Input buffer size: {}", data_len, buffer_len);
-
-                let (_low, _mid, _high) = analyze_frequencies(data);
-                let max = data.iter().cloned().fold(0.0_f32, f32::max);
-                println!("🎚 Max amplitude: {:.6}", max);
-
-                if buffer_len + data_len > BUFFER_SIZE {
-                    buffer.drain(..buffer_len + data_len - BUFFER_SIZE);
-                }
-                buffer.extend_from_slice(data);
-
-                let input_peak = data.iter().cloned().fold(0.0_f32, f32::max);
-                println!("🎙️ Input peak: {:.6}", input_peak);
-            }
-        },
-        move |err| eprintln!("Stream error: {:?}", err),
-        None,
-    )
-    .expect("Failed to create stream")
-}
-
-
-/// **Subtract noise profile from frequency reading with proper limit**
-fn subtract_noise(frequency: f32, noise_profile: &Vec<f32>) -> f32 {
-    if noise_profile.is_empty() {
-        return frequency;
-    }
-
-    // Calculate rolling noise average
-    let weight_factor = 0.8; // Give 80% weight to past noise, 20% to current
-    let rolling_noise_avg: f32 = noise_profile.iter().rev().take(10) // Use last 10 readings
-        .sum::<f32>() / 10.0; 
-
-    let adjusted = (frequency - rolling_noise_avg * weight_factor).max(20.0); // Adaptive subtraction
-
-    if adjusted < MIN_FREQUENCY {
-        return 0.0; // Ignore too-low frequencies
-    }
-    adjusted
-}
-
-/// Converts a frequency to the closest musical note
-fn frequency_to_note(frequency: f32) -> String {
-    let a4_freq = 440.0;
-    let semitone_ratio = 2.0_f32.powf(1.0 / 12.0);
-
-    let note_names = [
-        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-    ];
-
-    let mut closest_note = "Unknown".to_string();
-    let mut min_diff = f32::MAX;
-    let mut best_index = 0;
-    let mut best_octave = 4;
-
-    for i in -48..=48 { // Covers ~4 octaves up/down
-        let note_freq = a4_freq * semitone_ratio.powf(i as f32);
-        let diff = (frequency - note_freq).abs();
-
-        if diff < min_diff {
-            min_diff = diff;
-            best_index = ((i + 9) % 12) as usize;
-            best_octave = 4 + (i + 9) / 12;
-        }
-    }
-
-    // Ensure the index is within bounds
-    if best_index < note_names.len() {
-        closest_note = format!("{}{}", note_names[best_index], best_octave);
-    }
-
-    closest_note
-}
-
-fn analyze_amplitude(samples: &[f32]) {
-    static mut LAST_ANALYSIS_TIME: Option<Instant> = None;
-
-    let now = Instant::now();
-    unsafe {
-        if let Some(last_time) = LAST_ANALYSIS_TIME {
-            if now.duration_since(last_time) < Duration::from_secs(5) {
-                return;  // Skip print if less than 5 seconds since last output
-            }
-        }
-        LAST_ANALYSIS_TIME = Some(now);
-    }
-
-    let min = samples.iter().cloned().fold(f32::INFINITY, f32::min);
-    let max = samples.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
-    let mean = samples.iter().sum::<f32>() / samples.len() as f32;
-
-    let mut sorted_samples = samples.to_vec();
-    sorted_samples.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    let median = if sorted_samples.len() % 2 == 0 {
-        (sorted_samples[sorted_samples.len() / 2 - 1] + sorted_samples[sorted_samples.len() / 2]) / 2.0
-    } else {
-        sorted_samples[sorted_samples.len() / 2]
-    };
-
-    println!(
-        "🔍 Amplitude Analysis - Min: {:.5}, Max: {:.5}, Mean: {:.5}, Median: {:.5}",
-        min, max, mean, median
-    );
-
-}
