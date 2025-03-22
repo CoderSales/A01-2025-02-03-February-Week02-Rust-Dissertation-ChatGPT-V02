@@ -6,7 +6,7 @@ use std::sync::atomic::Ordering;
 use cpal::{Device, StreamConfig};
 use cpal::traits::DeviceTrait;
 use cpal::traits::StreamTrait;
-use crate::fft;
+// use crate::fft;
 use crate::live_output;
 use crate::BUFFER_SIZE;
 
@@ -36,7 +36,7 @@ pub fn load_noise_profile() -> Result<Vec<f32>, std::io::Error> {
 
 /// **Capture a reliable noise profile by taking multiple readings**
 pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig) -> Vec<f32> {
-    let mut noise_samples = Vec::new();
+    let noise_samples = Vec::new();
     let data = Arc::new(Mutex::new(Vec::new()));
 
     let data_clone = Arc::clone(&data);

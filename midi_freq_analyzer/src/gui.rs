@@ -28,7 +28,7 @@ impl App for AudioApp {
                 let log_output = Arc::clone(&self.log_output);
                 thread::spawn(move || {
                     let mut log = log_output.lock().unwrap();
-                    *log = String::new();
+                                    *log = String::new();
 
                     for i in 1..=10 {
                         thread::sleep(Duration::from_millis(500));
@@ -82,12 +82,12 @@ pub fn launch_gui() -> Result<()> { // ✅ Change return type
     let options = NativeOptions::default();
     let host = cpal::default_host();
     let devices = host.devices().expect("Failed to get audio devices");
-    let mut selected_device = None;
+    let mut _selected_device = None;
 
     for device in devices {
         println!("Found device: {}", device.name().unwrap_or("Unknown".to_string()));
         if device.name().unwrap_or("Unknown".to_string()).contains("Microphone") {
-            selected_device = Some(device);
+            _selected_device = Some(device);
             break;
         }
     }
@@ -97,7 +97,7 @@ pub fn launch_gui() -> Result<()> { // ✅ Change return type
     let mid_freq = Arc::new(Mutex::new(0.7));
     let high_freq = Arc::new(Mutex::new(0.9));
     
-    let log_output = Arc::new(Mutex::new(String::new()));
+    // let log_output = Arc::new(Mutex::new(String::new()));
     let low_freq_lua = Arc::clone(&low_freq);
     let mid_freq_lua = Arc::clone(&mid_freq);
     let high_freq_lua = Arc::clone(&high_freq);

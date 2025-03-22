@@ -3,46 +3,11 @@ use cpal::{StreamConfig, Device};
 // use std::io;
 // mod device_selection;  // ❌ Remove this line
 // mod device_selection;  // ✅ Ensure module is declared at the top
-use crate::device_selection::select_audio_device; // ✅ Import correctly from main.rs
-// use super::device_selection::select_audio_device;  // ✅ Use `super::` to access module
 
 
 // use std::io::{self, Write}; // ✅ Fix missing `flush()` method
 use std::io::{self, Write}; // ✅ Keep only one correct import
-
-
-
-/// **User selects an input device at startup**
-pub fn choose_audio_device(is_input: bool) -> Device {
-    let host = cpal::default_host();
-    let devices: Vec<_> = if is_input {
-        host.input_devices().unwrap().collect()
-    } else {
-        host.output_devices().unwrap().collect()
-    };
-
-    println!("\nAvailable {} devices:", if is_input { "input" } else { "output" });
-    for (i, device) in devices.iter().enumerate() {
-        println!("{}: {}", i, device.name().unwrap_or("Unknown".to_string()));
-    }
-
-    print!("Select {} device (Enter number): ", if is_input { "input" } else { "output" });
-    std::io::stdout().flush().unwrap();
-
-    let index = loop {
-        let mut input = String::new();
-        std::io::stdin().read_line(&mut input).unwrap();
-        if let Ok(num) = input.trim().parse::<usize>() {
-            if num < devices.len() {
-                break num;
-            }
-        }
-        println!("Invalid selection. Please enter a valid number.");
-    };
-
-    devices.get(index).expect("Invalid selection").clone()
-}
-
+use crate::device_selection::select_audio_device;
 
 
 /// **Gets default input device if user skips selection**

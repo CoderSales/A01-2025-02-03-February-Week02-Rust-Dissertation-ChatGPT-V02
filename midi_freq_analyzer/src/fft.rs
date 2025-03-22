@@ -4,26 +4,38 @@ use std::thread;
 use std::time::Duration;
 use cpal::traits::{DeviceTrait, HostTrait};
 use mlua::{Lua, Result};
+use std::io::Write; // <-- Fix for flush()
 
 pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
     let mut low = 0.0;
     let mut mid = 0.0;
     let mut high = 0.0;
-    
+
     for (i, &sample) in samples.iter().enumerate() {
         let freq = (i as f32) * (44100.0 / samples.len() as f32);
+        let magnitude = sample.abs();
+
         if freq < 250.0 {
-            low += sample.abs();
+            low += magnitude;
         } else if freq < 4000.0 {
-            mid += sample.abs();
+            mid += magnitude;
         } else {
-            high += sample.abs();
+            high += magnitude;
         }
     }
 
+    display_amplitude(low, mid, high); // ✅ Live CLI update
     (low, mid, high)
 }
 
+pub fn display_amplitude(low: f32, mid: f32, high: f32) {
+    let bass_block = if low > 0.1 { "|-|" } else { "|_|" };
+    let mid_block = if mid > 0.1 { "|-|" } else { "|_|" };
+    let high_block = if high > 0.1 { "|-|" } else { "|_|" };
+
+    print!("\r🎵 Bass: {} Mid: {} High: {} ", bass_block, mid_block, high_block);
+    std::io::stdout().flush().unwrap();
+}
 
 #[derive(Default)]
 pub struct AudioApp {
@@ -99,7 +111,7 @@ pub fn launch_gui() -> Result<()> {
     let low_freq = Arc::new(Mutex::new(0.0));
     let mid_freq = Arc::new(Mutex::new(0.0));
     let high_freq = Arc::new(Mutex::new(0.0));
-    
+
     let freq_meter = FrequencyMeter {
         low_freq,
         mid_freq,

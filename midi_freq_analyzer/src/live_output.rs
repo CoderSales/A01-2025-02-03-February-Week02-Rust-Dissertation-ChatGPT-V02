@@ -1,5 +1,7 @@
 use std::time::{Instant, Duration};
 use std::sync::Mutex;
+use std::io::Write; // ✅ Required for flush()
+
 
 static LAST_UPDATE: Mutex<Option<Instant>> = Mutex::new(None);
 

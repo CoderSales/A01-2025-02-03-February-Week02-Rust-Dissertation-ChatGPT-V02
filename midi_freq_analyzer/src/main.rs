@@ -3,86 +3,52 @@ use midi_freq_analyzer::fft;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::sync::{Arc, Mutex};
 use std::thread;
-
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
-
 const MIN_FREQUENCY: f32 = 20.0;
 const MAX_FREQUENCY: f32 = 20000.0;
-// const NOISE_PROFILE_FILE: &str = "noise_profile.txt";
-
-static mut PRINT_COUNTER: usize = 0;  // ✅ Declare `PRINT_COUNTER` globally
-
+static mut PRINT_COUNTER: usize = 0; 
 use std::time::{Instant, Duration};
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
-
 use lua_ui::init_lua_ui;
-
-mod live_output; // Import new module
+mod live_output;
 mod bitrate;
 mod gui;
 mod lua_ui;
-
 mod noise_profile;
-
-const BUFFER_SIZE: usize = 2048; // Unified buffer size
-
+const BUFFER_SIZE: usize = 2048;
 mod buffer_handling;
 use buffer_handling::handle_buffer_lock;
-
 mod thread_manager;
 use thread_manager::spawn_thread;
-
-
 mod mutex_handling;
 use mutex_handling::*;
-
-// use device_selection::select_audio_device;
 mod device_selection;
-use device_selection::select_audio_device;
-
-
-// mod noise_profile;  // ✅ Ensure correct module path
-// use noise_profile::get_or_capture_noise_profile;
-
 use crate::noise_profile::get_or_capture_noise_profile;
-
-
-// new:
+use crate::fft::analyze_frequencies;
 
 fn start_audio_io() {
-    let host = cpal::default_host();
-    
-    let input_device = select_audio_device(&host, true);
-    let output_device = select_audio_device(&host, false);
-    
+    let _host = cpal::default_host();
+    let input_device = device_selection::select_audio_device(true);
+    let output_device = device_selection::select_audio_device(false);
     println!("\n🎤 Selected Input Device: {}", input_device.name().unwrap());
     println!("🔊 Selected Output Device: {}", output_device.name().unwrap());
-    
     let config = audio::get_audio_config(&input_device); // ✅ Define config first
-    
     bitrate::print_audio_bitrate(&config);
-    
     println!("\nUsing input device: {}\n", input_device.name().unwrap());
-    
-    let data = create_shared_data();
-    let note_playing = create_note_playing();
-    let last_note = create_last_note(); // Track last note
-    
-    let noise_profile = get_or_capture_noise_profile(&input_device, &config);
-    
+    // let data = create_shared_data();
+    // let note_playing = create_note_playing();
+    // let last_note = create_last_note(); // Track last note
+    // let noise_profile = get_or_capture_noise_profile(&input_device, &config);
     let buffer = create_buffer(BUFFER_SIZE); // ✅ Ensure buffer exists
     let buffer_clone = Arc::clone(&buffer); // ✅ Clone before using
-    
     let sample_rate = config.sample_rate.0; // ✅ Fix: Remove `()` & move before stream creation
-
-
     let stream = output_device
         .build_output_stream(
             &config.into(),
             move |data: &mut [f32], _| {
-                let mut buffer = buffer_clone.lock().unwrap();
+                let buffer = buffer_clone.lock().unwrap();
                 let safe_len = buffer.len().min(data.len()); // ✅ Prevent out-of-bounds errors
                 data.copy_from_slice(&buffer[..safe_len]); // ✅ Safe indexing
             },
@@ -90,9 +56,7 @@ fn start_audio_io() {
             None,
         )
         .unwrap();
-    
     stream.play().unwrap();
-
     spawn_thread(move || {
         let buffer_clone = Arc::clone(&buffer);
         loop {
@@ -104,23 +68,14 @@ fn start_audio_io() {
                         thread::sleep(Duration::from_millis(10));
         }
     });
-        
     loop {
         thread::sleep(Duration::from_secs(1)); // Keep main thread alive
     }
 }
 
 
-
-
 fn main() {
-    use std::collections::HashSet;
     let panicked_threads = create_panicked_threads();
-    
-    
-    static mut PRINT_COUNTER: usize = 0;  // ✅ Declare before use
-
-
     let panicked_threads_clone = Arc::clone(&panicked_threads);
     spawn_thread(move || {
         let thread_name = "Audio Processing Thread".to_string();
@@ -133,9 +88,7 @@ fn main() {
         }
     }); // Run audio processing in background
 
-
     // launch_gui(); // Run GUI (Audio Analyzer + Frequency Meter)
-
 
     if let Err(e) = gui::launch_gui() {
         eprintln!("GUI failed: {:?}", e);
@@ -155,9 +108,10 @@ fn main() {
 
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
     let host = cpal::default_host(); // ✅ Define `host` first
-    let device = device_selection::select_audio_device(&host, true); // ✅ Pass arguments
             
     // ✅ Move logging into a separate thread
+    
+    let device = device_selection::select_audio_device(true);
     spawn_thread(move || {
         loop {
             let elapsed = program_start.elapsed().as_secs();
@@ -167,7 +121,6 @@ fn main() {
             std::thread::sleep(std::time::Duration::from_secs(1));
         }
     });
-
     let config = audio::get_audio_config(&device); // ✅ Define config first
 
     bitrate::print_audio_bitrate(&config);
@@ -178,7 +131,7 @@ fn main() {
     let note_playing = create_note_playing();
     let last_note = create_last_note(); // Track last note
 
-    let err_fn: Box<dyn Fn(cpal::StreamError)> = Box::new(|err| eprintln!("Error: {:?}", err));
+    // let err_fn: Box<dyn Fn(cpal::StreamError)> = Box::new(|err| eprintln!("Error: {:?}", err));
 
     let data_clone = Arc::clone(&data);
     let note_clone = Arc::clone(&note_playing);
@@ -186,49 +139,31 @@ fn main() {
 
     let noise_profile = get_or_capture_noise_profile(&device, &config);
 
-
     // Edited: Ensure display_amplitude() is called live inside input stream processing
     let stream = setup_audio_stream(&device, &config, Arc::clone(&data));
+    stream.play().unwrap();
 }
 
+
 fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_clone: Arc<Mutex<Vec<f32>>>) -> cpal::Stream {
-    let poison_flag = Arc::new(AtomicBool::new(false));
-    let poison_flag_clone = Arc::clone(&poison_flag);
-    let poison_flag_thread = Arc::clone(&poison_flag);
     device.build_input_stream(
         &config,
         move |data: &[f32], _: &_| {
-            let poison_flag_clone = Arc::clone(&poison_flag); // ✅ Capture inside closure
-    
-            // ✅ Live amplitude analysis
-            for &sample in data {
-                let amplitude = sample.abs();
-                live_output::print_live_amplitude(amplitude);
-            }
-    
-            // ✅ Buffer handling inside `setup_audio_stream`
-            match data_clone.lock() {
-                Ok(mut buffer) => {
-                    buffer.extend_from_slice(data);
-                    poison_flag_clone.store(false, Ordering::Relaxed); // Reset flag on successful lock
-                }
-                Err(poisoned) => {
-                    if !poison_flag_clone.load(Ordering::Relaxed) {
-                        static POISON_ERROR_LOGGED: AtomicBool = AtomicBool::new(false);
-                        if !POISON_ERROR_LOGGED.load(Ordering::Relaxed) {
-                            eprintln!("⚠️ Mutex poisoned! {:?}", poisoned);
-                            POISON_ERROR_LOGGED.store(true, Ordering::Relaxed); // Prevent further logs
-                        }
-                        poison_flag_clone.store(true, Ordering::Relaxed); // Suppress repeated logs
-                    }
-                }
-            }
+            let (_low, _mid, _high) = analyze_frequencies(data);
+            
+            let mut buffer = data_clone.lock().unwrap();
+            buffer.extend_from_slice(data);
+
+            if buffer.len() > BUFFER_SIZE {
+                let len = buffer.len();
+                buffer.drain(..len - BUFFER_SIZE);
+}
         },
         move |err| eprintln!("Stream error: {:?}", err),
         None,
     ).expect("Failed to create stream")
-    
 }
+
 
 /// **Subtract noise profile from frequency reading with proper limit**
 fn subtract_noise(frequency: f32, noise_profile: &Vec<f32>) -> f32 {
@@ -312,5 +247,4 @@ fn analyze_amplitude(samples: &[f32]) {
         min, max, mean, median
     );
 
-    analyze_amplitude(&samples);
 }
