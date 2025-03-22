@@ -30,11 +30,11 @@ use crate::fft::analyze_frequencies;
 
 fn start_audio_io() {
     let _host = cpal::default_host();
-    let input_device = device_selection::select_audio_device(true);
-    let output_device = device_selection::select_audio_device(false);
-    println!("\n🎤 Selected Input Device: {}", input_device.name().unwrap());
-    println!("🔊 Selected Output Device: {}", output_device.name().unwrap());
-    let config = audio::get_audio_config(&input_device); // ✅ Define config first
+    let input_device = cpal::default_host().default_input_device().expect("No default input device");
+    let output_device = cpal::default_host().default_output_device().expect("No default output device");
+    // println!("\n🎤 Selected Input Device: {}", input_device.name().unwrap());
+    // println!("🔊 Selected Output Device: {}", output_device.name().unwrap());
+    let config = audio::get_audio_config(&output_device);// ✅ Define config first
     bitrate::print_audio_bitrate(&config);
     println!("\nUsing input device: {}\n", input_device.name().unwrap());
     // let data = create_shared_data();
@@ -57,6 +57,7 @@ fn start_audio_io() {
         )
         .unwrap();
     stream.play().unwrap();
+    println!("Using output device: {}", output_device.name().unwrap());
     spawn_thread(move || {
         let buffer_clone = Arc::clone(&buffer);
         loop {
