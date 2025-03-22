@@ -7,8 +7,10 @@ use cpal::traits::{DeviceTrait, HostTrait};
 use mlua::{Lua, Result}; // ✅ Keep Result
 
 
-#[derive(Default)]
+// #[derive(Default)]
 pub struct AudioApp {
+    pub output_gain: Arc<Mutex<f32>>,
+    pub input_gain: Arc<Mutex<f32>>, // ← Add this line
     status_message: String,
     log_output: Arc<Mutex<String>>,
     low_freq: Arc<Mutex<f32>>,
@@ -16,11 +18,31 @@ pub struct AudioApp {
     high_freq: Arc<Mutex<f32>>,
 }
 
+impl Default for AudioApp {
+    fn default() -> Self {
+        Self {
+            output_gain: Arc::new(Mutex::new(1.0)),
+            input_gain: Arc::new(Mutex::new(1.0)), // ← Add this
+            status_message: "Idle".to_string(),
+            log_output: Arc::new(Mutex::new(String::new())),
+            low_freq: Arc::new(Mutex::new(0.5)),
+            mid_freq: Arc::new(Mutex::new(0.5)),
+            high_freq: Arc::new(Mutex::new(0.5)),
+        }
+    }
+}
+
+
 impl App for AudioApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("🎵 Audio Analyzer");
             ui.separator();
+
+            let mut gain = self.output_gain.lock().unwrap();
+            ui.add(egui::Slider::new(&mut *gain, 0.0..=5.0).text("🔊 Output Gain"));
+            drop(gain); // release lock early
+
 
             if ui.button("▶ Record").clicked() {
                 self.status_message = "Recording...".to_string();
@@ -50,7 +72,7 @@ impl App for AudioApp {
     }
 }
 
-#[derive(Default)]
+// #[derive(Default)]
 struct FrequencyMeter {
     low_freq: Arc<Mutex<f32>>,
     mid_freq: Arc<Mutex<f32>>,
@@ -127,13 +149,15 @@ pub fn launch_gui() -> Result<()> { // ✅ Change return type
     lua.load(format!("eq.set_eq({}, {}, {})", low, mid, high)).exec()?;
         
     let app = AudioApp {
+        output_gain: Arc::new(Mutex::new(1.0)),
+        input_gain: Arc::new(Mutex::new(1.0)),
         status_message: "Idle".to_string(),
         log_output: Arc::new(Mutex::new(String::new())),
         low_freq: Arc::clone(&low_freq),
         mid_freq: Arc::clone(&mid_freq),
         high_freq: Arc::clone(&high_freq),
     };
-
+    
     let freq_meter = FrequencyMeter {
         low_freq,
         mid_freq,

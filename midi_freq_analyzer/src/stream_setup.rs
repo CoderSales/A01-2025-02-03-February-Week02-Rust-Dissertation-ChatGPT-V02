@@ -6,7 +6,12 @@ use midi_freq_analyzer::fft::analyze_frequencies;
 use crate::audio_io;
 
 
-pub fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_clone: Arc<Mutex<Vec<f32>>>) -> cpal::Stream {
+pub fn setup_audio_stream(
+    device: &cpal::Device,
+    config: &cpal::StreamConfig,
+    data_clone: Arc<Mutex<Vec<f32>>>,
+    input_gain: Arc<Mutex<f32>>,
+) -> cpal::Stream {
     println!("🎛 Input config: {:?}", config);
     device.build_input_stream(
         &config,

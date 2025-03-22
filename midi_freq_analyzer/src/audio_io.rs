@@ -1,5 +1,5 @@
+use std::sync::{Arc, Mutex}; // ensure this is at top
 use cpal::traits::{HostTrait, DeviceTrait, StreamTrait};
-use std::sync::Arc;
 use std::time::Duration;
 use std::thread;
 use crate::stream_setup;
@@ -9,7 +9,13 @@ use crate::constants::BUFFER_SIZE;
 use crate::create_buffer;
 
 
-pub fn start_audio_io() {
+pub fn start_audio_io(output_gain: Arc<Mutex<f32>>) {
+    let input_gain = Arc::new(Mutex::new(1.0));
+    let input_gain_clone = Arc::clone(&input_gain);
+
+    let output_gain = Arc::new(Mutex::new(1.0)); // default gain = 1.0
+    let output_gain_clone = Arc::clone(&output_gain);
+
     let _host = cpal::default_host();
     let host = cpal::default_host();
     let input_device = host.input_devices()
@@ -36,7 +42,8 @@ pub fn start_audio_io() {
                 let buffer = buffer_clone.lock().unwrap();
                 let offset = buffer.len().saturating_sub(data.len());
                 for (i, sample) in data.iter_mut().enumerate() {
-                    *sample = buffer.get(i + offset).unwrap_or(&0.0) * 10.0;
+                    let gain = *output_gain_clone.lock().unwrap();
+                    *sample = buffer.get(i + offset).unwrap_or(&0.0) * gain;
                 }
 
                 let output_peak = data.iter().cloned().fold(0.0_f32, f32::max);
@@ -72,7 +79,13 @@ pub fn start_audio_io() {
     
     let input_config = audio::get_audio_config(&input_device);
     let data_clone_for_input = Arc::clone(&buffer);
-    let input_stream = stream_setup::setup_audio_stream(&input_device, &input_config, data_clone_for_input);
+    let input_stream = stream_setup::setup_audio_stream(
+        &input_device,
+        &input_config,
+        data_clone_for_input,
+        Arc::clone(&input_gain),
+    );
+    
     
     stream.play().unwrap();
     input_stream.play().unwrap();
