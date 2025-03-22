@@ -51,8 +51,10 @@ fn start_audio_io() {
                 let buffer = buffer_clone.lock().unwrap();
                 let safe_len = buffer.len().min(data.len()); // ✅ Prevent out-of-bounds errors
                 for (i, sample) in data.iter_mut().enumerate() { // safer logic than previously
-                    *sample = *buffer.get(i).unwrap_or(&0.0);
-                }                
+                    *sample = buffer.get(i).unwrap_or(&0.0) * 10.0; // 💥 boost volume
+                }
+                let peak = data.iter().cloned().fold(0.0_f32, f32::max);
+                println!("🔊 Output peak: {:.6}", peak);
             },
             move |err| eprintln!("Stream error: {:?}", err),
             None,
@@ -60,20 +62,26 @@ fn start_audio_io() {
         .expect("❌ Failed to build output stream: Unsupported config");
     stream.play().unwrap();
     println!("Using output device: {}", output_device.name().unwrap());
-    spawn_thread(move || {
-        let buffer_clone = Arc::clone(&buffer);
-        loop {
-            handle_buffer_lock(&buffer_clone, |buffer| {
-                for i in 0..BUFFER_SIZE {
-                    buffer[i] = (i as f32 / sample_rate as f32).sin();
-                }
-            });
-                        thread::sleep(Duration::from_millis(10));
-        }
-    });
+    // spawn_thread(move || {
+    //     let buffer_clone = Arc::clone(&buffer);
+    //     loop {
+    //         handle_buffer_lock(&buffer_clone, |buffer| {
+    //             for i in 0..BUFFER_SIZE {
+    //                 buffer[i] = (i as f32 / sample_rate as f32).sin();
+    //             }
+    //         });
+    //                     thread::sleep(Duration::from_millis(10));
+    //     }
+    // });
+    let input_config = audio::get_audio_config(&input_device);
+    let data_clone_for_input = Arc::clone(&buffer);
+    let input_stream = setup_audio_stream(&input_device, &input_config, data_clone_for_input);
+    input_stream.play().unwrap();
+
     loop {
         thread::sleep(Duration::from_secs(1)); // Keep main thread alive
     }
+
 }
 
 
@@ -124,47 +132,35 @@ fn main() {
             std::thread::sleep(std::time::Duration::from_secs(1));
         }
     });
-    let config = audio::get_audio_config(&device); // ✅ Define config first
-
-    bitrate::print_audio_bitrate(&config);
-
-    println!("\nUsing input device: {}\n", device.name().unwrap());
-
-    let data = create_shared_data();
-    let note_playing = create_note_playing();
-    let last_note = create_last_note(); // Track last note
-
-    // let err_fn: Box<dyn Fn(cpal::StreamError)> = Box::new(|err| eprintln!("Error: {:?}", err));
-
-    let data_clone = Arc::clone(&data);
-    let note_clone = Arc::clone(&note_playing);
-    let last_note_clone = Arc::clone(&last_note);
-
-    let noise_profile = get_or_capture_noise_profile(&device, &config);
-
-    // Edited: Ensure display_amplitude() is called live inside input stream processing
-    let stream = setup_audio_stream(&device, &config, Arc::clone(&data));
-    stream.play().unwrap();
 }
 
 
 fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_clone: Arc<Mutex<Vec<f32>>>) -> cpal::Stream {
     device.build_input_stream(
         &config,
-        move |data: &[f32], _: &_| {
-            let (_low, _mid, _high) = analyze_frequencies(data);
-            
-            let mut buffer = data_clone.lock().unwrap();
-            buffer.extend_from_slice(data);
-
-            if buffer.len() > BUFFER_SIZE {
-                let len = buffer.len();
-                buffer.drain(..len - BUFFER_SIZE);
-}
+        {
+            let data_clone = Arc::clone(&data_clone);
+            move |data: &[f32], _: &_| {
+                let mut buffer = data_clone.lock().unwrap();
+                println!("🎧 Output buffer size: {}, Input buffer size: {}", data.len(), buffer.len());
+    
+                let (_low, _mid, _high) = analyze_frequencies(data);
+                let max = data.iter().cloned().fold(0.0_f32, f32::max);
+                println!("🎚 Max amplitude: {:.6}", max);
+    
+                buffer.extend_from_slice(data);
+                let input_peak = data.iter().cloned().fold(0.0_f32, f32::max);
+                println!("🎙️ Input peak: {:.6}", input_peak);
+                if buffer.len() > BUFFER_SIZE {
+                    let len = buffer.len();
+                    buffer.drain(..len - BUFFER_SIZE);
+                }
+            }
         },
         move |err| eprintln!("Stream error: {:?}", err),
         None,
-    ).expect("Failed to create stream")
+    )
+    .expect("Failed to create stream")
 }
 
 
