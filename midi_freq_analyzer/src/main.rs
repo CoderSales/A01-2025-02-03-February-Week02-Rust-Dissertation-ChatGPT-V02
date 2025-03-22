@@ -50,9 +50,10 @@ fn start_audio_io() {
             move |data: &mut [f32], _| {
                 let buffer = buffer_clone.lock().unwrap();
                 let safe_len = buffer.len().min(data.len()); // ✅ Prevent out-of-bounds errors
-                for (i, sample) in data.iter_mut().enumerate() { // safer logic than previously
-                    *sample = buffer.get(i).unwrap_or(&0.0) * 10.0; // 💥 boost volume
-                }
+                let offset = buffer.len().saturating_sub(data.len());
+                for (i, sample) in data.iter_mut().enumerate() {
+                    *sample = buffer.get(i + offset).unwrap_or(&0.0) * 10.0;
+                }                
                 let peak = data.iter().cloned().fold(0.0_f32, f32::max);
                 println!("🔊 Output peak: {:.6}", peak);
             },
@@ -143,14 +144,21 @@ fn setup_audio_stream(device: &cpal::Device, config: &cpal::StreamConfig, data_c
             move |data: &[f32], _: &_| {
                 let mut buffer = data_clone.lock().unwrap();
                 println!("🎧 Output buffer size: {}, Input buffer size: {}", data.len(), buffer.len());
-    
+
                 let (_low, _mid, _high) = analyze_frequencies(data);
                 let max = data.iter().cloned().fold(0.0_f32, f32::max);
                 println!("🎚 Max amplitude: {:.6}", max);
-    
+
+                let len = buffer.len();
+                let incoming = data.len();
+                if len + incoming > BUFFER_SIZE {
+                    buffer.drain(..len + incoming - BUFFER_SIZE);
+                }
                 buffer.extend_from_slice(data);
+                
                 let input_peak = data.iter().cloned().fold(0.0_f32, f32::max);
                 println!("🎙️ Input peak: {:.6}", input_peak);
+
                 if buffer.len() > BUFFER_SIZE {
                     let len = buffer.len();
                     buffer.drain(..len - BUFFER_SIZE);
