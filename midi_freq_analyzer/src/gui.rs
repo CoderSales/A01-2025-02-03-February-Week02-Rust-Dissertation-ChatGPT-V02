@@ -9,7 +9,9 @@ use mlua::{Lua, Result}; // ✅ Keep Result
 // #[derive(Default)]
 pub struct AudioApp {
     pub output_gain: Arc<Mutex<f32>>,
-    pub input_gain: Arc<Mutex<f32>>, // ← Add this line
+    pub input_gain: Arc<Mutex<f32>>,
+    pub noise_samples: u32,
+    pub noise_duration_ms: u64,
     status_message: String,
     log_output: Arc<Mutex<String>>,
     low_freq: Arc<Mutex<f32>>,
@@ -22,6 +24,8 @@ impl Default for AudioApp {
         Self {
             output_gain: Arc::new(Mutex::new(1.0)),
             input_gain: Arc::new(Mutex::new(1.0)), // ← Add this
+            noise_samples: 10,
+            noise_duration_ms: 500,
             status_message: "Idle".to_string(),
             log_output: Arc::new(Mutex::new(String::new())),
             low_freq: Arc::new(Mutex::new(0.5)),
@@ -45,7 +49,14 @@ impl App for AudioApp {
             ui.add(egui::Slider::new(&mut *input, 0.0..=10.0).text("🎙 Input Gain"));
             drop(input);
 
-            if ui.button("▶ Record").clicked() {
+            ui.horizontal(|ui| {
+                ui.label("Samples:");
+                ui.add(egui::DragValue::new(&mut self.noise_samples).clamp_range(1..=100));
+                ui.label("ms/sample:");
+                ui.add(egui::DragValue::new(&mut self.noise_duration_ms).clamp_range(100..=2000));
+            });
+
+            if ui.button("🎧 Capture Noise").clicked() {
                 self.status_message = "Recording...".to_string();
 
                 let log_output = Arc::clone(&self.log_output);
@@ -167,26 +178,44 @@ pub fn launch_gui(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>) -> 
         .exec()?;
 
     let app = AudioApp {
-        output_gain,
-        input_gain,
+        output_gain: Arc::clone(&output_gain),
+        input_gain: Arc::clone(&input_gain),
+        noise_samples: 10,
+        noise_duration_ms: 500,
         status_message: "Idle".to_string(),
         log_output: Arc::new(Mutex::new(String::new())),
         low_freq: Arc::clone(&low_freq),
         mid_freq: Arc::clone(&mid_freq),
         high_freq: Arc::clone(&high_freq),
     };
-        
+                
 
     let freq_meter = FrequencyMeter {
-        low_freq,
-        mid_freq,
-        high_freq,
+        low_freq: Arc::clone(&low_freq),
+        mid_freq: Arc::clone(&mid_freq),
+        high_freq: Arc::clone(&high_freq),
     };
 
+    let og = Arc::clone(&output_gain);
+    let ig = Arc::clone(&input_gain);
+    let lf = Arc::clone(&low_freq);
+    let mf = Arc::clone(&mid_freq);
+    let hf = Arc::clone(&high_freq);
+    
     eframe::run_native(
         "Audio Analyzer",
         options.clone(),
-        Box::new(|_cc| Ok(Box::new(app))),
+        Box::new(move |_cc| Ok(Box::new(AudioApp {
+            output_gain: og,
+            input_gain: ig,
+            noise_samples: 10,
+            noise_duration_ms: 500,
+            status_message: "Idle".to_string(),
+            log_output: Arc::new(Mutex::new(String::new())),
+            low_freq: lf,
+            mid_freq: mf,
+            high_freq: hf,
+        }))),
     )
     .unwrap();
 
