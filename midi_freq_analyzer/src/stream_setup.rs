@@ -8,11 +8,12 @@ use crate::audio_io;
 
 pub fn setup_audio_stream(
     device: &cpal::Device,
-    config: &cpal::StreamConfig,
+    config: &mut cpal::StreamConfig,
     data_clone: Arc<Mutex<Vec<f32>>>,
     input_gain: Arc<Mutex<f32>>,
 ) -> cpal::Stream {
     println!("🎛 Input config: {:?}", config);
+    config.buffer_size = cpal::BufferSize::Fixed(BUFFER_SIZE as u32);
     device.build_input_stream(
         &config,
         {
