@@ -69,26 +69,30 @@ use crate::list_inputs::print_input_devices;
 fn main() {
     print_input_devices(); // always runs at start
 
-    // start_audio_io(); // call directly, not in thread // ❌ remove this
-    gui::launch_gui().unwrap(); // optional: run after
-
     let panicked_threads = create_panicked_threads();
     let panicked_threads_clone = Arc::clone(&panicked_threads);
-    spawn_thread(move || {
-        let thread_name = "Audio Processing Thread".to_string();
-        if let Err(_) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let output_gain = gui::AudioApp::default().output_gain;
-            audio_io::start_audio_io(output_gain);
-        })) {
-            eprintln!("⚠️ Thread panicked: {}", thread_name);
-            let mut list = panicked_threads_clone.lock().unwrap();
-            list.insert(thread_name);
+
+    let output_gain = Arc::new(Mutex::new(1.0));
+    let input_gain = Arc::new(Mutex::new(1.0));
+
+    // 👇 Spawn background audio thread using cloned gains
+    spawn_thread({
+        let output_gain = Arc::clone(&output_gain);
+        let input_gain = Arc::clone(&input_gain);
+        move || {
+            let thread_name = "Audio Processing Thread".to_string();
+            if let Err(_) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                audio_io::start_audio_io(output_gain, input_gain);
+            })) {
+                eprintln!("⚠️ Thread panicked: {}", thread_name);
+                let mut list = panicked_threads_clone.lock().unwrap();
+                list.insert(thread_name);
+            }
         }
-    }); // Run audio processing in background
+    });
 
-    // launch_gui(); // Run GUI (Audio Analyzer + Frequency Meter)
-
-    if let Err(e) = gui::launch_gui() {
+    // 👇 GUI uses same gains
+    if let Err(e) = gui::launch_gui(output_gain, input_gain) {
         eprintln!("GUI failed: {:?}", e);
     }
     

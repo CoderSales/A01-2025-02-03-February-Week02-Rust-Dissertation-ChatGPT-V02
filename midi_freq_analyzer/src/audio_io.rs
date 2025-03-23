@@ -8,12 +8,12 @@ use std::sync::{Arc, Mutex}; // ensure this is at top
 use std::thread;
 use std::time::Duration;
 
-pub fn start_audio_io(output_gain: Arc<Mutex<f32>>) {
-    let input_gain = Arc::new(Mutex::new(10.0)); // boost input
+pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>) {
     let input_gain_clone = Arc::clone(&input_gain);
-
-    let output_gain = Arc::new(Mutex::new(1.0));
     let output_gain_clone = Arc::clone(&output_gain);
+
+    // let output_gain = Arc::new(Mutex::new(1.0));
+    // let output_gain_clone = Arc::clone(&output_gain);
 
     let host = cpal::default_host();
     let input_device = host
@@ -102,4 +102,6 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>) {
     loop {
         thread::sleep(Duration::from_secs(1));
     }
+
+    // input_gain
 }
