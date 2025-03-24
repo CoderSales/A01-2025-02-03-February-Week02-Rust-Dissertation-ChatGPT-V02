@@ -72,6 +72,7 @@ use helpers::spawn_logger_thread;
 use helpers::create_panicked_threads;
 use helpers::select_input_device;
 use helpers::launch_gui_safely;
+use helpers::create_gain_controls;
 
 
 
@@ -81,8 +82,7 @@ fn main() {
     let panicked_threads = create_panicked_threads();
     let panicked_threads_clone = Arc::clone(&panicked_threads);
 
-    let output_gain = Arc::new(Mutex::new(1.0));
-    let input_gain = Arc::new(Mutex::new(1.0));
+    let (output_gain, input_gain) = create_gain_controls();
 
     // 👇 Spawn background audio thread using cloned gains
 

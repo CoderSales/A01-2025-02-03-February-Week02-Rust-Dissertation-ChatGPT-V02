@@ -59,3 +59,11 @@ pub fn launch_gui_safely(
         eprintln!("GUI failed: {:?}", e);
     }
 }
+
+
+pub fn create_gain_controls() -> (Arc<Mutex<f32>>, Arc<Mutex<f32>>) {
+    (
+        Arc::new(Mutex::new(1.0)),
+        Arc::new(Mutex::new(1.0)),
+    )
+}
