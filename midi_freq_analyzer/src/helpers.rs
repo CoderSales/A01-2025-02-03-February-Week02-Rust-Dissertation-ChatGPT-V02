@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 pub fn spawn_audio_thread(
     panicked_threads: &Arc<Mutex<std::collections::HashSet<String>>>,
@@ -19,3 +20,17 @@ pub fn spawn_audio_thread(
         }
     });
 }
+
+
+pub fn spawn_logger_thread(program_start: Instant) {
+    std::thread::spawn(move || {
+        loop {
+            let elapsed = program_start.elapsed().as_secs();
+            if elapsed % 5 == 0 {
+                println!("⏳ Program Running: {} seconds elapsed.", elapsed);
+            }
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+    });
+}
+

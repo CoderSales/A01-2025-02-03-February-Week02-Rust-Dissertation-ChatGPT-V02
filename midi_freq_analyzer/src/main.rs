@@ -68,7 +68,7 @@ mod config;
 
 mod helpers;
 use helpers::spawn_audio_thread;
-
+use helpers::spawn_logger_thread;
 
 
 fn main() {
@@ -95,14 +95,6 @@ fn main() {
     // ✅ Move logging into a separate thread
     
     let device = device_selection::select_audio_device(true);
-    spawn_thread(move || {
-        loop {
-            let elapsed = program_start.elapsed().as_secs();
-            if elapsed % 5 == 0 {
-                println!("⏳ Program Running: {} seconds elapsed.", elapsed);
-            }
-            std::thread::sleep(std::time::Duration::from_secs(1));
-        }
-    });
+    spawn_logger_thread(program_start);
 }
 
