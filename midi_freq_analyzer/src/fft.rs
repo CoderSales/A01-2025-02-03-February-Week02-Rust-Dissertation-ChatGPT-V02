@@ -11,7 +11,6 @@ use crate::notes::frequency_to_note;
 use std::collections::VecDeque;
 static mut NOTE_HISTORY: Option<VecDeque<String>> = None;
 use std::collections::HashMap;
-use colored::*;
 
 
 
@@ -93,14 +92,8 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
                             .collect::<Vec<_>>()
                             .join(", ");
                     
-                        let note_colored = match color {
-                            "green" => note.green(),
-                            "yellow" => note.yellow(),
-                            _ => note.red(),
-                        };
-                    
-                        display_line += &format!("{} ({}) ", note_colored, cents_str);
-                    }
+                            display_line += &format!("{} ({}) ", note, cents_str);
+                        }
                     
 
                     
