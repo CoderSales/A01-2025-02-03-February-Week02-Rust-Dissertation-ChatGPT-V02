@@ -71,6 +71,7 @@ use helpers::spawn_audio_thread;
 use helpers::spawn_logger_thread;
 use helpers::create_panicked_threads;
 use helpers::select_input_device;
+use helpers::launch_gui_safely;
 
 
 
@@ -88,9 +89,8 @@ fn main() {
     spawn_audio_thread(&panicked_threads_clone, &output_gain, &input_gain);
 
     // 👇 GUI uses same gains
-    if let Err(e) = launch_gui(output_gain, input_gain) {
-        eprintln!("GUI failed: {:?}", e);
-    }
+    launch_gui_safely(output_gain, input_gain);
+
 
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
     let host = cpal::default_host(); // ✅ Define `host` first

@@ -2,6 +2,8 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use std::collections::HashSet;
 use cpal::{traits::HostTrait, Device};
+use midi_freq_analyzer::gui_main::launch_gui;
+
 
 
 pub fn spawn_audio_thread(
@@ -46,4 +48,14 @@ pub fn create_panicked_threads() -> Arc<Mutex<HashSet<String>>> {
 pub fn select_input_device() -> Device {
     let host = cpal::default_host();
     host.default_input_device().expect("No input device found")
+}
+
+
+pub fn launch_gui_safely(
+    output_gain: Arc<Mutex<f32>>,
+    input_gain: Arc<Mutex<f32>>,
+) {
+    if let Err(e) = launch_gui(output_gain, input_gain) {
+        eprintln!("GUI failed: {:?}", e);
+    }
 }
