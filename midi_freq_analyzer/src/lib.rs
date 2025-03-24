@@ -3,3 +3,4 @@ pub mod fft;
 pub mod device_selection;
 pub mod gui;
 pub mod gui_main;
+pub mod notes;

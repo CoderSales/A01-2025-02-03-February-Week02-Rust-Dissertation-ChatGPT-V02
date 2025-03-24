@@ -6,16 +6,20 @@ use std::time::Duration;
 use cpal::traits::{DeviceTrait, HostTrait};
 #[allow(unused)]
 use mlua::{Lua, Result};
-use std::io::Write; // <-- Fix for flush()
+use std::io::{self, Write};
+use crate::notes::frequency_to_note;
+
 
 pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
     let mut low = 0.0;
     let mut mid = 0.0;
     let mut high = 0.0;
+    let mut spectrum = Vec::new();
 
     for (i, &sample) in samples.iter().enumerate() {
         let freq = (i as f32) * (44100.0 / samples.len() as f32);
         let magnitude = sample.abs();
+        spectrum.push((freq, magnitude));
 
         if freq < 250.0 {
             low += magnitude;
@@ -26,9 +30,36 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
         }
     }
 
-    display_amplitude(low, mid, high); // ✅ Live CLI update
+    spectrum.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+
+    println!("\n🧪 Debug Spectrum Top 5:");
+    for (freq, amp) in spectrum.iter().take(5) {
+        println!(" - {:.1} Hz | Amp: {:.6}", freq, amp);
+    }
+
+    static mut FRAME_COUNT: usize = 0;
+    unsafe {
+        FRAME_COUNT += 1;
+        if FRAME_COUNT % 10 == 0 {
+            let mut out = String::from("🎯 Top Notes: ");
+            for (freq, amp) in spectrum.iter().take(3) {
+                // if *amp > 0.0001 && *freq < 20000.0 {
+                println!("🎯 {} ({:.0}Hz, amp {:.4})", frequency_to_note(*freq), freq, amp);
+                let note = frequency_to_note(*freq);
+                    out += &format!("{} ({:.0}Hz) ", note, freq);
+                // }
+            }
+            if out.len() > "🎯 Top Freqs: ".len() {
+                print!("\r{}", out);
+                io::stdout().flush().unwrap();
+            }
+        }
+    }
+
+    display_amplitude(low, mid, high);
     (low, mid, high)
 }
+
 
 pub fn display_amplitude(low: f32, mid: f32, high: f32) {
     let bass_block = if low > 0.1 { "|-|" } else { "|_|" };

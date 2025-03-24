@@ -31,6 +31,12 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
 
     bitrate::print_audio_bitrate(&shared_config);
 
+
+    let analysis_buffer = Arc::new(Mutex::new(Vec::with_capacity(2048)));
+    let analysis_buffer_clone = Arc::clone(&analysis_buffer);
+    
+
+
     let buffer = create_buffer(BUFFER_SIZE);
     println!("\nUsing input device: {}\n", input_device.name().unwrap());
 
@@ -44,7 +50,17 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                 for (i, sample) in data.iter_mut().enumerate() {
                     #[allow(unused)]
                     let input_amp = *input_gain_clone.lock().unwrap();
+
                     let raw_input = *buffer.get(i + offset).unwrap_or(&0.0);
+                    {
+                        let mut ab = analysis_buffer_clone.lock().unwrap();
+                        ab.push(raw_input);
+                        if ab.len() >= 2048 {
+                            let _ = crate::fft::analyze_frequencies(&ab[..2048]);
+                            ab.clear();
+                        }
+                    }
+
                     // if i == 0 {
                     //     println!("🎙️ Raw input sample[0]: {:.6}", raw_input);
                     // }
