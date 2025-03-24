@@ -10,7 +10,6 @@ use crate::gui::gui_eq_visualizer_app::EqVisualizerApp;
 
 use crate::gui::gui_io_gain_controls::GainControlApp;
 
-
 // #[derive(Default)]
 pub struct AudioApp {
     pub output_gain: Arc<Mutex<f32>>,
@@ -30,7 +29,7 @@ impl Default for AudioApp {
             output_gain: Arc::new(Mutex::new(1.0)),
             input_gain: Arc::new(Mutex::new(1.0)), // ← Add this
             noise_duration_ms: 500.0,
-            noise_samples: 10.0,            
+            noise_samples: 10.0,
             status_message: "Idle".to_string(),
             log_output: Arc::new(Mutex::new(String::new())),
             low_freq: Arc::new(Mutex::new(0.5)),
@@ -49,36 +48,46 @@ impl App for AudioApp {
             ui.horizontal(|ui| {
                 ui.vertical(|ui| {
                     let mut gain = self.output_gain.lock().unwrap();
-                    ui.add(egui::Slider::new(&mut *gain, 0.0..=5.0).vertical().text("🔊 Output"));
+                    ui.add(
+                        egui::Slider::new(&mut *gain, 0.0..=5.0)
+                            .vertical()
+                            .text("🔊 Output"),
+                    );
                     drop(gain);
                 });
                 ui.vertical(|ui| {
                     let mut input = self.input_gain.lock().unwrap();
-                    ui.add(egui::Slider::new(&mut *input, 0.0..=10.0).vertical().text("🎙 Input"));
+                    ui.add(
+                        egui::Slider::new(&mut *input, 0.0..=10.0)
+                            .vertical()
+                            .text("🎙 Input"),
+                    );
                     drop(input);
                 });
-            });            
-
-            egui::CollapsingHeader::new("🎛️ Noise Control").default_open(true).show(ui, |ui| {
-                if ui.button("🎧 Capture Noise").clicked() {
-                    self.status_message = "Recording...".to_string();
-
-                    let log_output = Arc::clone(&self.log_output);
-                    thread::spawn(move || {
-                        let mut log = log_output.lock().unwrap();
-                        *log = String::new();
-
-                        for i in 1..=10 {
-                            thread::sleep(Duration::from_millis(500));
-                            log.push_str(&format!("✅ Processing samples... {}\n", i));
-                        }
-                    });
-                }
-
-                if ui.button("⏹ Stop").clicked() {
-                    self.status_message = "Stopped.".to_string();
-                }
             });
+
+            egui::CollapsingHeader::new("🎛️ Noise Control")
+                .default_open(true)
+                .show(ui, |ui| {
+                    if ui.button("🎧 Capture Noise").clicked() {
+                        self.status_message = "Recording...".to_string();
+
+                        let log_output = Arc::clone(&self.log_output);
+                        thread::spawn(move || {
+                            let mut log = log_output.lock().unwrap();
+                            *log = String::new();
+
+                            for i in 1..=10 {
+                                thread::sleep(Duration::from_millis(500));
+                                log.push_str(&format!("✅ Processing samples... {}\n", i));
+                            }
+                        });
+                    }
+
+                    if ui.button("⏹ Stop").clicked() {
+                        self.status_message = "Stopped.".to_string();
+                    }
+                });
 
             ui.horizontal(|ui| {
                 ui.label("Samples:");
@@ -99,24 +108,33 @@ impl App for AudioApp {
 
             // Vertical EQ bars: Low, Mid, High
             ui.horizontal_centered(|ui| {
-                for (label, arc) in [("Low", &self.low_freq), ("Mid", &self.mid_freq), ("High", &self.high_freq)] {
-                    ui.allocate_ui_with_layout(egui::vec2(40.0, 120.0), egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                        let val = *arc.lock().unwrap();
-                        let filled_height = 100.0 * val.clamp(0.0, 1.0);
+                for (label, arc) in [
+                    ("Low", &self.low_freq),
+                    ("Mid", &self.mid_freq),
+                    ("High", &self.high_freq),
+                ] {
+                    ui.allocate_ui_with_layout(
+                        egui::vec2(40.0, 120.0),
+                        egui::Layout::bottom_up(egui::Align::Center),
+                        |ui| {
+                            let val = *arc.lock().unwrap();
+                            let filled_height = 100.0 * val.clamp(0.0, 1.0);
 
-                        let (rect, _) = ui.allocate_exact_size(egui::vec2(20.0, 100.0), egui::Sense::hover());
-                        let painter = ui.painter_at(rect);
+                            let (rect, _) = ui
+                                .allocate_exact_size(egui::vec2(20.0, 100.0), egui::Sense::hover());
+                            let painter = ui.painter_at(rect);
 
-                        let filled_rect = egui::Rect::from_min_max(
-                            egui::pos2(rect.left(), rect.bottom() - filled_height),
-                            egui::pos2(rect.right(), rect.bottom()),
-                        );
+                            let filled_rect = egui::Rect::from_min_max(
+                                egui::pos2(rect.left(), rect.bottom() - filled_height),
+                                egui::pos2(rect.right(), rect.bottom()),
+                            );
 
-                        painter.rect_filled(rect, 4.0, ui.visuals().extreme_bg_color);
-                        painter.rect_filled(filled_rect, 4.0, egui::Color32::LIGHT_BLUE);
+                            painter.rect_filled(rect, 4.0, ui.visuals().extreme_bg_color);
+                            painter.rect_filled(filled_rect, 4.0, egui::Color32::LIGHT_BLUE);
 
-                        ui.label(format!("{} {:.3}", label, val));
-                    });
+                            ui.label(format!("{} {:.3}", label, val));
+                        },
+                    );
                 }
             });
         });
@@ -124,7 +142,6 @@ impl App for AudioApp {
 }
 
 // Freq meter below
-
 
 // #[derive(Default)]
 // struct FrequencyMeter {
@@ -138,9 +155,7 @@ impl App for AudioApp {
 //         egui::CentralPanel::default().show(ctx, |ui| {
 //             ui.heading("🎚 Frequency Levels");
 
-
 // Freq meter above
-
 
 //             // let low = *self.low_freq.lock().unwrap();
 //             // let mid = *self.mid_freq.lock().unwrap();
@@ -184,7 +199,6 @@ impl App for AudioApp {
 //     }
 // }
 
-
 pub fn launch_gui(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>) -> Result<()> {
     let low_freq = Arc::new(Mutex::new(0.5));
     let mid_freq = Arc::new(Mutex::new(0.7));
@@ -213,20 +227,31 @@ pub fn launch_gui(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>) -> 
         input_gain: Arc::clone(&input_gain),
     };
 
-    // Audio Analyzer (blocks first)
-    eframe::run_native("Audio Analyzer", Default::default(), 
+    // EQ Visualizer (in background)
+    std::thread::spawn(move || {
+        let _ = eframe::run_native(
+            "EQ Visualizer",
+            Default::default(),
+            Box::new(|_| Ok(Box::new(eq_visualizer))),
+        );
+    });
+
+    // Gain Control (in background)
+    std::thread::spawn(move || {
+        let _ = eframe::run_native(
+            "Gain Control",
+            Default::default(),
+            Box::new(|_| Ok(Box::new(gain_control_app))),
+        );
+    });
+
+    // Audio Analyzer (main thread, blocking)
+    eframe::run_native(
+        "Audio Analyzer",
+        Default::default(),
         Box::new(|_| Ok(Box::new(audio_app))),
-    ).unwrap();
-
-    // EQ Visualizer
-    eframe::run_native("EQ Visualizer", Default::default(),
-        Box::new(|_| Ok(Box::new(eq_visualizer))),
-    ).unwrap();
-
-    // Gain Control
-    eframe::run_native("Gain Control", Default::default(),
-        Box::new(|_| Ok(Box::new(gain_control_app))),
-    ).unwrap();
+    )
+    .unwrap();
 
     Ok(())
 }
