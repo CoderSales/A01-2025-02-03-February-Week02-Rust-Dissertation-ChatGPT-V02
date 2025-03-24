@@ -46,24 +46,7 @@ mod bitrate;
 mod gui;
 mod lua_ui;
 mod noise_profile;
-// const BUFFER_SIZE: usize = 2048;
 
-
-// let output_size = output_config.buffer_size().unwrap_or(960); // fallback
-// let buffer = create_buffer(output_size);
-
-// let _host = cpal::default_host();
-// let input_device = cpal::default_host().default_input_device().expect("No default input device");
-// let output_device = cpal::default_host().default_output_device().expect("No default output device");
-// // println!("\n🎤 Selected Input Device: {}", input_device.name().unwrap());
-// // println!("🔊 Selected Output Device: {}", output_device.name().unwrap());
-// let output_config = audio::get_audio_config(&output_device);// ✅ Define config first
-// bitrate::print_audio_bitrate(&output_config);
-
-
-
-// const BUFFER_SIZE: usize = output_size; // or just remove this const entirely // ❌ INVALID
-// const BUFFER_SIZE: usize = 960;
 #[allow(unused)]
 mod buffer_handling;
 use buffer_handling::handle_buffer_lock;
@@ -83,6 +66,10 @@ use crate::list_inputs::print_input_devices;
 use midi_freq_analyzer::gui_main::{launch_gui, AudioApp};
 mod config;
 
+mod helpers;
+use helpers::spawn_audio_thread;
+
+
 
 fn main() {
     print_input_devices(); // always runs at start
@@ -94,37 +81,13 @@ fn main() {
     let input_gain = Arc::new(Mutex::new(1.0));
 
     // 👇 Spawn background audio thread using cloned gains
-    spawn_thread({
-        let output_gain = Arc::clone(&output_gain);
-        let input_gain = Arc::clone(&input_gain);
-        move || {
-            let thread_name = "Audio Processing Thread".to_string();
-            if let Err(_) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                audio_io::start_audio_io(output_gain, input_gain);
-            })) {
-                eprintln!("⚠️ Thread panicked: {}", thread_name);
-                let mut list = panicked_threads_clone.lock().unwrap();
-                list.insert(thread_name);
-            }
-        }
-    });
+
+    spawn_audio_thread(&panicked_threads_clone, &output_gain, &input_gain);
 
     // 👇 GUI uses same gains
     if let Err(e) = launch_gui(output_gain, input_gain) {
         eprintln!("GUI failed: {:?}", e);
     }
-    
-    // Define options and app before calling eframe::run_native():
-    // let options = eframe::NativeOptions::default(); 
-    // let app = AudioApp::default();  
-    
-    // eframe::run_native(
-    //     "Audio Analyzer",
-    //     options.clone(),
-    //     Box::new(|_cc| Ok(Box::new(app))),
-    // )
-    // .unwrap();
-    
 
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
     let host = cpal::default_host(); // ✅ Define `host` first
