@@ -13,9 +13,6 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
     let input_gain_clone = Arc::clone(&input_gain);
     let output_gain_clone = Arc::clone(&output_gain);
 
-    // let output_gain = Arc::new(Mutex::new(1.0));
-    // let output_gain_clone = Arc::clone(&output_gain);
-
     let host = cpal::default_host();
     let input_device = host
         .input_devices()
@@ -39,34 +36,32 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
 
     let buffer_clone = Arc::clone(&buffer);
     let stream = output_device
-    .build_output_stream(
-        &shared_config.clone().into(),
-        move |data: &mut [f32], _| {
-            let buffer = buffer_clone.lock().unwrap();
-            let offset = buffer.len().saturating_sub(data.len());
-            for (i, sample) in data.iter_mut().enumerate() {
-                #[allow(unused)]
-                let input_amp = *input_gain_clone.lock().unwrap();
-                let raw_input = *buffer.get(i + offset).unwrap_or(&0.0);
-                // if i == 0 {
-                //     println!("🎙️ Raw input sample[0]: {:.6}", raw_input);
-                // }
-                let gain = *output_gain_clone.lock().unwrap();
-                *sample = (raw_input * gain).clamp(-1.0, 1.0);
-            }
+        .build_output_stream(
+            &shared_config.clone().into(),
+            move |data: &mut [f32], _| {
+                let buffer = buffer_clone.lock().unwrap();
+                let offset = buffer.len().saturating_sub(data.len());
+                for (i, sample) in data.iter_mut().enumerate() {
+                    #[allow(unused)]
+                    let input_amp = *input_gain_clone.lock().unwrap();
+                    let raw_input = *buffer.get(i + offset).unwrap_or(&0.0);
+                    // if i == 0 {
+                    //     println!("🎙️ Raw input sample[0]: {:.6}", raw_input);
+                    // }
+                    let gain = *output_gain_clone.lock().unwrap();
+                    *sample = (raw_input * gain).clamp(-1.0, 1.0);
+                }
 
-            let output_peak = data.iter().cloned().fold(0.0_f32, f32::max);
-            let input_peak = buffer.iter().cloned().fold(0.0_f32, f32::max);
-            let max = input_peak;
+                let output_peak = data.iter().cloned().fold(0.0_f32, f32::max);
+                let input_peak = buffer.iter().cloned().fold(0.0_f32, f32::max);
+                let max = input_peak;
 
-            let bar = |val: f32| if val > 0.002 { "|-|" } else { "|_|" };
-            let bass_bar = bar(max * 0.8);
-            let mid_bar = bar(max * 0.9);
-            let high_bar = bar(max);
+                let bar = |val: f32| if val > 0.002 { "|-|" } else { "|_|" };
+                let bass_bar = bar(max * 0.8);
+                let mid_bar = bar(max * 0.9);
+                let high_bar = bar(max);
 
-            use std::io::{stdout, Write};
-            // print!("\r🔊 Output: {:.6} | 🎙️ Input: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out       ",
-                // output_peak, input_peak, max, buffer.len(), data.len());
+                use std::io::{stdout, Write};
                 print!(
                     "\r🔊 Output: {:.6} | 🎙️ Input: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out | 🎵 Bass: {} Mid: {} High: {}     ",
                     output_peak,
@@ -78,14 +73,13 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                     mid_bar,
                     high_bar
                 );
-                std::io::stdout().flush().unwrap();
-                
-            stdout().flush().unwrap();
+                stdout().flush().unwrap();
             },
-        move |err| eprintln!("Stream error: {:?}", err),
-        None,
-    )
-    .expect("❌ Failed to build output stream: Unsupported config");
+            move |err| eprintln!("Stream error: {:?}", err),
+            None,
+        )
+        .expect("❌ Failed to build output stream: Unsupported config");
+
     println!("Using output device: {}", output_device.name().unwrap());
     std::thread::sleep(std::time::Duration::from_millis(500));
     println!("\n\n\n\n");
@@ -107,6 +101,4 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
     loop {
         thread::sleep(Duration::from_secs(1));
     }
-
-    // input_gain
 }
