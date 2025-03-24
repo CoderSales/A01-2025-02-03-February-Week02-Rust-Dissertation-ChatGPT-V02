@@ -115,15 +115,15 @@ fn main() {
     }
     
     // Define options and app before calling eframe::run_native():
-    let options = eframe::NativeOptions::default(); 
-    let app = AudioApp::default();  
+    // let options = eframe::NativeOptions::default(); 
+    // let app = AudioApp::default();  
     
-    eframe::run_native(
-        "Audio Analyzer",
-        options.clone(),
-        Box::new(|_cc| Ok(Box::new(app))),
-    )
-    .unwrap();
+    // eframe::run_native(
+    //     "Audio Analyzer",
+    //     options.clone(),
+    //     Box::new(|_cc| Ok(Box::new(app))),
+    // )
+    // .unwrap();
     
 
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
