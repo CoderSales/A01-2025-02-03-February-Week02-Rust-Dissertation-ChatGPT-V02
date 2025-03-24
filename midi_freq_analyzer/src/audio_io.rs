@@ -48,9 +48,9 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                 #[allow(unused)]
                 let input_amp = *input_gain_clone.lock().unwrap();
                 let raw_input = *buffer.get(i + offset).unwrap_or(&0.0);
-                if i == 0 {
-                    println!("🎙️ Raw input sample[0]: {:.6}", raw_input);
-                }
+                // if i == 0 {
+                //     println!("🎙️ Raw input sample[0]: {:.6}", raw_input);
+                // }
                 let gain = *output_gain_clone.lock().unwrap();
                 *sample = (raw_input * gain).clamp(-1.0, 1.0);
             }
@@ -65,20 +65,10 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
             let high_bar = bar(max);
 
             use std::io::{stdout, Write};
-            print!("\x1B[4F\x1B[0J");
-            print!(
-                "🔊 Output peak: {:.6}\n🎧 Output buffer size: {}, Input buffer size: {}\n🎵 Bass: {} Mid: {} High: {} 🎚 Max amplitude: {:.6}\n🎙️ Input peak: {:.6}\n",
-                output_peak,
-                data.len(),
-                buffer.len(),
-                bass_bar,
-                mid_bar,
-                high_bar,
-                max,
-                input_peak
-            );
+            print!("\r🔊 Output: {:.6} | 🎙️ Input: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out       ",
+                output_peak, input_peak, max, buffer.len(), data.len());
             stdout().flush().unwrap();
-        },
+            },
         move |err| eprintln!("Stream error: {:?}", err),
         None,
     )
