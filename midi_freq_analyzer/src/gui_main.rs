@@ -213,6 +213,11 @@ pub fn launch_gui(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>) -> 
         input_gain: Arc::clone(&input_gain),
     };
 
+    // Audio Analyzer (blocks first)
+    eframe::run_native("Audio Analyzer", Default::default(), 
+        Box::new(|_| Ok(Box::new(audio_app))),
+    ).unwrap();
+
     // EQ Visualizer
     eframe::run_native("EQ Visualizer", Default::default(),
         Box::new(|_| Ok(Box::new(eq_visualizer))),
@@ -221,11 +226,6 @@ pub fn launch_gui(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>) -> 
     // Gain Control
     eframe::run_native("Gain Control", Default::default(),
         Box::new(|_| Ok(Box::new(gain_control_app))),
-    ).unwrap();
-
-    // Audio Analyzer (last = blocks)
-    eframe::run_native("Audio Analyzer", Default::default(),
-        Box::new(|_| Ok(Box::new(audio_app))),
     ).unwrap();
 
     Ok(())

@@ -15,13 +15,13 @@ impl App for GainControlApp {
             ui.vertical(|ui| {
                 let mut output = self.output_gain.lock().unwrap();
                 ui.label("🔊 Output Gain");
-                ui.add(egui::Slider::new(&mut *output, 0.0..=5.0));
+                ui.add(egui::Slider::new(&mut *output, 0.0..=5.0).vertical());
             });
 
             ui.vertical(|ui| {
                 let mut input = self.input_gain.lock().unwrap();
                 ui.label("🎙 Input Gain");
-                ui.add(egui::Slider::new(&mut *input, 0.0..=10.0));
+                ui.add(egui::Slider::new(&mut *input, 0.0..=10.0).vertical());
             });
         });
     }
