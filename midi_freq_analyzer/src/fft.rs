@@ -11,7 +11,7 @@ use crate::notes::frequency_to_note;
 use std::collections::VecDeque;
 static mut NOTE_HISTORY: Option<VecDeque<String>> = None;
 use std::collections::HashMap;
-
+use crate::output_handler::print_cli_line;
 
 
 pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
@@ -94,15 +94,8 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
                     
                             display_line += &format!("{} ({}) ", note, cents_str);
                         }
-                    
 
-                    
-                    
-
-
-                    
-                    print!("\r{}", display_line);
-                    io::stdout().flush().unwrap();                    
+                        print_cli_line(&display_line);
                 }
             }
         }
