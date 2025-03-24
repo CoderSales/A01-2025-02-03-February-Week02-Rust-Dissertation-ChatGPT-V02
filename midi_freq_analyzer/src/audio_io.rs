@@ -9,6 +9,10 @@ use std::sync::{Arc, Mutex}; // ensure this is at top
 use std::thread;
 use std::time::Duration;
 
+use midi_freq_analyzer::fft::analyze_frequencies;
+use midi_freq_analyzer::output_handler::print_cli_line;
+
+
 pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>) {
     let input_gain_clone = Arc::clone(&input_gain);
     let output_gain_clone = Arc::clone(&output_gain);
@@ -35,28 +39,62 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
     let analysis_buffer = Arc::new(Mutex::new(Vec::with_capacity(2048)));
     let analysis_buffer_clone = Arc::clone(&analysis_buffer);
     
-
-
     let buffer = create_buffer(BUFFER_SIZE);
     println!("\nUsing input device: {}\n", input_device.name().unwrap());
 
-    let buffer_clone = Arc::clone(&buffer);
+    let buffer_clone = Arc::clone(&buffer);              // for output stream
+    let buffer_clone_for_input = Arc::clone(&buffer);    // for input stream
     let stream = output_device
         .build_output_stream(
             &shared_config.clone().into(),
             move |data: &mut [f32], _| {
-                let buffer = buffer_clone.lock().unwrap();
-                let offset = buffer.len().saturating_sub(data.len());
+                let buffer_guard = buffer_clone.lock().unwrap();
+                let input_peak = buffer_guard.iter().cloned().fold(0.0, f32::max);
+                let buffer_len = buffer_guard.len();
+                let offset = buffer_len.saturating_sub(data.len());
+                let buffer_copy: Vec<f32> = buffer_guard.clone(); // release borrow
+                drop(buffer_guard); // unlock early ✅
+
+                let output_peak = data.iter().cloned().fold(0.0_f32, f32::max);
+                let data_len = data.len();
+
                 for (i, sample) in data.iter_mut().enumerate() {
                     #[allow(unused)]
                     let input_amp = *input_gain_clone.lock().unwrap();
 
-                    let raw_input = *buffer.get(i + offset).unwrap_or(&0.0);
+                    let raw_input = *buffer_copy.get(i + offset).unwrap_or(&0.0);
                     {
                         let mut ab = analysis_buffer_clone.lock().unwrap();
                         ab.push(raw_input);
                         if ab.len() >= 2048 {
-                            let _ = crate::fft::analyze_frequencies(&ab[..2048]);
+                            let (low, mid, high, debug_line) = analyze_frequencies(&ab[..2048]);
+                        
+                            let buffer_guard = buffer.lock().unwrap();
+                            let input_peak = buffer_guard.iter().cloned().fold(0.0_f32, f32::max);
+                            let max = input_peak;
+                            let buffer_len = buffer_guard.len();
+                            drop(buffer_guard); // optional: release lock early
+
+                            let bass_block = if max * 0.8 > 0.002 { "|-|" } else { "|_|" };
+                            let mid_block  = if max * 0.9 > 0.002 { "|-|" } else { "|_|" };
+                            let high_block = if max > 0.002 { "|-|" } else { "|_|" };
+                        
+                            let cli_line = format!(
+                                "🔊 Out: {:.6} | 🎙️ In: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out | 🎵 B:{} M:{} H:{} | {}",
+                                output_peak,
+                                input_peak,
+                                max,
+                                buffer_len,
+                                data_len,
+                                bass_block,
+                                mid_block,
+                                high_block,
+                                debug_line, // 🎯 Top notes from analyze_frequencies
+                            );
+                            
+                        
+                            print_cli_line(&cli_line);
+                        
                             ab.clear();
                         }
                     }
@@ -68,28 +106,6 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                     *sample = (raw_input * gain).clamp(-1.0, 1.0);
                 }
 
-                let output_peak = data.iter().cloned().fold(0.0_f32, f32::max);
-                let input_peak = buffer.iter().cloned().fold(0.0_f32, f32::max);
-                let max = input_peak;
-
-                let bar = |val: f32| if val > 0.002 { "|-|" } else { "|_|" };
-                let bass_bar = bar(max * 0.8);
-                let mid_bar = bar(max * 0.9);
-                let high_bar = bar(max);
-
-                use std::io::{stdout, Write};
-                print!(
-                    "\r🔊 Output: {:.6} | 🎙️ Input: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out | 🎵 Bass: {} Mid: {} High: {}     ",
-                    output_peak,
-                    input_peak,
-                    max,
-                    buffer.len(),
-                    data.len(),
-                    bass_bar,
-                    mid_bar,
-                    high_bar
-                );
-                stdout().flush().unwrap();
             },
             move |err| eprintln!("Stream error: {:?}", err),
             None,
@@ -100,7 +116,7 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
     std::thread::sleep(std::time::Duration::from_millis(500));
     println!("\n\n\n\n");
 
-    let data_clone_for_input = Arc::clone(&buffer);
+    let data_clone_for_input = buffer_clone_for_input;
     let input_stream = stream_setup::setup_audio_stream(
         &input_device,
         &mut shared_config,

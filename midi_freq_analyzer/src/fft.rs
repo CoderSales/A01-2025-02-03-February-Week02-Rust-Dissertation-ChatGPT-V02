@@ -15,7 +15,8 @@ use crate::output_handler::print_cli_line;
 use crate::output_handler::bind_gui_output;
 
 
-pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
+
+pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
     let mut low = 0.0;
     let mut mid = 0.0;
     let mut high = 0.0;
@@ -37,10 +38,29 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
 
     spectrum.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
-    println!("\n🧪 Debug Spectrum Top 5:");
-    for (freq, amp) in spectrum.iter().take(5) {
-        println!(" - {:.1} Hz | Amp: {:.6}", freq, amp);
+    let total_energy: f32 = spectrum.iter().map(|(_, amp)| amp).sum();
+    if total_energy < 0.01 {
+        return (low, mid, high, String::new());
     }
+    
+    let debug_freqs = spectrum
+        .iter()
+        .take(5)
+        .map(|(f, a)| format!("{:>7.1}Hz:{:.5}", f, a))
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    let debug_freqs = spectrum
+        .iter()
+        .take(5)
+        .map(|(f, a)| format!("{:>7.1}Hz:{:.5}", f, a))
+        .collect::<Vec<_>>()
+        .join(" ");
+    
+    let debug_line = format!("🎯 {}", debug_freqs);
+    
+
+
 
     static mut FRAME_COUNT: usize = 0;
     unsafe {
@@ -103,7 +123,7 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
     }
 
     display_amplitude(low, mid, high);
-    (low, mid, high)
+    (low, mid, high, debug_line)
 }
 
 
@@ -193,7 +213,7 @@ impl App for FrequencyMeter {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("🎚 Frequency Levels");
 
-            let (low, mid, high) = analyze_frequencies(&vec![0.0; 2048]); // Placeholder buffer
+            let (low, mid, high, _) = analyze_frequencies(&vec![0.0; 2048]); // Placeholder buffer
 
             *self.low_freq.lock().unwrap() = low;
             *self.mid_freq.lock().unwrap() = mid;

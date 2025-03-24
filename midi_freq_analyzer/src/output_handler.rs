@@ -8,12 +8,13 @@ pub fn print_cli_line(line: &str) {
     print!("\r{}", line);
     io::stdout().flush().unwrap();
 
-    // Also update shared GUI buffer if set
-    unsafe {
-        if let Some(shared) = &GUI_OUTPUT {
-            let mut gui_line = shared.lock().unwrap();
-            *gui_line = line.to_string();
-        }
+    // Append to log file
+    if let Ok(mut file) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("cli_log.txt")
+    {
+        let _ = writeln!(file, "{}", line);
     }
 }
 

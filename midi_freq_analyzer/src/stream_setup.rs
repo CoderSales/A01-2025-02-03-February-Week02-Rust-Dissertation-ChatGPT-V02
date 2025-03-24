@@ -27,7 +27,7 @@ pub fn setup_audio_stream(
 
                 // println!("🎧 Output buffer size: {}, Input buffer size: {}", data_len, buffer_len);
 
-                let (_low, _mid, _high) = analyze_frequencies(data);
+                let (_low, _mid, _high, _) = analyze_frequencies(data);
                 let max = data.iter().cloned().fold(0.0_f32, f32::max);
                 // println!("🎚 Max amplitude: {:.6}", max);
 
