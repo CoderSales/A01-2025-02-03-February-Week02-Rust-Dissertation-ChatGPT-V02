@@ -213,27 +213,18 @@ pub fn launch_gui(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>) -> 
         input_gain: Arc::clone(&input_gain),
     };
 
-    // Launch background windows
-    std::thread::spawn(move || {
-        eframe::run_native(
-            "EQ Visualizer",
-            Default::default(),
-            Box::new(|_| Ok(Box::new(eq_visualizer))),
-        );
-    });
+    // EQ Visualizer
+    eframe::run_native("EQ Visualizer", Default::default(),
+        Box::new(|_| Ok(Box::new(eq_visualizer))),
+    ).unwrap();
 
-    std::thread::spawn(move || {
-        eframe::run_native(
-            "Gain Control",
-            Default::default(),
-            Box::new(|_| Ok(Box::new(gain_control_app))),
-        );
-    });
+    // Gain Control
+    eframe::run_native("Gain Control", Default::default(),
+        Box::new(|_| Ok(Box::new(gain_control_app))),
+    ).unwrap();
 
-    // Primary GUI: Audio Analyzer (blocking)
-    eframe::run_native(
-        "Audio Analyzer",
-        Default::default(),
+    // Audio Analyzer (last = blocks)
+    eframe::run_native("Audio Analyzer", Default::default(),
         Box::new(|_| Ok(Box::new(audio_app))),
     ).unwrap();
 
