@@ -3,6 +3,7 @@ use std::time::Instant;
 use std::collections::HashSet;
 use cpal::{traits::HostTrait, Device};
 use midi_freq_analyzer::gui_main::launch_gui;
+use crate::constants::THREAD_PANIC_MSG;
 
 
 
@@ -19,7 +20,7 @@ pub fn spawn_audio_thread(
         if let Err(_) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             crate::audio_io::start_audio_io(output_gain, input_gain);
         })) {
-            eprintln!("⚠️ Thread panicked: {}", thread_name);
+            eprintln!("{}{}", THREAD_PANIC_MSG, thread_name);
             let mut list = panicked_threads.lock().unwrap();
             list.insert(thread_name);
         }
