@@ -22,6 +22,22 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
     let mut high = 0.0;
     let mut spectrum = Vec::new();
 
+
+    let num_bins = 40;
+    let min_freq = 20.0;
+    let max_freq = 20000.0;
+    let base = (max_freq / min_freq) as f32;
+    let log_step = base.powf(1.0 / num_bins as f32);
+    
+    let mut bin_edges = Vec::with_capacity(num_bins + 1);
+    let mut f = min_freq;
+    for _ in 0..=num_bins {
+        bin_edges.push(f);
+        f *= log_step;
+    }
+
+    
+
     for (i, &sample) in samples.iter().enumerate() {
         let freq = (i as f32) * (44100.0 / samples.len() as f32);
         let magnitude = sample.abs();
@@ -37,6 +53,26 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
     }
 
     spectrum.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+
+    let mut bins = vec![0.0f32; num_bins];
+    for (f, a) in spectrum.iter() {
+        if *f < min_freq || *f > max_freq { continue; }
+        let bin_idx = bin_edges.iter().position(|edge| *f < *edge).unwrap_or(num_bins) - 1;
+        bins[bin_idx] += *a;
+    }
+
+    let line = bins.iter().map(|amp| {
+        match amp {
+            a if *a > 0.1 => '█',
+            a if *a > 0.05 => '▓',
+            a if *a > 0.01 => '▒',
+            a if *a > 0.001 => '░',
+            _ => ' ',
+        }
+    }).collect::<String>();
+    
+    // print!("\r{}", line);
+    
 
     let total_energy: f32 = spectrum.iter().map(|(_, amp)| amp).sum();
     if total_energy < 0.01 {
@@ -153,7 +189,7 @@ pub fn display_amplitude(low: f32, mid: f32, high: f32) {
     let high_block = if high > 0.1 { "|-|" } else { "|_|" };
 
     // print!("\r🎵 Bass: {} Mid: {} High: {} ", bass_block, mid_block, high_block);
-    std::io::stdout().flush().unwrap();
+    // std::io::stdout().flush().unwrap();
 }
 
 #[allow(unused)]
