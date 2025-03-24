@@ -6,7 +6,7 @@ mod noise;
 mod notes;
 mod analysis;
 #[allow(unused)]
-use constants::BUFFER_SIZE;
+use crate::config::BUFFER_SIZE; // use constants::BUFFER_SIZE;
 #[allow(unused)]
 use audio_io::start_audio_io;
 #[allow(unused)]
@@ -81,7 +81,7 @@ mod list_inputs; // add at top
 use crate::list_inputs::print_input_devices;
 
 use midi_freq_analyzer::gui_main::{launch_gui, AudioApp};
-
+mod config;
 
 
 fn main() {
