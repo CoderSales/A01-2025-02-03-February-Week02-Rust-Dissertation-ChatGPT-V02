@@ -1,6 +1,9 @@
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
+use std::collections::HashSet;
+
+
 pub fn spawn_audio_thread(
     panicked_threads: &Arc<Mutex<std::collections::HashSet<String>>>,
     output_gain: &Arc<Mutex<f32>>,
@@ -34,3 +37,7 @@ pub fn spawn_logger_thread(program_start: Instant) {
     });
 }
 
+
+pub fn create_panicked_threads() -> Arc<Mutex<HashSet<String>>> {
+    Arc::new(Mutex::new(HashSet::new()))
+}

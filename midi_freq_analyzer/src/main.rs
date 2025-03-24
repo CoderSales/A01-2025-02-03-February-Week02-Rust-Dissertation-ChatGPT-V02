@@ -69,6 +69,7 @@ mod config;
 mod helpers;
 use helpers::spawn_audio_thread;
 use helpers::spawn_logger_thread;
+use helpers::create_panicked_threads;
 
 
 fn main() {
