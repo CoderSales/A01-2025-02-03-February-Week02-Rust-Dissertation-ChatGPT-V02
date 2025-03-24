@@ -63,12 +63,26 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
 
 
 fn note_to_freq(note: &str) -> f32 {
-    match note {
-        "A4" => 440.0,
-        "E8" => 5274.0,
-        "D#8" => 4978.0,
-        _ => 440.0, // fallback
+    let note_frequencies = [
+        ("C", 261.63), ("C#", 277.18), ("D", 293.66), ("D#", 311.13),
+        ("E", 329.63), ("F", 349.23), ("F#", 369.99), ("G", 392.00),
+        ("G#", 415.30), ("A", 440.00), ("A#", 466.16), ("B", 493.88),
+    ];
+
+    // Try to extract note letter and octave from string like "A4"
+    if note.len() < 2 || note.len() > 3 {
+        return 440.0; // fallback
     }
+
+    let (base, octave) = note.split_at(note.len() - 1);
+    let octave: i32 = octave.parse().unwrap_or(4);
+    let base_freq = note_frequencies
+        .iter()
+        .find(|(n, _)| *n == base)
+        .map(|(_, f)| *f)
+        .unwrap_or(440.0);
+
+    base_freq * 2.0f32.powf((octave as f32 - 4.0))
 }
 
 
