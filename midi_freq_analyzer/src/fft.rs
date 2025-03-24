@@ -102,6 +102,12 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
     
     // print!("\r{}", line);
 
+    use crate::ascii_visual::render_vertical_eq;
+
+    let eq_visual = render_vertical_eq(&bins, 12);
+    print!("\x1B[2J\x1B[H{}", eq_visual);
+
+
     unsafe {
         if SPECTRUM_SCROLL.is_none() {
             SPECTRUM_SCROLL = Some(VecDeque::with_capacity(20));
