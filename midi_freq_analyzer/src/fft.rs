@@ -56,6 +56,34 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
     spectrum.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
     let mut bins = vec![0.0f32; num_bins];
+
+    let max_height = 8;
+    let mut columns: Vec<Vec<char>> = vec![vec![' '; max_height]; num_bins];
+
+    for (i, amp) in bins.iter().enumerate() {
+        let height = (amp * max_height as f32 * 10.0).clamp(0.0, max_height as f32) as usize;
+        for h in 0..height {
+            columns[i][max_height - 1 - h] = match amp {
+                a if *a > 0.1 => '█',
+                a if *a > 0.05 => '▓',
+                a if *a > 0.01 => '▒',
+                a if *a > 0.001 => '░',
+                _ => ' ',
+            };
+        }
+    }
+
+    print!("\x1B[2J\x1B[H"); // clear + home
+
+    for row in 0..max_height {
+        for col in 0..num_bins {
+            print!("{}", columns[col][row]);
+        }
+        println!();
+    }
+    println!("+{}+", "-".repeat(num_bins));
+
+
     for (f, a) in spectrum.iter() {
         if *f < min_freq || *f > max_freq { continue; }
         let bin_idx = bin_edges.iter().position(|edge| *f < *edge).unwrap_or(num_bins) - 1;
