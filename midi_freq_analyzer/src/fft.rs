@@ -41,15 +41,16 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
     unsafe {
         FRAME_COUNT += 1;
         if FRAME_COUNT % 10 == 0 {
-            let mut out = String::from("🎯 Top Notes: ");
+            let mut out = String::from("🎯 ");
             for (freq, amp) in spectrum.iter().take(3) {
-                // if *amp > 0.0001 && *freq < 20000.0 {
-                println!("🎯 {} ({:.0}Hz, amp {:.4})", frequency_to_note(*freq), freq, amp);
-                let note = frequency_to_note(*freq);
-                    out += &format!("{} ({:.0}Hz) ", note, freq);
-                // }
+                if *amp > 0.0001 && *freq < 20000.0 {
+                    let note = frequency_to_note(*freq);
+                    let cents = 1200.0 * (freq / note_to_freq(&note)).log2();
+                    let sign = if cents >= 0.0 { "+" } else { "-" };
+                    out += &format!("{} ({}{:>2.0}c) ", note, sign, cents.abs());
+                }
             }
-            if out.len() > "🎯 Top Freqs: ".len() {
+            if out.len() > 2 {
                 print!("\r{}", out);
                 io::stdout().flush().unwrap();
             }
@@ -59,6 +60,17 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
     display_amplitude(low, mid, high);
     (low, mid, high)
 }
+
+
+fn note_to_freq(note: &str) -> f32 {
+    match note {
+        "A4" => 440.0,
+        "E8" => 5274.0,
+        "D#8" => 4978.0,
+        _ => 440.0, // fallback
+    }
+}
+
 
 
 pub fn display_amplitude(low: f32, mid: f32, high: f32) {
