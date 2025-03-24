@@ -13,6 +13,7 @@ static mut NOTE_HISTORY: Option<VecDeque<String>> = None;
 use std::collections::HashMap;
 use crate::output_handler::print_cli_line;
 use crate::output_handler::bind_gui_output;
+static mut SPECTRUM_SCROLL: Option<VecDeque<String>> = None;
 
 
 
@@ -72,6 +73,25 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
     }).collect::<String>();
     
     // print!("\r{}", line);
+
+    unsafe {
+        if SPECTRUM_SCROLL.is_none() {
+            SPECTRUM_SCROLL = Some(VecDeque::with_capacity(20));
+        }
+
+        if let Some(scroll) = SPECTRUM_SCROLL.as_mut() {
+            if scroll.len() >= 20 {
+                scroll.pop_front();
+            }
+            scroll.push_back(line.clone());
+
+            print!("\x1B[2J\x1B[H"); // clear screen + move to top
+            for l in scroll.iter() {
+                println!("{}", l);
+            }
+        }
+    }
+
     
 
     let total_energy: f32 = spectrum.iter().map(|(_, amp)| amp).sum();
