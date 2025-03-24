@@ -8,6 +8,8 @@ use cpal::traits::{DeviceTrait, HostTrait};
 use mlua::{Lua, Result};
 use std::io::{self, Write};
 use crate::notes::frequency_to_note;
+use std::collections::VecDeque;
+static mut NOTE_HISTORY: Option<VecDeque<String>> = None;
 
 
 pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
@@ -15,6 +17,13 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
     let mut mid = 0.0;
     let mut high = 0.0;
     let mut spectrum = Vec::new();
+
+    unsafe {
+        if NOTE_HISTORY.is_none() {
+            NOTE_HISTORY = Some(VecDeque::with_capacity(10));
+        }
+    }
+    
 
     for (i, &sample) in samples.iter().enumerate() {
         let freq = (i as f32) * (44100.0 / samples.len() as f32);
@@ -41,18 +50,35 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
     unsafe {
         FRAME_COUNT += 1;
         if FRAME_COUNT % 10 == 0 {
-            let mut out = String::from("🎯 ");
-            for (freq, amp) in spectrum.iter().take(3) {
-                if *amp > 0.0001 && *freq < 20000.0 {
-                    let note = frequency_to_note(*freq);
-                    let cents = 1200.0 * (freq / note_to_freq(&note)).log2();
-                    let sign = if cents >= 0.0 { "+" } else { "-" };
-                    out += &format!("{} ({}{:>2.0}c) ", note, sign, cents.abs());
+            unsafe {
+                if NOTE_HISTORY.is_none() {
+                    NOTE_HISTORY = Some(VecDeque::with_capacity(10));
                 }
-            }
-            if out.len() > 2 {
-                print!("\r{}", out);
-                io::stdout().flush().unwrap();
+            
+                if let Some(history) = NOTE_HISTORY.as_mut() {
+                    for (freq, amp) in spectrum.iter().take(3) {
+                        if *amp > 0.0001 && *freq < 20000.0 {
+                            let note = frequency_to_note(*freq);
+                            let cents = 1200.0 * (freq / note_to_freq(&note)).log2();
+                            let sign = if cents >= 0.0 { "+" } else { "-" };
+                            let entry = format!("{} ({}{:>2.0}c)", note, sign, cents.abs());
+            
+                            if history.len() >= 10 {
+                                history.pop_front();
+                            }
+                            history.push_back(entry);
+                        }
+                    }
+            
+                    let display_line = history
+                        .iter()
+                        .map(|s| s.as_str())
+                        .collect::<Vec<&str>>()
+                        .join(" ");
+            
+                    print!("\r🎯 {}", display_line);
+                    io::stdout().flush().unwrap();
+                }
             }
         }
     }
