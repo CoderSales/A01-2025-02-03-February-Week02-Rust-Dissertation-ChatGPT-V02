@@ -57,7 +57,7 @@ mod device_selection;
 #[allow(unused)]
 use crate::noise_profile::get_or_capture_noise_profile;
 #[allow(unused)]
-use crate::fft::analyze_frequencies;
+use crate::fft::fft_analyze_frequencies::analyze_frequencies;
 
 mod list_inputs; // add at top
 use crate::list_inputs::print_input_devices;

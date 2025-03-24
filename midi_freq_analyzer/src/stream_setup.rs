@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use cpal::traits::DeviceTrait;
 use crate::constants::BUFFER_SIZE;
-use midi_freq_analyzer::fft::analyze_frequencies;
+use crate::fft::fft_analyze_frequencies::analyze_frequencies;
 #[allow(unused)]
 use crate::audio_io;
 

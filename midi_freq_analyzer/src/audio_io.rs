@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex}; // ensure this is at top
 use std::thread;
 use std::time::Duration;
 
-use midi_freq_analyzer::fft::analyze_frequencies;
+use crate::fft::fft_analyze_frequencies::analyze_frequencies;
 use midi_freq_analyzer::output_handler::print_cli_line;
 
 

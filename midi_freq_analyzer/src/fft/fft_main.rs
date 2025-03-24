@@ -2,10 +2,58 @@ use eframe::{egui, App, NativeOptions};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
+#[allow(unused)]
 use cpal::traits::{DeviceTrait, HostTrait};
+#[allow(unused)]
 use mlua::{Lua, Result};
+use std::io::{self, Write};
+use crate::notes::frequency_to_note;
+use std::collections::VecDeque;
+// static mut NOTE_HISTORY: Option<VecDeque<String>> = None;
+use std::collections::HashMap;
+use crate::output_handler::print_cli_line;
+use crate::output_handler::bind_gui_output;
+pub static mut NOTE_HISTORY: Option<VecDeque<String>> = None;
+pub static mut SPECTRUM_SCROLL: Option<VecDeque<String>> = None;
 use crate::fft::fft_analyze_frequencies::analyze_frequencies;
 
+
+
+pub fn note_to_freq(note: &str) -> f32 {
+    let note_frequencies = [
+        ("C", 261.63), ("C#", 277.18), ("D", 293.66), ("D#", 311.13),
+        ("E", 329.63), ("F", 349.23), ("F#", 369.99), ("G", 392.00),
+        ("G#", 415.30), ("A", 440.00), ("A#", 466.16), ("B", 493.88),
+    ];
+
+    // Try to extract note letter and octave from string like "A4"
+    if note.len() < 2 || note.len() > 3 {
+        return 440.0; // fallback
+    }
+
+    let (base, octave) = note.split_at(note.len() - 1);
+    let octave: i32 = octave.parse().unwrap_or(4);
+    let base_freq = note_frequencies
+        .iter()
+        .find(|(n, _)| *n == base)
+        .map(|(_, f)| *f)
+        .unwrap_or(440.0);
+
+    base_freq * 2.0f32.powf((octave as f32 - 4.0))
+}
+
+
+
+pub fn display_amplitude(low: f32, mid: f32, high: f32) {
+    let _bass_block = if low > 0.1 { "|-|" } else { "|_|" };
+    let _mid_block = if mid > 0.1 { "|-|" } else { "|_|" };
+    let _high_block = if high > 0.1 { "|-|" } else { "|_|" };
+
+    // print!("\r🎵 Bass: {} Mid: {} High: {} ", bass_block, mid_block, high_block);
+    // std::io::stdout().flush().unwrap();
+}
+
+#[allow(unused)]
 #[derive(Default)]
 pub struct AudioApp {
     status_message: String,
@@ -57,7 +105,7 @@ impl App for FrequencyMeter {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("🎚 Frequency Levels");
 
-            let (low, mid, high) = analyze_frequencies(&vec![0.0; 2048]); // Placeholder buffer
+            let (low, mid, high, _) = analyze_frequencies(&vec![0.0; 2048]); // Placeholder buffer
 
             *self.low_freq.lock().unwrap() = low;
             *self.mid_freq.lock().unwrap() = mid;
@@ -80,7 +128,10 @@ pub fn launch_gui() -> Result<()> {
     let low_freq = Arc::new(Mutex::new(0.0));
     let mid_freq = Arc::new(Mutex::new(0.0));
     let high_freq = Arc::new(Mutex::new(0.0));
-    
+
+    let gui_display = Arc::new(Mutex::new(String::new()));
+    bind_gui_output(Arc::clone(&gui_display));
+
     let freq_meter = FrequencyMeter {
         low_freq,
         mid_freq,
