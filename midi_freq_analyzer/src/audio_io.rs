@@ -65,8 +65,21 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
             let high_bar = bar(max);
 
             use std::io::{stdout, Write};
-            print!("\r🔊 Output: {:.6} | 🎙️ Input: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out       ",
-                output_peak, input_peak, max, buffer.len(), data.len());
+            // print!("\r🔊 Output: {:.6} | 🎙️ Input: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out       ",
+                // output_peak, input_peak, max, buffer.len(), data.len());
+                print!(
+                    "\r🔊 Output: {:.6} | 🎙️ Input: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out | 🎵 Bass: {} Mid: {} High: {}     ",
+                    output_peak,
+                    input_peak,
+                    max,
+                    buffer.len(),
+                    data.len(),
+                    bass_bar,
+                    mid_bar,
+                    high_bar
+                );
+                std::io::stdout().flush().unwrap();
+                
             stdout().flush().unwrap();
             },
         move |err| eprintln!("Stream error: {:?}", err),

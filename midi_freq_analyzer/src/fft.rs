@@ -35,7 +35,7 @@ pub fn display_amplitude(low: f32, mid: f32, high: f32) {
     let mid_block = if mid > 0.1 { "|-|" } else { "|_|" };
     let high_block = if high > 0.1 { "|-|" } else { "|_|" };
 
-    print!("\r🎵 Bass: {} Mid: {} High: {} ", bass_block, mid_block, high_block);
+    // print!("\r🎵 Bass: {} Mid: {} High: {} ", bass_block, mid_block, high_block);
     std::io::stdout().flush().unwrap();
 }
 
