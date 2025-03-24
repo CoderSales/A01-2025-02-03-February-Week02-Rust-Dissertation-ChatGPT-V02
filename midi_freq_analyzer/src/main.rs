@@ -30,8 +30,7 @@ use std::thread;
 use std::fs::{File, OpenOptions};
 #[allow(unused)]
 use std::io::{Read, Write};
-const MIN_FREQUENCY: f32 = 20.0;
-const MAX_FREQUENCY: f32 = 20000.0;
+use constants::{MIN_FREQUENCY, MAX_FREQUENCY};
 static mut PRINT_COUNTER: usize = 0; 
 #[allow(unused)]
 use std::time::{Instant, Duration};
