@@ -12,6 +12,7 @@ use std::collections::VecDeque;
 static mut NOTE_HISTORY: Option<VecDeque<String>> = None;
 use std::collections::HashMap;
 use crate::output_handler::print_cli_line;
+use crate::output_handler::bind_gui_output;
 
 
 pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
@@ -215,6 +216,9 @@ pub fn launch_gui() -> Result<()> {
     let low_freq = Arc::new(Mutex::new(0.0));
     let mid_freq = Arc::new(Mutex::new(0.0));
     let high_freq = Arc::new(Mutex::new(0.0));
+
+    let gui_display = Arc::new(Mutex::new(String::new()));
+    bind_gui_output(Arc::clone(&gui_display));
 
     let freq_meter = FrequencyMeter {
         low_freq,
