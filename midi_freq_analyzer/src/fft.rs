@@ -59,17 +59,30 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
                     for (freq, amp) in spectrum.iter().take(3) {
                         if *amp > 0.0001 && *freq < 20000.0 {
                             let note = frequency_to_note(*freq);
-                            let cents = 1200.0 * (freq / note_to_freq(&note)).log2();
+                            if note == "Unknown" {
+                                continue;
+                            }
+                    
+                            let base_freq = note_to_freq(&note);
+                            if base_freq <= 0.0 {
+                                continue;
+                            }
+                    
+                            let cents = 1200.0 * (freq / base_freq).log2();
+                            if cents.abs() > 200.0 {
+                                continue;
+                            }
+                    
                             let sign = if cents >= 0.0 { "+" } else { "-" };
                             let entry = format!("{} ({}{:>2.0}c)", note, sign, cents.abs());
-            
+                    
                             if history.len() >= 10 {
                                 history.pop_front();
                             }
                             history.push_back(entry);
                         }
                     }
-            
+                                
                     let display_line = history
                         .iter()
                         .map(|s| s.as_str())
