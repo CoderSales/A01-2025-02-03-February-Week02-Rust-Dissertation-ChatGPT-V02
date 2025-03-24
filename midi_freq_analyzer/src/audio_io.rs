@@ -3,6 +3,7 @@ use crate::constants::BUFFER_SIZE;
 use crate::create_buffer;
 use crate::stream_setup;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+#[allow(unused)]
 use midi_freq_analyzer::audio;
 use std::sync::{Arc, Mutex}; // ensure this is at top
 use std::thread;
@@ -44,6 +45,7 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
             let buffer = buffer_clone.lock().unwrap();
             let offset = buffer.len().saturating_sub(data.len());
             for (i, sample) in data.iter_mut().enumerate() {
+                #[allow(unused)]
                 let input_amp = *input_gain_clone.lock().unwrap();
                 let raw_input = *buffer.get(i + offset).unwrap_or(&0.0);
                 if i == 0 {

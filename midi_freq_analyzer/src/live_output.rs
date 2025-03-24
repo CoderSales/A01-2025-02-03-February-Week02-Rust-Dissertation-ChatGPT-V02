@@ -1,5 +1,6 @@
 use std::time::{Instant, Duration};
 use std::sync::Mutex;
+#[allow(unused)]
 use std::io::Write; // ✅ Required for flush()
 
 

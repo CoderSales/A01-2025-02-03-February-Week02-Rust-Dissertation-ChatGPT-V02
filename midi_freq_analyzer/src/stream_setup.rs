@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 use cpal::traits::DeviceTrait;
 use crate::constants::BUFFER_SIZE;
 use midi_freq_analyzer::fft::analyze_frequencies;
-
+#[allow(unused)]
 use crate::audio_io;
 
 
@@ -10,6 +10,7 @@ pub fn setup_audio_stream(
     device: &cpal::Device,
     config: &mut cpal::StreamConfig,
     data_clone: Arc<Mutex<Vec<f32>>>,
+    #[allow(unused)]
     input_gain: Arc<Mutex<f32>>,
 ) -> cpal::Stream {
     println!("🎛 Input config: {:?}", config);

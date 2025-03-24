@@ -1,4 +1,5 @@
 pub mod audio_playback;
+#[allow(unused)]
 pub use audio_playback::play_audio;
 
 pub mod noise_processing;

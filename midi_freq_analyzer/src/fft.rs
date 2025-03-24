@@ -2,7 +2,9 @@ use eframe::{egui, App, NativeOptions};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
+#[allow(unused)]
 use cpal::traits::{DeviceTrait, HostTrait};
+#[allow(unused)]
 use mlua::{Lua, Result};
 use std::io::Write; // <-- Fix for flush()
 
@@ -37,6 +39,7 @@ pub fn display_amplitude(low: f32, mid: f32, high: f32) {
     std::io::stdout().flush().unwrap();
 }
 
+#[allow(unused)]
 #[derive(Default)]
 pub struct AudioApp {
     status_message: String,

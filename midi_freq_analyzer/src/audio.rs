@@ -6,7 +6,9 @@ use cpal::{StreamConfig, Device};
 
 
 // use std::io::{self, Write}; // ✅ Fix missing `flush()` method
+#[allow(unused)]
 use std::io::{self, Write}; // ✅ Keep only one correct import
+#[allow(unused)]
 use crate::device_selection::select_audio_device;
 
 

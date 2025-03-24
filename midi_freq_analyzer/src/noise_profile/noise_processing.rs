@@ -1,7 +1,9 @@
 use std::fs::{OpenOptions, File};
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
+#[allow(unused)]
 use std::sync::atomic::AtomicBool;
+#[allow(unused)]
 use std::sync::atomic::Ordering;
 use cpal::{Device, StreamConfig};
 use cpal::traits::DeviceTrait;
@@ -40,7 +42,7 @@ pub fn capture_noise_profile(device: &cpal::Device, config: &cpal::StreamConfig)
     let data = Arc::new(Mutex::new(Vec::new()));
 
     let data_clone = Arc::clone(&data);
-
+    #[allow(unused)]
     let err_fn: Box<dyn Fn(cpal::StreamError) + Send> = Box::new(|err| eprintln!("Error: {:?}", err));
 
     let stream = device.build_input_stream(

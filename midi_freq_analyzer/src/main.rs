@@ -1,31 +1,45 @@
+#[allow(unused)]
 mod constants;
 mod audio_io;
 mod stream_setup;
 mod noise;
 mod notes;
 mod analysis;
-
+#[allow(unused)]
 use constants::BUFFER_SIZE;
+#[allow(unused)]
 use audio_io::start_audio_io;
+#[allow(unused)]
 use stream_setup::setup_audio_stream;
+#[allow(unused)]
 use noise::subtract_noise;
+#[allow(unused)]
 use notes::frequency_to_note;
+#[allow(unused)]
 use analysis::analyze_amplitude;
 
-
+#[allow(unused)]
 use midi_freq_analyzer::audio;
 use midi_freq_analyzer::fft;
+#[allow(unused)]
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::sync::{Arc, Mutex};
+#[allow(unused)]
 use std::thread;
+#[allow(unused)]
 use std::fs::{File, OpenOptions};
+#[allow(unused)]
 use std::io::{Read, Write};
 const MIN_FREQUENCY: f32 = 20.0;
 const MAX_FREQUENCY: f32 = 20000.0;
 static mut PRINT_COUNTER: usize = 0; 
+#[allow(unused)]
 use std::time::{Instant, Duration};
+#[allow(unused)]
 use std::sync::atomic::AtomicBool;
+#[allow(unused)]
 use std::sync::atomic::Ordering;
+#[allow(unused)]
 use lua_ui::init_lua_ui;
 mod live_output;
 mod bitrate;
@@ -50,6 +64,7 @@ mod noise_profile;
 
 // const BUFFER_SIZE: usize = output_size; // or just remove this const entirely // ❌ INVALID
 // const BUFFER_SIZE: usize = 960;
+#[allow(unused)]
 mod buffer_handling;
 use buffer_handling::handle_buffer_lock;
 mod thread_manager;
@@ -57,12 +72,15 @@ use thread_manager::spawn_thread;
 mod mutex_handling;
 use mutex_handling::*;
 mod device_selection;
+#[allow(unused)]
 use crate::noise_profile::get_or_capture_noise_profile;
+#[allow(unused)]
 use crate::fft::analyze_frequencies;
 
 mod list_inputs; // add at top
 use crate::list_inputs::print_input_devices;
 
+use midi_freq_analyzer::gui_main::{launch_gui, AudioApp};
 
 
 
@@ -92,13 +110,13 @@ fn main() {
     });
 
     // 👇 GUI uses same gains
-    if let Err(e) = gui::launch_gui(output_gain, input_gain) {
+    if let Err(e) = launch_gui(output_gain, input_gain) {
         eprintln!("GUI failed: {:?}", e);
     }
     
     // Define options and app before calling eframe::run_native():
     let options = eframe::NativeOptions::default(); 
-    let app = gui::AudioApp::default();  
+    let app = AudioApp::default();  
     
     eframe::run_native(
         "Audio Analyzer",
