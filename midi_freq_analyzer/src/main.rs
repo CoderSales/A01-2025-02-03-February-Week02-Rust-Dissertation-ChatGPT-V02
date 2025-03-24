@@ -70,6 +70,8 @@ mod helpers;
 use helpers::spawn_audio_thread;
 use helpers::spawn_logger_thread;
 use helpers::create_panicked_threads;
+use helpers::select_input_device;
+
 
 
 fn main() {
@@ -95,7 +97,7 @@ fn main() {
             
     // ✅ Move logging into a separate thread
     
-    let device = device_selection::select_audio_device(true);
+    let device = select_input_device();
     spawn_logger_thread(program_start);
 }
 

@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
-
 use std::collections::HashSet;
+use cpal::{traits::HostTrait, Device};
 
 
 pub fn spawn_audio_thread(
@@ -40,4 +40,10 @@ pub fn spawn_logger_thread(program_start: Instant) {
 
 pub fn create_panicked_threads() -> Arc<Mutex<HashSet<String>>> {
     Arc::new(Mutex::new(HashSet::new()))
+}
+
+
+pub fn select_input_device() -> Device {
+    let host = cpal::default_host();
+    host.default_input_device().expect("No input device found")
 }
