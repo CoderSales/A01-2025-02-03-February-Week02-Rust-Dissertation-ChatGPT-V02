@@ -10,6 +10,7 @@ use std::io::{self, Write};
 use crate::notes::frequency_to_note;
 use std::collections::VecDeque;
 static mut NOTE_HISTORY: Option<VecDeque<String>> = None;
+use std::collections::HashMap;
 
 
 pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
@@ -17,13 +18,6 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
     let mut mid = 0.0;
     let mut high = 0.0;
     let mut spectrum = Vec::new();
-
-    unsafe {
-        if NOTE_HISTORY.is_none() {
-            NOTE_HISTORY = Some(VecDeque::with_capacity(10));
-        }
-    }
-    
 
     for (i, &sample) in samples.iter().enumerate() {
         let freq = (i as f32) * (44100.0 / samples.len() as f32);
@@ -54,9 +48,11 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
                 if NOTE_HISTORY.is_none() {
                     NOTE_HISTORY = Some(VecDeque::with_capacity(10));
                 }
+                
+                let mut note_groups: HashMap<String, Vec<i32>> = HashMap::new();
             
                 if let Some(history) = NOTE_HISTORY.as_mut() {
-                    for (freq, amp) in spectrum.iter().take(3) {
+                    for (freq, amp) in spectrum.iter().take(10) {
                         if *amp > 0.0001 && *freq < 20000.0 {
                             let note = frequency_to_note(*freq);
                             if note == "Unknown" {
@@ -73,24 +69,26 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
                                 continue;
                             }
                     
-                            let sign = if cents >= 0.0 { "+" } else { "-" };
-                            let entry = format!("{} ({}{:>2.0}c)", note, sign, cents.abs());
-                    
-                            if history.len() >= 10 {
-                                history.pop_front();
-                            }
-                            history.push_back(entry);
+                            note_groups
+                                .entry(note)
+                                .or_default()
+                                .push(cents.round() as i32);
                         }
                     }
-                                
-                    let display_line = history
-                        .iter()
-                        .map(|s| s.as_str())
-                        .collect::<Vec<&str>>()
-                        .join(" ");
-            
-                    print!("\r🎯 {}", display_line);
-                    io::stdout().flush().unwrap();
+                    
+                    let mut display_line = String::from("🎯 ");
+                    
+                    for (note, cents_list) in note_groups {
+                        let cents_str = cents_list
+                            .iter()
+                            .map(|c| format!("{}{:+}c", if *c >= 0 { "+" } else { "" }, c))
+                            .collect::<Vec<_>>()
+                            .join(", ");
+                        display_line += &format!("{} ({}) ", note, cents_str);
+                    }
+                    
+                    print!("\r{}", display_line);
+                    io::stdout().flush().unwrap();                    
                 }
             }
         }
