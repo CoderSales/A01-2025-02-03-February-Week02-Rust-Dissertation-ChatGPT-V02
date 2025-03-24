@@ -16,3 +16,4 @@ eframe = "0.31.0"   # Ensure compatibility
 wgpu = "24.0.1"     # Set exact version
 winapi = { version = "0.3", features = ["winuser", "windef"] }
 wasm-bindgen = "0.2.97"  # Ensure compatibility
+colored = "2.0" 

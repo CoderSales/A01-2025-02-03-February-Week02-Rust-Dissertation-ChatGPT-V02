@@ -11,6 +11,8 @@ use crate::notes::frequency_to_note;
 use std::collections::VecDeque;
 static mut NOTE_HISTORY: Option<VecDeque<String>> = None;
 use std::collections::HashMap;
+use colored::*;
+
 
 
 pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
@@ -79,13 +81,32 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32) {
                     let mut display_line = String::from("🎯 ");
                     
                     for (note, cents_list) in note_groups {
+                        let color = match cents_list.iter().map(|c| c.abs()).max().unwrap_or(0) {
+                            0..=5 => "green",
+                            6..=15 => "yellow",
+                            _ => "red",
+                        };
+                    
                         let cents_str = cents_list
                             .iter()
-                            .map(|c| format!("{}{:+}c", if *c >= 0 { "+" } else { "" }, c))
+                            .map(|c| format!("{:+}c", c))
                             .collect::<Vec<_>>()
                             .join(", ");
-                        display_line += &format!("{} ({}) ", note, cents_str);
+                    
+                        let note_colored = match color {
+                            "green" => note.green(),
+                            "yellow" => note.yellow(),
+                            _ => note.red(),
+                        };
+                    
+                        display_line += &format!("{} ({}) ", note_colored, cents_str);
                     }
+                    
+
+                    
+                    
+
+
                     
                     print!("\r{}", display_line);
                     io::stdout().flush().unwrap();                    
