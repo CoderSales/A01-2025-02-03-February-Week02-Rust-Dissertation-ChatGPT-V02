@@ -43,23 +43,18 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
         return (low, mid, high, String::new());
     }
     
+    // .filter(|(f, _)| *f < 24000.0)
+
     let debug_freqs = spectrum
         .iter()
+        .filter(|(f, _)| *f < 24000.0)
         .take(5)
         .map(|(f, a)| format!("{:>7.1}Hz:{:.5}", f, a))
         .collect::<Vec<_>>()
         .join(" ");
 
-    let debug_freqs = spectrum
-        .iter()
-        .take(5)
-        .map(|(f, a)| format!("{:>7.1}Hz:{:.5}", f, a))
-        .collect::<Vec<_>>()
-        .join(" ");
     
     let debug_line = format!("🎯 {}", debug_freqs);
-    
-
 
 
     static mut FRAME_COUNT: usize = 0;

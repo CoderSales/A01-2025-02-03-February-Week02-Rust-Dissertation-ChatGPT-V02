@@ -5,9 +5,9 @@ static mut GUI_OUTPUT: Option<Arc<Mutex<String>>> = None;
 
 /// Print one-liner in CLI (overwrites current line)
 pub fn print_cli_line(line: &str) {
-    const CLEAR_LEN: usize = 160;
+    const CLEAR_LEN: usize = 240;
     let padded = format!("{:<width$}", line, width = CLEAR_LEN);
-    print!("\r{}", padded);
+        print!("\r{}", padded);
     io::stdout().flush().unwrap();
         io::stdout().flush().unwrap();
 
