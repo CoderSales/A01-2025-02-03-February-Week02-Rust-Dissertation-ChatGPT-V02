@@ -8,6 +8,8 @@ mod analysis;
 #[allow(unused)]
 use crate::config::BUFFER_SIZE; // use constants::BUFFER_SIZE;
 #[allow(unused)]
+use crate::audio_io::audio_io_main::start_audio_io;
+#[allow(unused)]
 use stream_setup::setup_audio_stream;
 #[allow(unused)]
 use noise::subtract_noise;
@@ -75,12 +77,11 @@ use midi_freq_analyzer::output_handler::print_cli_line;
 use midi_freq_analyzer::audio_io::start_audio_io;
 use midi_freq_analyzer::output_handler::*;
 
-mod output_handler;
 
+print_cli_line("hello test");
 
 
 fn main() {
-    print_cli_line("hello test");
     print_input_devices(); // always runs at start
 
     let panicked_threads = create_panicked_threads();

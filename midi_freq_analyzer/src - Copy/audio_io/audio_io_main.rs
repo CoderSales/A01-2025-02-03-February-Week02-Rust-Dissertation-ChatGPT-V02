@@ -1,16 +1,14 @@
+use std::sync::{Arc, Mutex}; // ensure this is at top
 use crate::bitrate;
 use crate::constants::BUFFER_SIZE;
-use crate::create_buffer;
+use crate::mutex_handling::create_buffer;
 use crate::stream_setup;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 #[allow(unused)]
-use midi_freq_analyzer::audio;
-use std::sync::{Arc, Mutex}; // ensure this is at top
 use std::thread;
 use std::time::Duration;
-
 use crate::fft::fft_analyze_frequencies::analyze_frequencies;
-use midi_freq_analyzer::output_handler::print_cli_line;
+use crate::output_handler::print_cli_line;
 
 
 pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>) {
@@ -42,8 +40,8 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
     let buffer = create_buffer(BUFFER_SIZE);
     println!("\nUsing input device: {}\n", input_device.name().unwrap());
 
-    let buffer_clone = Arc::clone(&buffer);              // for output stream
-    let buffer_clone_for_input = Arc::clone(&buffer);    // for input stream
+    let buffer_clone: Arc<Mutex<Vec<f32>>> = Arc::clone(&buffer); //  for output stream
+    let buffer_clone_for_input: Arc<Mutex<Vec<f32>>> = Arc::clone(&buffer);    // for input stream
     let stream = output_device
         .build_output_stream(
             &shared_config.clone().into(),
