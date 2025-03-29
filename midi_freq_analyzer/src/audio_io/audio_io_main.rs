@@ -73,7 +73,6 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                             let buffer_len = buffer_guard.len();
                             drop(buffer_guard); // optional: release lock early
 
-                            let bass_block = if low > 0.000 { "|-|" } else { "|_|" };
                             let bass_block = match low {
                                 x if x > 0.002 => "|-🔥-|",
                                 x if x > 0.0005 => "|-|-|",
