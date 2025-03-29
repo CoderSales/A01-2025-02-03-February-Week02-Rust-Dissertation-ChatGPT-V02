@@ -93,26 +93,26 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
     use crate::ascii_visual::render_vertical_eq;
 
     let eq_visual = render_vertical_eq(&bins, 12);
-    print!("\x1B[2J\x1B[H{}", eq_visual);
+    // print!("\x1B[2J\x1B[H{}", eq_visual);
 
 
-    unsafe {
-        if SPECTRUM_SCROLL.is_none() {
-            SPECTRUM_SCROLL = Some(VecDeque::with_capacity(20));
-        }
+    // unsafe {
+    //     if SPECTRUM_SCROLL.is_none() {
+    //         SPECTRUM_SCROLL = Some(VecDeque::with_capacity(20));
+    //     }
 
-        if let Some(scroll) = SPECTRUM_SCROLL.as_mut() {
-            if scroll.len() >= 20 {
-                scroll.pop_front();
-            }
-            scroll.push_back(line.clone());
+    //     if let Some(scroll) = SPECTRUM_SCROLL.as_mut() {
+    //         if scroll.len() >= 20 {
+    //             scroll.pop_front();
+    //         }
+    //         scroll.push_back(line.clone());
 
-            print!("\x1B[2J\x1B[H"); // clear screen + move to top
-            for l in scroll.iter() {
-                println!("{}", l);
-            }
-        }
-    }
+    //         print!("\x1B[2J\x1B[H"); // clear screen + move to top
+    //         for l in scroll.iter() {
+    //             println!("{}", l);
+    //         }
+    //     }
+    // }
 
     
 
