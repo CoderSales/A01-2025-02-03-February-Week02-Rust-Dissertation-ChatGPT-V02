@@ -23,3 +23,5 @@ Cargo.lock
 new
 new/*
 cli_log.txt
+mwe_project/
+*.zip
