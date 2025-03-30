@@ -61,15 +61,15 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
         }
     }
 
-    print!("\x1B[2J\x1B[H"); // clear + home
+    // print!("\x1B[2J\x1B[H"); // clear + home
 
     for row in 0..max_height {
         for col in 0..num_bins {
-            print!("{}", columns[col][row]);
+            // print!("{}", columns[col][row]);
         }
-        println!();
+        // println!();
     }
-    println!("+{}+", "-".repeat(num_bins));
+    // println!("+{}+", "-".repeat(num_bins));
 
 
     for (f, a) in spectrum.iter() {
