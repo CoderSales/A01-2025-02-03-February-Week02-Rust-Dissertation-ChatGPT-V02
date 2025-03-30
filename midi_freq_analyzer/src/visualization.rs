@@ -68,9 +68,9 @@ impl eframe::App for Visualization {
             }
 
             if ui.button("📊 Analyse").clicked() {
-                let dominant_freq = *self.audio.lock().unwrap().dominant_frequency.lock().unwrap();
+                let dominant_freq: f64 = *self.audio.lock().unwrap().dominant_frequency.lock().unwrap();
                 self.last_chord = Visualization::detect_chord(dominant_freq);
-                println!("Detected Chord: {}", self.last_chord);
+                ui.label(format!("🎵 Chord: {}", self.last_chord));                
             }
 
             let audio = self.audio.lock().unwrap();
