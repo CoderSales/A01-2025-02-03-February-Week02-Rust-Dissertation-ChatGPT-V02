@@ -104,7 +104,7 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                             );
                             
                         
-                            print!("\r{}", cli_line);
+                            // print!("\r{}", cli_line);
                             use std::io::{stdout, Write};
                             stdout().flush().unwrap();
                                                     
