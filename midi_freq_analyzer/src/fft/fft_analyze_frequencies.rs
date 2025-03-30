@@ -189,13 +189,13 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
                             display_line += &format!("{} ({}) ", note, cents_str);
                         }
 
-                        print_cli_line(&display_line);
+                        // print_cli_line(&display_line);
                 }
             }
         }
     }
 
-    display_amplitude(low, mid, high);
+    // display_amplitude(low, mid, high);
     (low, mid, high, debug_line)
 }
 
