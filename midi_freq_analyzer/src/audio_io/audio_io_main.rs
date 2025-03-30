@@ -42,6 +42,9 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
 
     let buffer_clone: Arc<Mutex<Vec<f32>>> = Arc::clone(&buffer); //  for output stream
     let buffer_clone_for_input: Arc<Mutex<Vec<f32>>> = Arc::clone(&buffer);    // for input stream
+
+    let mut last_print_time = std::time::Instant::now();
+
     let stream = output_device
         .build_output_stream(
             &shared_config.clone().into(),
@@ -67,6 +70,18 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                         let mut ab = analysis_buffer_clone.lock().unwrap();
                         ab.push(raw_input);
                         if ab.len() >= 2048 {
+                            static mut LAST_PRINT: Option<std::time::Instant> = None;
+                            let now = std::time::Instant::now();
+                            let should_print = unsafe {
+                                match LAST_PRINT {
+                                    Some(last) if now.duration_since(last).as_secs_f32() < 1.0 => false,
+                                    _ => {
+                                        LAST_PRINT = Some(now);
+                                        true
+                                    }
+                                }
+                            };
+
                             let (low, mid, high, _) = analyze_frequencies(&ab[..2048]);
                             let debug_line = "".to_string(); // 🔇 wipe residual 🎯 output
                             let debug_line = "".to_string(); // 🔇 kills multiline spam
@@ -104,11 +119,22 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                                 mid_block,
                                 high_block,
                                 &debug_line,
-                            );                            
-                            print!("{}", cli_line);
-                            use std::io::{stdout, Write};
-                            stdout().flush().unwrap();
-                            
+                            );
+
+                            let now = std::time::Instant::now();
+                            if now.duration_since(last_print_time).as_secs_f32() >= 1.0 {
+                                last_print_time = now;
+                                print!("{}", cli_line);
+                                use std::io::{stdout, Write};
+                                stdout().flush().unwrap();
+                            }
+
+                            if should_print {
+                                print!("{}", cli_line);
+                                use std::io::{stdout, Write};
+                                stdout().flush().unwrap();
+                            }
+                                                        
 
                             ab.clear();
                         }
