@@ -76,6 +76,8 @@ use midi_freq_analyzer::audio_io::start_audio_io;
 use midi_freq_analyzer::output_handler::*;
 
 mod output_handler;
+mod visualization;
+mod audio2;
 
 
 
@@ -93,8 +95,11 @@ fn main() {
     spawn_audio_thread(&panicked_threads_clone, &output_gain, &input_gain);
 
     // 👇 GUI uses same gains
-    launch_gui_safely(output_gain, input_gain);
-
+    // launch_gui_safely(output_gain, input_gain);
+    use visualization::Visualization;
+    let native_options = eframe::NativeOptions::default();
+    eframe::run_native("Audio Analyzer", native_options, Box::new(|_| Ok(Box::new(Visualization::new()))));
+    
 
     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
     let host = cpal::default_host(); // ✅ Define `host` first
