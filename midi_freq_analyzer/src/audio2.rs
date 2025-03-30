@@ -49,7 +49,12 @@ impl AudioProcessor2 {
                 let mut recorded_audio = recorded_audio_clone.lock().unwrap();
 
                 waveform_data.clear();
-                waveform_data.extend(data.iter().map(|&s| s as f64));
+                for chunk in data.chunks(2) {
+                    if let [left, _right] = chunk {
+                        waveform_data.push(*left as f64);
+                    }
+                }
+
                 recorded_audio.extend(data.iter());
 
                 let mut fft_data = fft_result_clone.lock().unwrap();

@@ -16,7 +16,7 @@ impl Visualization {
     pub fn new() -> Self {
         Self {
             audio: Arc::new(Mutex::new(AudioProcessor2::new())),
-            is_listening: false,
+            is_listening: true,
             is_file_mode: false,  // ✅ Default to live input
             last_analysis_time: Instant::now(),
             last_chord: "Unknown".to_string(),
@@ -46,6 +46,9 @@ impl Visualization {
 
 impl eframe::App for Visualization {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        if self.is_listening {
+            let _ = self.audio.lock().unwrap().start_listening();
+        }        
         CentralPanel::default().show(ctx, |ui| {
             ui.heading("Live Audio Visualization");
 
@@ -71,7 +74,14 @@ impl eframe::App for Visualization {
             }
 
             let audio = self.audio.lock().unwrap();
-            let waveform_data = audio.waveform.lock().unwrap();
+
+            let raw_data = audio.waveform.lock().unwrap().clone();
+            let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs())).max(1e-9);
+            let normalized: Vec<f64> = raw_data.iter().map(|x| x / max_amp).collect();
+            let mean = normalized.iter().copied().sum::<f64>() / normalized.len().max(1) as f64;
+            let centered = normalized.iter().map(|x| x - mean).collect::<Vec<f64>>();
+            let waveform_data: Vec<f64> = centered.iter().map(|x| x.clamp(-1.0, 1.0)).collect();
+            
             let fft_data = audio.fft_result.lock().unwrap();
             let dominant_freq = *audio.dominant_frequency.lock().unwrap();
             
