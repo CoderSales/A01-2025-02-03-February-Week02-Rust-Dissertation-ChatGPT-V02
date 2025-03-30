@@ -63,12 +63,12 @@ pub fn analyze_frequencies(samples: &[f32]) -> (f32, f32, f32, String) {
 
     // print!("\x1B[2J\x1B[H"); // clear + home
 
-    for row in 0..max_height {
-        for col in 0..num_bins {
+    // for row in 0..max_height {
+        // for col in 0..num_bins {
             // print!("{}", columns[col][row]);
-        }
+        // }
         // println!();
-    }
+    // }
     // println!("+{}+", "-".repeat(num_bins));
 
 
