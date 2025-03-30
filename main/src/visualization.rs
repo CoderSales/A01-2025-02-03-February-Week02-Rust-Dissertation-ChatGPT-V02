@@ -50,6 +50,7 @@ impl eframe::App for Visualization {
             ui.heading("Live Audio Visualization");
 
             if ui.button("🎤 Listen").clicked() {
+                println!("🎤 Listen button pressed!");
                 self.audio.lock().unwrap().start_listening();
                 self.is_listening = true;
             }
@@ -87,6 +88,9 @@ impl eframe::App for Visualization {
                 );
                 plot_ui.line(Line::new(points).name("FFT"));
             });
+
+
+            println!("🔍 First 5 samples: {:?}", &waveform_data[..5.min(waveform_data.len())]);
 
             ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
             ui.label(format!("Detected Chord: {}", self.last_chord));

@@ -57,12 +57,16 @@ impl AudioProcessor {
 
                 let mut dominant_freq = dominant_frequency_clone.lock().unwrap();
                 *dominant_freq = AudioProcessor::find_dominant_frequency(&fft_data);
+                println!("🎧 Got {} samples. First: {:?}", data.len(), &data[..5.min(data.len())]);
             },
             |err| eprintln!("Stream error: {:?}", err),
             None,
         ).unwrap();
 
+        println!("🚀 Before stream.play()");
         stream.play().unwrap();
+        println!("✅ After stream.play()");
+
         self.stream = Some(stream);
     }
 
