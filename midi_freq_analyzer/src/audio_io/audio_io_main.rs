@@ -127,7 +127,7 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
 
     println!("Using output device: {}", output_device.name().unwrap());
     std::thread::sleep(std::time::Duration::from_millis(500));
-    println!("\n\n\n\n");
+    // println!("\n\n\n\n");
 
     let data_clone_for_input = buffer_clone_for_input;
     let input_stream = stream_setup::setup_audio_stream(
