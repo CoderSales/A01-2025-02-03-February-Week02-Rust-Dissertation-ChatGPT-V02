@@ -74,19 +74,19 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                             let buffer_len = buffer_guard.len();
                             drop(buffer_guard); // optional: release lock early
 
-                            let bass_block = match low {
-                                x if x > 0.002 => "|-🔥-|",
-                                x if x > 0.0005 => "|-|-|",
+                            let bass_block: &str = match low {
+                                x if x > 0.002 => "|-|",
+                                x if x > 0.002 => "|-|",
                                 _ => "|_|"
                             };
                             let mid_block = match mid {
-                                x if x > 0.002 => "|-🎯-|",
-                                x if x > 0.0005 => "|-|-|",
+                                x if x > 0.002 => "|-|",
+                                x if x > 0.002 => "|-|",
                                 _ => "|_|"
                             };
                             let high_block = match high {
-                                x if x > 0.002 => "|-✨-|",
-                                x if x > 0.0005 => "|-|-|",
+                                x if x > 0.002 => "|-|",
+                                x if x > 0.002 => "|-|",
                                 _ => "|_|"
                             };
                                                                                                             
@@ -104,7 +104,7 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                             );
                             
                         
-                            // print!("\r{}", cli_line);
+                            print!("\r{}", cli_line);
                             use std::io::{stdout, Write};
                             stdout().flush().unwrap();
                                                     
