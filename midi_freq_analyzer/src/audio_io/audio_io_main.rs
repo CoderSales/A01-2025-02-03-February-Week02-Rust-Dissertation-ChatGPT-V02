@@ -65,8 +65,8 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                         let mut ab = analysis_buffer_clone.lock().unwrap();
                         ab.push(raw_input);
                         if ab.len() >= 2048 {
-                            let (low, mid, high, debug_line) = analyze_frequencies(&ab[..2048]);
-                        
+                            let (low, mid, high, _debug_line) = analyze_frequencies(&ab[..2048]);
+                            let debug_line = "".to_string(); // 🔇 kills multiline spam
                             let buffer_guard = buffer.lock().unwrap();
                             let input_peak = buffer_guard.iter().cloned().fold(0.0_f32, f32::max);
                             let max = input_peak;
