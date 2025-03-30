@@ -56,6 +56,8 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                 let output_peak = data.iter().cloned().fold(0.0_f32, f32::max);
                 let data_len = data.len();
 
+                let out_buf_len = data.len(); // ✅ capture length before mutable borrow
+                let out_buf_len = data.len(); // ✅ move outside borrow scope
                 for (i, sample) in data.iter_mut().enumerate() {
                     #[allow(unused)]
                     let input_amp = *input_gain_clone.lock().unwrap();
@@ -72,6 +74,7 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                             let input_peak = buffer_guard.iter().cloned().fold(0.0_f32, f32::max);
                             let max = input_peak;
                             let buffer_len = buffer_guard.len();
+                            // let cli_line = build_cli_line(data.len(), output_peak, input_peak, max, buffer_len, data_len, bass_block, mid_block, high_block, &debug_line);
                             drop(buffer_guard); // optional: release lock early
 
                             let bass_block: &str = match low {
@@ -90,8 +93,26 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                                 _ => "|_|"
                             };
                                                                                                             
-                            let cli_line: String = format!(
-                                "🔊 Out: {:.6} | 🎙️ In: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out | 🎵 B:{} M:{} H:{}  | debug: {}",
+                            // let cli_line: String = format!(
+                            //     "🔊 Out: {:.6} | 🎙️ In: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out | 🎵 B:{} M:{} H:{}  | debug: {}",
+                            //     output_peak,
+                            //     input_peak,
+                            //     max,
+                            //     buffer_len,
+                            //     data_len,
+                            //     bass_block,
+                            //     mid_block,
+                            //     high_block,
+                            //     debug_line, // 🎯 Top notes from analyze_frequencies
+                            // );
+                            
+                        
+                            // print!("\r{}", cli_line);
+                            // use std::io::{stdout, Write};
+                            // stdout().flush().unwrap();
+
+                            let cli_line = build_cli_line(
+                                out_buf_len,
                                 output_peak,
                                 input_peak,
                                 max,
@@ -100,14 +121,13 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                                 bass_block,
                                 mid_block,
                                 high_block,
-                                debug_line, // 🎯 Top notes from analyze_frequencies
-                            );
-                            
-                        
-                            print!("\r{}", cli_line);
+                                &debug_line,
+                            );                            
+                            print!("{}", cli_line);
                             use std::io::{stdout, Write};
                             stdout().flush().unwrap();
-                                                    
+                            
+
                             ab.clear();
                         }
                     }
@@ -125,6 +145,24 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
         )
         .expect("❌ Failed to build output stream: Unsupported config");
 
+        fn build_cli_line(
+            out_buf_len: usize,
+            output_peak: f32,
+            input_peak: f32,
+            max: f32,
+            buffer_len: usize,
+            data_len: usize,
+            bass: &str,
+            mid: &str,
+            high: &str,
+            debug: &str,
+        ) -> String {
+            format!(
+                "\r🔁 OutBuf: {:<4} | 🔊 Out: {:.6} | 🎙️ In: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out | 🎵 B:{} M:{} H:{} | debug: {}",
+                out_buf_len, output_peak, input_peak, max,
+                buffer_len, data_len, bass, mid, high, debug
+            )
+        }
 
     println!("🔎 Requested output buffer size: {:?}", shared_config.buffer_size);
     println!("Using output device: {}", output_device.name().unwrap());
