@@ -129,11 +129,11 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                                 stdout().flush().unwrap();
                             }
 
-                            if should_print {
-                                print!("{}", cli_line);
-                                use std::io::{stdout, Write};
-                                stdout().flush().unwrap();
-                            }
+                            // if should_print {
+                            print!("{}", cli_line);
+                            use std::io::{stdout, Write};
+                            stdout().flush().unwrap();
+                            // }
                                                         
 
                             ab.clear();
