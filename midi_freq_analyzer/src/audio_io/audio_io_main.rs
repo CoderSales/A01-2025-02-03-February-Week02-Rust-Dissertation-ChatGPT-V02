@@ -90,19 +90,18 @@ pub fn start_audio_io(output_gain: Arc<Mutex<f32>>, input_gain: Arc<Mutex<f32>>)
                                 _ => "|_|"
                             };
                                                                                                             
-                            let cli_line: String = format!(
-                                "🔊 Out: {:.6} | 🎙️ In: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out | 🎵 B:{} M:{} H:{}  | debug: {}",
-                                output_peak,
-                                input_peak,
-                                max,
-                                buffer_len,
-                                data_len,
-                                bass_block,
-                                mid_block,
-                                high_block,
-                                debug_line, // 🎯 Top notes from analyze_frequencies
-                            );
+                            let debug_part = if debug_line.trim().is_empty() {
+                                "".to_string()
+                            } else {
+                                format!(" | debug: {}", debug_line)
+                            };
                             
+                            let cli_line = format!(
+                                "🔊 Out: {:.6} | 🎙️ In: {:.6} | 🎚 Max: {:.6} | 🎧 Buffers: {} in / {} out | 🎵 B:{} M:{} H:{}{}",
+                                output_peak, input_peak, max, buffer_len, data_len,
+                                bass_block, mid_block, high_block, debug_part
+                            );
+                                                        
                         
                             print!("\r{}", cli_line);
                             use std::io::{stdout, Write};
