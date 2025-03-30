@@ -2,9 +2,10 @@ use crate::audio::AudioProcessor;
 use eframe::egui::{self, CentralPanel, Button};
 use egui_plot::{Plot, Line, PlotPoints};
 use std::time::{Duration, Instant};
+use std::sync::{Arc, Mutex}; // ✅ Add this
 
 pub struct Visualization {
-    audio: AudioProcessor,
+    audio: Arc<Mutex<AudioProcessor>>,
     is_listening: bool,
     is_file_mode: bool,  // ✅ Toggle between live input & file
     last_analysis_time: Instant,
@@ -14,7 +15,7 @@ pub struct Visualization {
 impl Visualization {
     pub fn new() -> Self {
         Self {
-            audio: AudioProcessor::new(),
+            audio: Arc::new(Mutex::new(AudioProcessor::new())),
             is_listening: false,
             is_file_mode: false,  // ✅ Default to live input
             last_analysis_time: Instant::now(),
@@ -49,13 +50,13 @@ impl eframe::App for Visualization {
             ui.heading("Live Audio Visualization");
 
             if ui.button("🎤 Listen").clicked() {
-                self.audio.start_listening();
+                self.audio.lock().unwrap().start_listening();
                 self.is_listening = true;
             }
             if ui.button("🛑 Stop Listening").clicked() {
-                self.audio.stop_listening();
+                self.audio.lock().unwrap().stop_listening();
                 self.is_listening = false;
-                self.audio.play_recorded_audio(); // ✅ Play recorded sound after stopping
+                self.audio.lock().unwrap().play_recorded_audio(); // ✅ Play recorded sound after stopping
             }
 
             if ui.button("🔄 Toggle Live/File").clicked() {
@@ -63,15 +64,16 @@ impl eframe::App for Visualization {
             }
 
             if ui.button("📊 Analyse").clicked() {
-                let dominant_freq = *self.audio.dominant_frequency.lock().unwrap();
+                let dominant_freq = *self.audio.lock().unwrap().dominant_frequency.lock().unwrap();
                 self.last_chord = Visualization::detect_chord(dominant_freq);
                 println!("Detected Chord: {}", self.last_chord);
             }
 
-            let waveform_data = self.audio.waveform.lock().unwrap();
-            let fft_data = self.audio.fft_result.lock().unwrap();
-            let dominant_freq = *self.audio.dominant_frequency.lock().unwrap();
-
+            let audio = self.audio.lock().unwrap();
+            let waveform_data = audio.waveform.lock().unwrap();
+            let fft_data = audio.fft_result.lock().unwrap();
+            let dominant_freq = *audio.dominant_frequency.lock().unwrap();
+            
             Plot::new("Waveform").show(ui, |plot_ui| {
                 let points = PlotPoints::new(
                     waveform_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
