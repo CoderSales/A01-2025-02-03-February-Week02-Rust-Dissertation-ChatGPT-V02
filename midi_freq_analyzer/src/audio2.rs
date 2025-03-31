@@ -4,6 +4,10 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::fs::File;
 use std::io::{BufReader, Write};
 use rodio::{Decoder, OutputStream, Sink};
+use std::fmt::Debug;
+use std::time::Instant;
+
+
 
 const CHUNK_SIZE: usize = 256;
 const SAMPLE_RATE: f64 = 44100.0;
@@ -39,22 +43,64 @@ impl AudioProcessor2 {
         let recorded_audio_clone = Arc::clone(&self.recorded_audio);
 
         let host = cpal::default_host();
-        let device = host.default_input_device().expect("No input device found");
+        println!("🔍 Available input devices:");
+
+
+        let devices = host.input_devices().unwrap().collect::<Vec<_>>();
+
+        println!("🔎 Input Devices:");
+        for (i, d) in devices.iter().enumerate() {
+            println!("{}: 🎙️ {}", i, d.name().unwrap());
+        }
+
+        let device = devices[0].clone(); // try 0, 1, or 2
+        //  🎧 Got 960 samples. First: [0.013, 0.015, ...]
+
+        for device in host.input_devices().unwrap() {
+            println!("🎙️ {}", device.name().unwrap());
+        }
+
+        println!("❓ Select input device index:");
+        let devices: Vec<_> = host.input_devices().unwrap().collect();
+        for (i, d) in devices.iter().enumerate() {
+            println!("{i}: 🎙️ {}", d.name().unwrap());
+        }
+        use std::io::{self, Write};
+        print!("Enter input device number: ");
+        io::stdout().flush().unwrap();
+        let mut choice = String::new();
+        io::stdin().read_line(&mut choice).unwrap();
+        let index: usize = choice.trim().parse().expect("Invalid number");
+        let device = devices.get(index).expect("Invalid index").clone();
+        println!("🎤 Using: {}", device.name().unwrap());
+        // let config: cpal::StreamConfig = cpal::StreamConfig {
+        //     channels: 1,
+        //     sample_rate: cpal::SampleRate(44100),
+        //     buffer_size: cpal::BufferSize::Fixed(2048),
+        // };
         let config = device.default_input_config().unwrap().into();
+        
+        println!("🔧 Input config: {:?}", &config);
+
+        println!("🔍 All available input devices:");
+        for (i, device) in host.input_devices().unwrap().enumerate() {
+            println!("{}: 🎙️ {}", i, device.name().unwrap());
+        }
+        
 
         let stream = device.build_input_stream(
             &config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
                 let mut waveform_data = waveform_clone.lock().unwrap();
                 let mut recorded_audio = recorded_audio_clone.lock().unwrap();
-
+                
                 waveform_data.clear();
                 for chunk in data.chunks(2) {
-                    if let [_, right] = chunk {
-                        waveform_data.push(*right as f64);
+                    if let [left, _right] = chunk {
+                        waveform_data.push(*left as f64);
                     }
                 }
-                
+                                                
                 recorded_audio.extend(data.iter());
 
                 let mut fft_data = fft_result_clone.lock().unwrap();
@@ -62,6 +108,17 @@ impl AudioProcessor2 {
 
                 let mut dominant_freq = dominant_frequency_clone.lock().unwrap();
                 *dominant_freq = AudioProcessor2::find_dominant_frequency(&fft_data);
+
+                static mut LAST_AUDIO_TIME: Option<Instant> = None;
+                
+                let now = Instant::now();
+                unsafe {
+                    if let Some(prev) = LAST_AUDIO_TIME {
+                        println!("🔁 Audio frame Δt = {:?}", now.duration_since(prev));
+                    }
+                    LAST_AUDIO_TIME = Some(now);
+                }
+                
                 println!("🎧 Got {} samples. First: {:?}", data.len(), &data[..5.min(data.len())]);
             },
             |err| eprintln!("Stream error: {:?}", err),

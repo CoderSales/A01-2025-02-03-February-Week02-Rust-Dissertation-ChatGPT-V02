@@ -61,6 +61,7 @@ mod list_inputs; // add at top
 use crate::list_inputs::print_input_devices;
 
 use midi_freq_analyzer::gui_main::{launch_gui, AudioApp};
+use crate::visualization::Visualization;
 mod config;
 
 mod helpers;
@@ -81,32 +82,120 @@ mod audio2;
 
 
 
-fn main() {
-    print_cli_line("hello test");
-    print_input_devices(); // always runs at start
+// fn main() {
+//     println!("🎬 Creating Visualization app...");
 
-    let panicked_threads = create_panicked_threads();
-    let panicked_threads_clone = Arc::clone(&panicked_threads);
+//     // 👇 Run CLI audio logic in background thread
+//     std::thread::spawn(|| {
+//         print_cli_line("hello test");
+//         print_input_devices();
 
-    let (output_gain, input_gain) = create_gain_controls();
+//         let panicked_threads = create_panicked_threads();
+//         let (output_gain, input_gain) = create_gain_controls();
+//         let clone = Arc::clone(&panicked_threads);
+//         spawn_audio_thread(&clone, &output_gain, &input_gain);
+//     });
 
-    // 👇 Spawn background audio thread using cloned gains
+//     // 👇 Run GUI
+//     let app = Visualization::new();
+//     let native_options = eframe::NativeOptions::default();
 
-    spawn_audio_thread(&panicked_threads_clone, &output_gain, &input_gain);
+//     if let Err(e) = eframe::run_native(
+//         "Audio Analyzer",
+//         native_options,
+//         Box::new(|_cc| Ok(Box::new(app))),
+//     ) {
+//         eprintln!("Error running eframe: {}", e);
+//     }
 
-    // 👇 GUI uses same gains
-    // launch_gui_safely(output_gain, input_gain);
-    use visualization::Visualization;
-    let native_options = eframe::NativeOptions::default();
-    eframe::run_native("Audio Analyzer", native_options, Box::new(|_| Ok(Box::new(Visualization::new()))));
+
+//     // print_cli_line("hello test");
+//     print_input_devices(); // always runs at start
+
+//     let panicked_threads = create_panicked_threads();
+//     let panicked_threads_clone = Arc::clone(&panicked_threads);
+
+//     let (output_gain, input_gain) = create_gain_controls();
+
+//     // 👇 Spawn background audio thread using cloned gains
+
+//     // spawn_audio_thread(&panicked_threads_clone, &output_gain, &input_gain);
+
+//     // 👇 GUI uses same gains
+//     // launch_gui_safely(output_gain, input_gain);
+    
+    
+//     // use visualization::Visualization;
     
 
-    let program_start = Instant::now(); // ✅ Fix: Declare inside main()
-    let host = cpal::default_host(); // ✅ Define `host` first
+
+//     // let native_options = eframe::NativeOptions::default();
+    
+    
+    
+//     // eframe::run_native("Audio Analyzer", native_options, Box::new(|_| Ok(Box::new(Visualization::new()))));
+    
+
+//     let program_start = Instant::now(); // ✅ Fix: Declare inside main()
+//     // let host = cpal::default_host(); // ✅ Define `host` first
             
-    // ✅ Move logging into a separate thread
+//     // // ✅ Move logging into a separate thread
     
-    let device = select_input_device();
-    spawn_logger_thread(program_start);
+//     // let device = select_input_device();
+//     spawn_logger_thread(program_start);
+// }
+
+// ------------------------------------------------------------------
+
+// fn main() {
+//     println!("🎬 Creating Visualization app...");
+
+//     let program_start = Instant::now(); // 👈 place here
+
+//     // CLI background
+//     std::thread::spawn(move || {
+//         print_cli_line("hello test");
+//         print_input_devices();
+
+//         let panicked_threads = create_panicked_threads();
+//         let (output_gain, input_gain) = create_gain_controls();
+//         let clone = Arc::clone(&panicked_threads);
+//         spawn_audio_thread(&clone, &output_gain, &input_gain);
+
+//         spawn_logger_thread(program_start);
+//     });
+
+//     // GUI
+//     let app = Visualization::new();
+//     let native_options = eframe::NativeOptions::default();
+//     if let Err(e) = eframe::run_native(
+//         "Audio Analyzer",
+//         native_options,
+//         Box::new(|_cc| Ok(Box::new(app))),
+//     ) {
+//         eprintln!("Error running eframe: {}", e);
+//     }
+// }
+
+fn main() {
+    let app = Visualization::new();
+    let native_options = eframe::NativeOptions::default();
+    
+    if let Err(e) = eframe::run_native(
+        "Audio Analyzer",
+        native_options,
+        Box::new(|_cc| Ok(Box::new(app))),
+    ) {
+        eprintln!("Error running eframe: {}", e);
+    }    
 }
 
+// struct BasicApp;
+
+// impl eframe::App for BasicApp {
+//     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+//         egui::CentralPanel::default().show(ctx, |ui| {
+//             ui.label("🚀 GUI is working");
+//         });
+//     }
+// }
