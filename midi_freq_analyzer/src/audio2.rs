@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 use rustfft::{FftPlanner, num_complex::Complex};
+use midi_freq_analyzer::device_routing::{select_input_device, select_output_device};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::fs::File;
 use std::io::{BufReader, Write};
@@ -53,7 +54,8 @@ impl AudioProcessor2 {
             println!("{}: 🎙️ {}", i, d.name().unwrap());
         }
 
-        let device = devices[0].clone(); // try 0, 1, or 2
+        // let device = devices[0].clone(); // try 0, 1, or 2
+        let device = select_input_device(&host);
         //  🎧 Got 960 samples. First: [0.013, 0.015, ...]
 
         for device in host.input_devices().unwrap() {
@@ -119,7 +121,10 @@ impl AudioProcessor2 {
                     LAST_AUDIO_TIME = Some(now);
                 }
                 
-                println!("🎧 Got {} samples. First: {:?}", data.len(), &data[..5.min(data.len())]);
+                use std::io::{stdout, Write};
+                let amp = data.iter().fold(0.0_f32, |a, &b| a.max(b.abs()));
+                print!("\r🎧 in: {:.6}  ", amp);
+                stdout().flush().unwrap();
             },
             |err| eprintln!("Stream error: {:?}", err),
             None,
@@ -139,9 +144,13 @@ impl AudioProcessor2 {
     }
 
     pub fn play_recorded_audio(&self) {
-        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        use cpal::default_host;
+        let host = default_host();
+        let output_device = select_output_device(&host);
+        let (_stream, stream_handle) = OutputStream::try_from_device(&output_device).unwrap();
+        println!("🔊 Output device: {}", output_device.name().unwrap());
         let sink = Sink::try_new(&stream_handle).unwrap();
-
+        
         let recorded_audio = self.recorded_audio.lock().unwrap();
 
         let path = "recorded_audio.wav";

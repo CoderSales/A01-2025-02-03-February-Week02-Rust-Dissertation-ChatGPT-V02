@@ -11,3 +11,4 @@ pub mod bitrate;
 pub mod constants;
 pub mod stream_setup;
 pub mod mutex_handling;
+pub mod device_routing;
