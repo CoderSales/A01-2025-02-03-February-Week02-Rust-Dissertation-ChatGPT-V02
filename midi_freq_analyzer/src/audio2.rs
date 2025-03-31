@@ -55,12 +55,46 @@ impl AudioProcessor2 {
         }
 
         // let device = devices[0].clone(); // try 0, 1, or 2
-        let device = select_input_device(&host);
+        // let device = select_input_device(&host);
         //  🎧 Got 960 samples. First: [0.013, 0.015, ...]
 
-        for device in host.input_devices().unwrap() {
-            println!("🎙️ {}", device.name().unwrap());
+        let maybe_device = host.input_devices().unwrap().find(|d| {
+            let name = d.name().unwrap_or_default();
+            name.contains("Headset") || name.contains("Microphone") || name.contains("Array")
+        });
+        
+        let device = match maybe_device {
+            Some(d) => {
+                println!("✅ Auto-selected: {}", d.name().unwrap_or_default());
+                d
+            },
+            None => {
+                println!("❓ Select input device index:");
+                let devices: Vec<_> = host.input_devices().unwrap().collect();
+                for (i, d) in devices.iter().enumerate() {
+                    println!("{i}: 🎙️ {}", d.name().unwrap());
+                }
+                use std::io::{self, Write};
+                print!("Enter input device number: ");
+                io::stdout().flush().unwrap();
+                let mut choice = String::new();
+                io::stdin().read_line(&mut choice).unwrap();
+                let index: usize = choice.trim().parse().expect("Invalid number");
+                devices.get(index).expect("Invalid index").clone()
+            }
+        };
+        
+
+        println!("🔎 Input Devices:");
+        for (i, device) in host.input_devices().unwrap().enumerate() {
+            println!("{}: 🎙️ {}", i, device.name().unwrap());
         }
+        
+        println!("🔊 Output Devices:");
+        for (i, device) in host.output_devices().unwrap().enumerate() {
+            println!("{}: 🔈 {}", i, device.name().unwrap());
+        }
+        
 
         println!("❓ Select input device index:");
         let devices: Vec<_> = host.input_devices().unwrap().collect();
@@ -131,6 +165,9 @@ impl AudioProcessor2 {
         ).unwrap();
 
         println!("🚀 Before stream.play()");
+        let output_device = select_output_device(&host);
+        println!("🎯 Selected output: {}", output_device.name().unwrap());
+        
         stream.play().unwrap();
         println!("✅ After stream.play()");
 
