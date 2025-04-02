@@ -75,6 +75,8 @@ use helpers::create_gain_controls;
 use midi_freq_analyzer::output_handler::print_cli_line;
 use midi_freq_analyzer::audio_io::start_audio_io;
 use midi_freq_analyzer::output_handler::*;
+use eframe::egui::ViewportBuilder;
+
 
 mod output_handler;
 mod visualization;
@@ -177,17 +179,25 @@ mod audio2;
 //     }
 // }
 
+
+
 fn main() {
     let app = Visualization::new();
-    let native_options = eframe::NativeOptions::default();
-    
-    if let Err(e) = eframe::run_native(
+    let native_options = eframe::NativeOptions {
+        viewport: eframe::egui::ViewportBuilder::default()
+            .with_inner_size([800.0, 600.0])
+            .with_decorations(true),
+        renderer: eframe::Renderer::Glow,
+        ..Default::default()
+    };
+
+    let result = eframe::run_native(
         "Audio Analyzer",
         native_options,
         Box::new(|_cc| Ok(Box::new(app))),
-    ) {
-        eprintln!("Error running eframe: {}", e);
-    }    
+    );
+
+    eprintln!("🎯 run_native result = {:?}", result);
 }
 
 // struct BasicApp;

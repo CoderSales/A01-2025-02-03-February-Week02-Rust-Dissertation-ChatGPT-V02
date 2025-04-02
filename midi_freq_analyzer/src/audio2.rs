@@ -133,14 +133,31 @@ impl AudioProcessor2 {
                 waveform_data.clear();
                 for chunk in data.chunks(2) {
                     if let [left, _right] = chunk {
+                        // println!("🎙️ incoming left = {}", left);
                         waveform_data.push(*left as f64);
+                        // println!("after waveform_data.push(*left as f64);");
+                        // println!("🛠 finished one input callback frame");
                     }
                 }
                                                 
                 recorded_audio.extend(data.iter());
 
                 let mut fft_data = fft_result_clone.lock().unwrap();
-                *fft_data = AudioProcessor2::compute_fft(&waveform_data);
+                let spectrum = AudioProcessor2::compute_fft(&waveform_data);
+                let threshold = 0.01; // tune as needed
+                let sustained: Vec<(usize, f64)> = spectrum
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, &mag)| mag > threshold)
+                    .map(|(i, &mag)| (i, mag))
+                    .collect();
+                
+                if let Some((i, _)) = sustained.first() {
+                    let freq = *i as f64 * SAMPLE_RATE / CHUNK_SIZE as f64;
+                    println!("🎵 First sustained frequency: {:.2} Hz", freq);
+                }
+                *fft_data = spectrum;
+                
 
                 let mut dominant_freq = dominant_frequency_clone.lock().unwrap();
                 *dominant_freq = AudioProcessor2::find_dominant_frequency(&fft_data);

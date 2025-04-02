@@ -1,0 +1,328 @@
+diff --git a/midi_freq_analyzer/src/audio2.rs b/midi_freq_analyzer/src/audio2.rs
+index 89c22b8..a6ec8a7 100644
+--- a/midi_freq_analyzer/src/audio2.rs
++++ b/midi_freq_analyzer/src/audio2.rs
+@@ -140,7 +140,21 @@ impl AudioProcessor2 {
+                 recorded_audio.extend(data.iter());
+ 
+                 let mut fft_data = fft_result_clone.lock().unwrap();
+-                *fft_data = AudioProcessor2::compute_fft(&waveform_data);
++                let spectrum = AudioProcessor2::compute_fft(&waveform_data);
++                let threshold = 0.01; // tune as needed
++                let sustained: Vec<(usize, f64)> = spectrum
++                    .iter()
++                    .enumerate()
++                    .filter(|(_, &mag)| mag > threshold)
++                    .map(|(i, &mag)| (i, mag))
++                    .collect();
++                
++                if let Some((i, _)) = sustained.first() {
++                    let freq = *i as f64 * SAMPLE_RATE / CHUNK_SIZE as f64;
++                    println!("🎵 First sustained frequency: {:.2} Hz", freq);
++                }
++                *fft_data = spectrum;
++                
+ 
+                 let mut dominant_freq = dominant_frequency_clone.lock().unwrap();
+                 *dominant_freq = AudioProcessor2::find_dominant_frequency(&fft_data);
+diff --git a/midi_freq_analyzer/src/visualization.rs b/midi_freq_analyzer/src/visualization.rs
+index bcd8717..7efec2c 100644
+--- a/midi_freq_analyzer/src/visualization.rs
++++ b/midi_freq_analyzer/src/visualization.rs
+@@ -52,161 +52,161 @@
+     }
+ 
+     impl eframe::App for Visualization {
+-    //     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+-    //         if self.is_listening {
+-    //             let _ = self.audio.lock().unwrap().start_listening();
+-    //         }        
+-    //         if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+-    //             // ⬇️ your original update() content
++        fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
++            if self.is_listening {
++                let _ = self.audio.lock().unwrap().start_listening();
++            }        
++            if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
++                // ⬇️ your original update() content
+         
+-    //             CentralPanel::default().show(ctx, |ui| {
+-    //                 ui.heading("Live Audio Visualization");
+-
+-    //                 if ui.button("🎤 Listen").clicked() {
+-    //                     println!("🎤 Listen button pressed!");
+-    //                     self.audio.lock().unwrap().start_listening();
+-    //                     self.is_listening = true;
+-    //                 }
+-    //                 if ui.button("🛑 Stop Listening").clicked() {
+-    //                     self.audio.lock().unwrap().stop_listening();
+-    //                     self.is_listening = false;
+-    //                     self.audio.lock().unwrap().play_recorded_audio(); // ✅ Play recorded sound after stopping
+-    //                 }
+-
+-    //                 if ui.button("🔄 Toggle Live/File").clicked() {
+-    //                     self.is_file_mode = !self.is_file_mode;
+-    //                 }
+-
+-    //                 if ui.button("📊 Analyse").clicked() {
+-    //                     let dominant_freq: f64 = *self.audio.lock().unwrap().dominant_frequency.lock().unwrap();
+-    //                     self.last_chord = Visualization::detect_chord(dominant_freq);
+-    //                     ui.label(format!("🎵 Chord: {}", self.last_chord));                
+-    //                 }
+-
+-    //                 let audio = self.audio.lock().unwrap();
+-
+-    //                 let raw_data = audio.waveform.lock().unwrap().clone();
+-    //                 let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs())).max(1e-9);
+-    //                 let normalized: Vec<f64> = raw_data.iter().map(|x| x / max_amp).collect();
+-    //                 let mean = normalized.iter().copied().sum::<f64>() / normalized.len().max(1) as f64;
+-    //                 let centered = normalized.iter().map(|x| x - mean).collect::<Vec<f64>>();
+-    //                 let waveform_data: Vec<f64> = centered.iter().map(|x| x.clamp(-1.0, 1.0)).collect();
++                CentralPanel::default().show(ctx, |ui| {
++                    ui.heading("Live Audio Visualization");
++
++                    if ui.button("🎤 Listen").clicked() {
++                        println!("🎤 Listen button pressed!");
++                        self.audio.lock().unwrap().start_listening();
++                        self.is_listening = true;
++                    }
++                    if ui.button("🛑 Stop Listening").clicked() {
++                        self.audio.lock().unwrap().stop_listening();
++                        self.is_listening = false;
++                        self.audio.lock().unwrap().play_recorded_audio(); // ✅ Play recorded sound after stopping
++                    }
++
++                    if ui.button("🔄 Toggle Live/File").clicked() {
++                        self.is_file_mode = !self.is_file_mode;
++                    }
++
++                    if ui.button("📊 Analyse").clicked() {
++                        let dominant_freq: f64 = *self.audio.lock().unwrap().dominant_frequency.lock().unwrap();
++                        self.last_chord = Visualization::detect_chord(dominant_freq);
++                        ui.label(format!("🎵 Chord: {}", self.last_chord));                
++                    }
++
++                    let audio = self.audio.lock().unwrap();
++
++                    let raw_data = audio.waveform.lock().unwrap().clone();
++                    let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs())).max(1e-9);
++                    let normalized: Vec<f64> = raw_data.iter().map(|x| x / max_amp).collect();
++                    let mean = normalized.iter().copied().sum::<f64>() / normalized.len().max(1) as f64;
++                    let centered = normalized.iter().map(|x| x - mean).collect::<Vec<f64>>();
++                    let waveform_data: Vec<f64> = centered.iter().map(|x| x.clamp(-1.0, 1.0)).collect();
+                     
+-    //                 let fft_data = audio.fft_result.lock().unwrap();
+-    //                 let dominant_freq = *audio.dominant_frequency.lock().unwrap();
++                    let fft_data = audio.fft_result.lock().unwrap();
++                    let dominant_freq = *audio.dominant_frequency.lock().unwrap();
+                     
+-    //                 Plot::new("Waveform").show(ui, |plot_ui| {
+-    //                     let points = PlotPoints::new(
+-    //                         waveform_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
+-    //                     );
+-    //                     plot_ui.line(Line::new(points).name("Waveform"));
+-    //                 });
+-
+-    //                 Plot::new("FFT").show(ui, |plot_ui| {
+-    //                     let points = PlotPoints::new(
+-    //                         fft_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
+-    //                     );
+-    //                     plot_ui.line(Line::new(points).name("FFT"));
+-    //                 });
+-
+-    //                 let (peak_index, _) = fft_data
+-    //                     .iter()
+-    //                     .enumerate()
+-    //                     .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+-    //                     .unwrap_or((0, &0.0));
+-
+-    //                 let peak_freq = peak_index as f64 * 44100.0 / 512.0; // SAMPLE_RATE / CHUNK_SIZE
+-
+-    //                 Plot::new("Peak Frequency").show(ui, |plot_ui| {
+-    //                     let points = PlotPoints::new(
+-    //                         fft_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
+-    //                     );
+-    //                     plot_ui.line(Line::new(points).name("FFT"));
++                    Plot::new("Waveform").show(ui, |plot_ui| {
++                        let points = PlotPoints::new(
++                            waveform_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
++                        );
++                        plot_ui.line(Line::new(points).name("Waveform"));
++                    });
++
++                    Plot::new("FFT").show(ui, |plot_ui| {
++                        let points = PlotPoints::new(
++                            fft_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
++                        );
++                        plot_ui.line(Line::new(points).name("FFT"));
++                    });
++
++                    let (peak_index, _) = fft_data
++                        .iter()
++                        .enumerate()
++                        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
++                        .unwrap_or((0, &0.0));
++
++                    let peak_freq = peak_index as f64 * 44100.0 / 512.0; // SAMPLE_RATE / CHUNK_SIZE
++
++                    Plot::new("Peak Frequency").show(ui, |plot_ui| {
++                        let points = PlotPoints::new(
++                            fft_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
++                        );
++                        plot_ui.line(Line::new(points).name("FFT"));
+                     
+-    //                     let (peak_index, _) = fft_data
+-    //                         .iter()
+-    //                         .enumerate()
+-    //                         .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+-    //                         .unwrap_or((0, &0.0));
++                        let (peak_index, _) = fft_data
++                            .iter()
++                            .enumerate()
++                            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
++                            .unwrap_or((0, &0.0));
+                     
+-    //                     let peak_freq = peak_index as f64 * 44100.0 / 512.0;
++                        let peak_freq = peak_index as f64 * 44100.0 / 512.0;
+                     
+-    //                     plot_ui.text(
+-    //                         Text::new(
+-    //                             PlotPoint::new(peak_index as f64, fft_data[peak_index]),
+-    //                             format!("Peak: {:.2} Hz", peak_freq),
+-    //                         )
+-    //                         .color(Color32::YELLOW)
+-    //                         .anchor(egui::Align2::CENTER_TOP),
+-    //                     );
+-    //                 });
++                        plot_ui.text(
++                            Text::new(
++                                PlotPoint::new(peak_index as f64, fft_data[peak_index]),
++                                format!("Peak: {:.2} Hz", peak_freq),
++                            )
++                            .color(Color32::YELLOW)
++                            .anchor(egui::Align2::CENTER_TOP),
++                        );
++                    });
+ 
+-    //                 let freq = *self.audio.lock().unwrap().dominant_frequency.lock().unwrap();
+-    //                 self.last_chord = Visualization::detect_chord(freq);
++                    let freq = *self.audio.lock().unwrap().dominant_frequency.lock().unwrap();
++                    self.last_chord = Visualization::detect_chord(freq);
+ 
+-    //                 ui.label(format!("🎯 Frequency: {:.2} Hz", freq));
+-    //                 ui.label(format!("🎸 Chord: {}", self.last_chord));
++                    ui.label(format!("🎯 Frequency: {:.2} Hz", freq));
++                    ui.label(format!("🎸 Chord: {}", self.last_chord));
+ 
+ 
+-    //                 println!("🔍 First 5 samples: {:?}", &waveform_data[..5.min(waveform_data.len())]);
++                    println!("🔍 First 5 samples: {:?}", &waveform_data[..5.min(waveform_data.len())]);
+ 
+-    //                 ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
+-    //                 ui.label(format!("Detected Chord: {}", self.last_chord));
+-    //             });
++                    ui.label(format!("Dominant Frequency: {:.2} Hz", dominant_freq));
++                    ui.label(format!("Detected Chord: {}", self.last_chord));
++                });
+ 
+-    //             ctx.request_repaint();
+-    //         })) {
+-    //             eprintln!("💥 GUI crashed: {:?}", e);
+-    //     }
+-    // }
+-
+-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+-        if self.is_listening {
+-            println!("🎙️ Triggering start_listening()");
+-            let _ = self.audio.lock().unwrap().start_listening();
+-            self.is_listening = false; // prevent repeated calls
++                ctx.request_repaint();
++            })) {
++                eprintln!("💥 GUI crashed: {:?}", e);
+         }
++    }
++
++    // fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
++    //     if self.is_listening {
++    //         println!("🎙️ Triggering start_listening()");
++    //         let _ = self.audio.lock().unwrap().start_listening();
++    //         self.is_listening = false; // prevent repeated calls
++    //     }
+         
+-        egui::CentralPanel::default().show(ctx, |ui| {
+-            let audio = self.audio.lock().unwrap();
+-            let raw_data = audio.waveform.lock().unwrap().clone();
++    //     egui::CentralPanel::default().show(ctx, |ui| {
++    //         let audio = self.audio.lock().unwrap();
++    //         let raw_data = audio.waveform.lock().unwrap().clone();
+     
+-            // let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs())).max(1e-9);
+-            // println!("🔍 Raw samples: {:?}", &raw_data[..5.min(raw_data.len())]);
+-            // let normalized: Vec<f64> = raw_data.iter().map(|x| x / max_amp).collect();
+-            // let mean = normalized.iter().copied().sum::<f64>() / normalized.len().max(1) as f64;
+-            // let centered = normalized.iter().map(|x| x - mean).collect::<Vec<f64>>();
+-            // let waveform_data: Vec<f64> = centered.iter().map(|x| x.clamp(-1.0, 1.0)).collect();
++    //         // let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs())).max(1e-9);
++    //         // println!("🔍 Raw samples: {:?}", &raw_data[..5.min(raw_data.len())]);
++    //         // let normalized: Vec<f64> = raw_data.iter().map(|x| x / max_amp).collect();
++    //         // let mean = normalized.iter().copied().sum::<f64>() / normalized.len().max(1) as f64;
++    //         // let centered = normalized.iter().map(|x| x - mean).collect::<Vec<f64>>();
++    //         // let waveform_data: Vec<f64> = centered.iter().map(|x| x.clamp(-1.0, 1.0)).collect();
+ 
+-            let mean = raw_data.iter().copied().sum::<f64>() / raw_data.len().max(1) as f64;
+-            let centered: Vec<f64> = raw_data.iter().map(|x| x - mean).collect();
+-            let waveform_data: Vec<f64> = centered.iter().cloned().collect();
++    //         let mean = raw_data.iter().copied().sum::<f64>() / raw_data.len().max(1) as f64;
++    //         let centered: Vec<f64> = raw_data.iter().map(|x| x - mean).collect();
++    //         let waveform_data: Vec<f64> = centered.iter().cloned().collect();
+ 
+ 
+-            let points = PlotPoints::new(
+-                waveform_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
+-            );
++    //         let points = PlotPoints::new(
++    //             waveform_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
++    //         );
+     
+-            Plot::new("Waveform")
+-                .include_y(-1.0)
+-                .include_y(1.0)
+-                .show(ui, |plot_ui| {
+-                    plot_ui.line(Line::new(points).name("Waveform"));
+-            });
+-        });
+-
+-        static mut LAST_GUI_TIME: Option<Instant> = None;
+-
+-        let now = Instant::now();
+-        unsafe {
+-            if let Some(prev) = LAST_GUI_TIME {
+-                println!("⏱ GUI frame Δt = {:?}", now.duration_since(prev));
+-            }
+-            LAST_GUI_TIME = Some(now);
+-        }
++    //         Plot::new("Waveform")
++    //             .include_y(-1.0)
++    //             .include_y(1.0)
++    //             .show(ui, |plot_ui| {
++    //                 plot_ui.line(Line::new(points).name("Waveform"));
++    //         });
++    //     });
++
++    //     static mut LAST_GUI_TIME: Option<Instant> = None;
++
++    //     let now = Instant::now();
++    //     unsafe {
++    //         if let Some(prev) = LAST_GUI_TIME {
++    //             println!("⏱ GUI frame Δt = {:?}", now.duration_since(prev));
++    //         }
++    //         LAST_GUI_TIME = Some(now);
++    //     }
+ 
+-        ctx.request_repaint(); // <-- force live repainting
+-    }
++    //     ctx.request_repaint(); // <-- force live repainting
++    // }
+             
+ 
+ }
