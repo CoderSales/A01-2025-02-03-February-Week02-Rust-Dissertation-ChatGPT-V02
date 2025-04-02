@@ -1,52 +1,3 @@
-    use crate::audio2::AudioProcessor2;
-    use eframe::egui::{self, CentralPanel, Button};
-    // use egui_plot::{Plot, Line, PlotPoints};
-    use egui_plot::{Plot, Line, PlotPoints, PlotPoint, Text};
-    use std::time::{Duration, Instant};
-    use std::sync::{Arc, Mutex};
-    use egui::{Color32, Align2};
-    use crate::constants::MIN_NORMALIZATION_AMPLITUDE;
-    use crate::config::SAMPLE_RATE;
-
-
-
-
-
-
-    pub struct Visualization {
-        audio: Arc<Mutex<AudioProcessor2>>,
-        is_listening: bool,
-        is_file_mode: bool,  // ✅ Toggle between live input & file
-        last_analysis_time: Instant,
-        last_chord: String,
-    }
-
-    impl Visualization {
-        pub fn new() -> Self {
-            // println!("✅ Visualization::new() started");
-            Self {
-                audio: Arc::new(Mutex::new(AudioProcessor2::new())),
-                is_listening: true,
-                is_file_mode: false,  // ✅ Default to live input
-                last_analysis_time: Instant::now(),
-                last_chord: "Unknown".to_string(),
-            }
-        }
-
-        fn detect_chord(frequency: f64) -> String {
-            let note_frequencies = [
-                ("C", 261.63), ("C#", 277.18), ("D", 293.66), ("D#", 311.13),
-                ("E", 329.63), ("F", 349.23), ("F#", 369.99), ("G", 392.00),
-                ("G#", 415.30), ("A", 440.00), ("A#", 466.16), ("B", 493.88),
-            ];
-            
-            let mut closest_note = "Unknown";
-            let mut min_diff = f64::MAX;
-
-            for (note, freq) in note_frequencies.iter() {
-                let diff = (freq - frequency).abs();
-                if diff < min_diff {
-                    min_diff = diff;
                     closest_note = note;
                 }
             }
@@ -133,82 +84,82 @@
                 //     // let waveform_data: Vec<f64> = vec![-20.0; 512];
 
                                             
-                // plot.show(ui, |_plot_ui| {});
+                plot.show(ui, |_plot_ui| {});
 
-                //             ui.label("📉 Skipped plot rendering (testing)");
-
-
-                //             ui.label("Time (ms)");
-                //             ui.label("Amplitude (dB)"); // TODO: add dB scale
-                //             ui.horizontal(|row| {
-                //                 row.label("Time (ms)");
-                //                 row.separator();
-                //                 row.label("Amplitude (dB)");
-                //             });
-
-                //             // start of moved code inside of closure.
-
-                //             let waveform_data: Vec<f64> = vec![-40.0; 512];
+                            ui.label("📉 Skipped plot rendering (testing)");
 
 
-                //             // println!("📉 Waveform (5): {:?}", &waveform_data[..5.min(waveform_data.len())]);
+                            ui.label("Time (ms)");
+                            ui.label("Amplitude (dB)"); // TODO: add dB scale
+                            ui.horizontal(|row| {
+                                row.label("Time (ms)");
+                                row.separator();
+                                row.label("Amplitude (dB)");
+                            });
+
+                            // start of moved code inside of closure.
+
+                            let waveform_data: Vec<f64> = vec![-40.0; 512];
+
+
+                            // println!("📉 Waveform (5): {:?}", &waveform_data[..5.min(waveform_data.len())]);
         
                             
-                //             let fft_data = self.audio.lock().unwrap().fft_result.lock().unwrap();
-                //             let dominant_freq = *self.audio.lock().unwrap().dominant_frequency.lock().unwrap();
+                            let fft_data = self.audio.lock().unwrap().fft_result.lock().unwrap();
+                            let dominant_freq = *self.audio.lock().unwrap().dominant_frequency.lock().unwrap();
                             
-                //             // // Waveform plot:
-                //             // Plot::new("Waveform (dB)")
-                //             //     .include_y(-80.0)
-                //             //     .include_y(0.0)
-                //             //     .show(ui, |plot_ui| {
-                //             //     let points = PlotPoints::new(
-                //             //         waveform_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
-                //             //     );
-                //             //     plot_ui.line(Line::new(points).name("Waveform"));
-                //             // });
+                            // // Waveform plot:
+                            // Plot::new("Waveform (dB)")
+                            //     .include_y(-80.0)
+                            //     .include_y(0.0)
+                            //     .show(ui, |plot_ui| {
+                            //     let points = PlotPoints::new(
+                            //         waveform_data.iter().enumerate().map(|(i, &y)| [i as f64, y]).collect()
+                            //     );
+                            //     plot_ui.line(Line::new(points).name("Waveform"));
+                            // });
         
-                //             // let points = PlotPoints::new(
-                //             //     waveform_data
-                //             //         .iter()
-                //             //         .enumerate()
-                //             //         // .map(|(i, &y)| [i as f64, y])
-                //             //         .map(|(i, &y)| [(i as f64 * 1000.0 / SAMPLE_RATE as f64), y])
-                //             //         // .map(|(i, &y)| [i as f64 * 1000.0 / SAMPLE_RATE as f64, y as f64])
-                //             //         // .map(|(i, &y)| [(i as f64 * 1000.0 / SAMPLE_RATE), y])
+                            // let points = PlotPoints::new(
+                            //     waveform_data
+                            //         .iter()
+                            //         .enumerate()
+                            //         // .map(|(i, &y)| [i as f64, y])
+                            //         .map(|(i, &y)| [(i as f64 * 1000.0 / SAMPLE_RATE as f64), y])
+                            //         // .map(|(i, &y)| [i as f64 * 1000.0 / SAMPLE_RATE as f64, y as f64])
+                            //         // .map(|(i, &y)| [(i as f64 * 1000.0 / SAMPLE_RATE), y])
         
         
-                //             //         .collect::<Vec<[f64; 2]>>(),
-                //             // );
-                //             let points = PlotPoints::new(
-                //                 (0..512).map(|x| [x as f64, -40.0]).collect::<Vec<[f64; 2]>>()
-                //             );
+                            //         .collect::<Vec<[f64; 2]>>(),
+                            // );
+                            let points = PlotPoints::new(
+                                (0..512).map(|x| [x as f64, -40.0]).collect::<Vec<[f64; 2]>>()
+                            );
                             
         
         
-                //             println!("✅ update() line 157");
+                            println!("✅ update() line 157");
         
-                //             let plot = Plot::new("Waveform (dB)")
-                //                 .include_y(-120.0)
-                //                 .include_y(0.0)
-                //                 .label_formatter(|name, value| {
-                //                     format!("{name}: {:.1} ms, {:.1} dB", value.x, value.y)
-                //                 });
+                            let plot = Plot::new("Waveform (dB)")
+                                .include_y(-120.0)
+                                .include_y(0.0)
+                                .label_formatter(|name, value| {
+                                    format!("{name}: {:.1} ms, {:.1} dB", value.x, value.y)
+                                });
         
 
-                //             // end of moved code inside of closure.
+                            // end of moved code inside of closure.
 
-                //             ui.allocate_ui_with_layout(
-                //                 egui::vec2(ui.available_width(), 300.0),
-                //                 egui::Layout::top_down(egui::Align::LEFT),
-                //                 |ui| {
+                            ui.allocate_ui_with_layout(
+                                egui::vec2(ui.available_width(), 300.0),
+                                egui::Layout::top_down(egui::Align::LEFT),
+                                |ui| {
         
-                //                     // plot.show(ui, |plot_ui| {
-                //                     //     plot_ui.line(Line::new(points).name("Waveform"));
-                //                     // });
+                                    // plot.show(ui, |plot_ui| {
+                                    //     plot_ui.line(Line::new(points).name("Waveform"));
+                                    // });
         
-                //         },
-                //     );
+                        },
+                    );
                                         
 
 
@@ -285,35 +236,12 @@
                     if ui.button("🔄 Toggle Live/File").clicked() {
                         println!("🔄 Toggle clicked");
                     }
+                    
                     if ui.button("📊 Analyse").clicked() {
                         println!("📊 Analyse clicked");
-                    }
-                
-                    let waveform_data: Vec<f64> = vec![-40.0; 512];
-                    let points = PlotPoints::new(
-                        waveform_data.iter().enumerate()
-                            .map(|(i, &y)| [(i as f64 * 1000.0 / SAMPLE_RATE as f64), y])
-                            .collect()
-                    );
-                
-                    let plot = Plot::new("Waveform (dB)")
-                        .include_y(-120.0)
-                        .include_y(0.0)
-                        .label_formatter(|name, value| {
-                            format!("{name}: {:.1} ms, {:.1} dB", value.x, value.y)
-                        });
-                
-                    ui.allocate_ui_with_layout(
-                        egui::vec2(ui.available_width(), 300.0),
-                        egui::Layout::top_down(egui::Align::LEFT),
-                        |ui| {
-                            plot.show(ui, |plot_ui| {
-                                plot_ui.line(Line::new(points).name("Waveform"));
-                            });
-                        },
-                    );
+                    }                    
                 });
-                                               
+                                
 
                 // ctx.request_repaint();
 
@@ -383,17 +311,3 @@
             
 
 }
-
-
-    // impl Visualization {
-    //     pub fn new() -> Self {
-    //         println!("✅ Visualization::new() started");
-    //         Self {
-    //             audio: Arc::new(Mutex::new(AudioProcessor2::new())),
-    //             is_listening: true,
-    //             is_file_mode: false,
-    //             last_analysis_time: Instant::now(),
-    //             last_chord: "Unknown".to_string(),
-    //         }
-    //     }
-    // }

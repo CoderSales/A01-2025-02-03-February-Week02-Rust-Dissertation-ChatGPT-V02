@@ -10,10 +10,12 @@ use std::time::Instant;
 
 
 
+
 const CHUNK_SIZE: usize = 256;
 const SAMPLE_RATE: f64 = 44100.0;
 
 pub struct AudioProcessor2 {
+    pub gain: f64,
     pub waveform: Arc<Mutex<Vec<f64>>>,
     pub fft_result: Arc<Mutex<Vec<f64>>>,
     pub dominant_frequency: Arc<Mutex<f64>>,
@@ -29,6 +31,7 @@ impl AudioProcessor2 {
         let recorded_audio = Arc::new(Mutex::new(Vec::new()));
 
         Self {
+            gain: 1.0,
             waveform,
             fft_result,
             dominant_frequency,
