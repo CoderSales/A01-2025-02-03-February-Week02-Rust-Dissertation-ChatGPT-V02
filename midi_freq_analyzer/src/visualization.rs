@@ -289,7 +289,15 @@
                         println!("📊 Analyse clicked");
                     }
                 
-                    let waveform_data: Vec<f64> = vec![-40.0; 512];
+                    let audio = self.audio.lock().unwrap();
+                    let raw_data = audio.waveform.lock().unwrap().clone();
+                    let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs())).max(1e-12_f64);
+                    let normalized: Vec<f64> = raw_data.iter().map(|x| x / max_amp).collect();
+                    let centered = normalized.iter().map(|x| x - normalized.iter().copied().sum::<f64>() / normalized.len().max(1) as f64).collect::<Vec<f64>>();
+                    let waveform_data: Vec<f64> = centered.iter().map(|x| {
+                        let amp = x.abs().clamp(1e-12, 1.0);
+                        20.0 * amp.log10()
+                    }).collect();
                     let points = PlotPoints::new(
                         waveform_data.iter().enumerate()
                             .map(|(i, &y)| [(i as f64 * 1000.0 / SAMPLE_RATE as f64), y])
