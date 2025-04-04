@@ -148,7 +148,21 @@
 
                 //             // start of moved code inside of closure.
 
-                //             let waveform_data: Vec<f64> = vec![-40.0; 512];
+                            // let waveform_data: Vec<f64> = vec![-40.0; 512];
+
+                            let raw_data = self.audio.lock().unwrap().waveform.lock().unwrap().clone();
+                            let gain = self.audio.lock().unwrap().gain;
+                            // let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs())).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(1e-12);
+                            let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs()));
+
+                            let normalized: Vec<f64> = raw_data.iter().map(|x| x * gain / max_amp).collect();
+                            let waveform_data: Vec<f64> = normalized
+                                .iter()
+                                .map(|x| {
+                                    let amp = x.abs().clamp(1e-12, 1.0);
+                                    20.0 * amp.log10()
+                                })
+                                .collect();
 
 
                 //             // println!("📉 Waveform (5): {:?}", &waveform_data[..5.min(waveform_data.len())]);

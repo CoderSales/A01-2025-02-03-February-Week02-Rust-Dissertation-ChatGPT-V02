@@ -1,0 +1,9 @@
+error[E0599]: `f64` is not an iterator
+   --> src\visualization.rs:155:105
+    |
+155 | ...                   let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs())).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(1e-12);
+    |                                                                                                   ^^^^^^ `f64` is not an iterator
+    |
+    = note: the following trait bounds were not satisfied:
+            `f64: Iterator`
+            which is required by `&mut f64: Iterator`

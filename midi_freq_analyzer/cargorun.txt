@@ -1,0 +1,106 @@
+     Running `target\debug\midi_freq_analyzer.exe`
+✅ update() entered
+🔍 Available input devices:
+🔎 Input Devices:
+0: 🎙️ Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: 🎙️ Stereo Mix (Realtek(R) Audio)
+2: 🎙️ CABLE Output (VB-Audio Virtual Cable)
+✅ Auto-selected: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+🔎 Input Devices:
+0: 🎙️ Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: 🎙️ Stereo Mix (Realtek(R) Audio)
+2: 🎙️ CABLE Output (VB-Audio Virtual Cable)
+🔊 Output Devices:
+0: 🔈 CABLE Input (VB-Audio Virtual Cable)
+1: 🔈 Speakers (Realtek(R) Audio)
+2: 🔈 FxSound Speakers (FxSound Audio Enhancer)
+❓ Select input device index:
+0: 🎙️ Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: 🎙️ Stereo Mix (Realtek(R) Audio)
+2: 🎙️ CABLE Output (VB-Audio Virtual Cable)
+Enter input device number: 0
+🎤 Using: Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+🔧 Input config: StreamConfig { channels: 2, sample_rate: SampleRate(48000), buffer_size: Default }
+🔍 All available input devices:
+0: 🎙️ Microphone Array (Intel® Smart Sound Technology for Digital Microphones)
+1: 🎙️ Stereo Mix (Realtek(R) Audio)
+2: 🎙️ CABLE Output (VB-Audio Virtual Cable)
+🚀 Before stream.play()
+🔊 Routing to built-in speakers: Speakers (Realtek(R) Audio)
+🎯 Selected output: Speakers (Realtek(R) Audio)
+✅ After stream.play()
+🎧 in: 0.000000  🔁 Audio frame Δt = 10.6818ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 9.4998ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 9.82ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 10.0158ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 9.6005ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 10.4471ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 10.0212ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 9.7581ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 10.5914ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 9.3056ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 10.4685ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 10.6752ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 9.211ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 10.1107ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 12.4953ms
+🎧 in: 0.000000  🔁 Audio frame Δt = 7.1193ms
+🎧 in: 0.000001  🔁 Audio frame Δt = 12.8438ms
+🎧 in: 0.000007  🔁 Audio frame Δt = 7.1664ms
+🎧 in: 0.000089  🔁 Audio frame Δt = 12.8733ms
+🎧 in: 0.000053  🔁 Audio frame Δt = 9.8523ms
+🎧 in: 0.000020  🔁 Audio frame Δt = 7.4282ms
+🎧 in: 0.000224  🔁 Audio frame Δt = 14.5709ms
+🎧 in: 0.000215  🔁 Audio frame Δt = 7.3448ms
+🎧 in: 0.000220  🔁 Audio frame Δt = 7.9997ms
+🎧 in: 0.000225  🔁 Audio frame Δt = 12.7041ms
+🎧 in: 0.000214  🔁 Audio frame Δt = 7.0921ms
+🎧 in: 0.000179  🔁 Audio frame Δt = 12.4544ms
+🎧 in: 0.000205  🔁 Audio frame Δt = 9.6054ms
+🎧 in: 0.000206  🔁 Audio frame Δt = 7.8559ms
+🎧 in: 0.000163  🔁 Audio frame Δt = 13.2077ms
+🎧 in: 0.000232  🔁 Audio frame Δt = 9.268ms
+🎧 in: 0.000237  🔁 Audio frame Δt = 7.9553ms
+🎧 in: 0.000253  🔁 Audio frame Δt = 11.5149ms
+🎧 in: 0.000184  🎵 First sustained frequency: 172.27 Hz
+🔁 Audio frame Δt = 8.4464ms
+🎧 in: 0.000197  🔁 Audio frame Δt = 12.2824ms
+🎧 in: 0.000179  🎵 First sustained frequency: 172.27 Hz
+🔁 Audio frame Δt = 10.514ms
+🎧 in: 0.000184  🔁 Audio frame Δt = 7.2398ms
+🎧 in: 0.000135  🎵 First sustained frequency: 0.00 Hz
+🔁 Audio frame Δt = 12.8014ms
+🎧 in: 0.000204  ✅ update() entered
+🔁 Audio frame Δt = 9.4691ms
+🎧 in: 0.000235  ✅ update() entered
+🎵 First sustained frequency: 172.27 Hz
+🔁 Audio frame Δt = 7.7564ms
+🎧 in: 0.000219  ✅ update() entered
+🎵 First sustained frequency: 172.27 Hz
+🔁 Audio frame Δt = 12.9905ms
+🎧 in: 0.001157  ✅ update() entered
+🎵 First sustained frequency: 0.00 Hz
+🔁 Audio frame Δt = 8.1353ms
+🎧 in: 0.001264  🎵 First sustained frequency: 0.00 Hz
+🔁 Audio frame Δt = 10.7036ms
+🎧 in: 0.001727  ✅ update() entered
+🎵 First sustained frequency: 0.00 Hz
+🔁 Audio frame Δt = 11.0457ms
+🎧 in: 0.001575  🎵 First sustained frequency: 172.27 Hz
+🔁 Audio frame Δt = 6.9057ms
+🎧 in: 0.001591  ✅ update() entered
+🎵 First sustained frequency: 0.00 Hz
+🔁 Audio frame Δt = 13.7353ms
+🎧 in: 0.001602  🎵 First sustained frequency: 0.00 Hz
+🔁 Audio frame Δt = 9.9186ms
+🎧 in: 0.001914  🎵 First sustained frequency: 0.00 Hz
+🔁 Audio frame Δt = 6.1855ms
+🎧 in: 0.001036  ✅ update() entered
+🎵 First sustained frequency: 172.27 Hz
+🔁 Audio frame Δt = 13.4867ms
+🎧 in: 0.000500  🎵 First sustained frequency: 344.53 Hz
+🔁 Audio frame Δt = 6.7304ms
+🎧 in: 0.000256  ✅ update() entered
+🔁 Audio frame Δt = 11.5646ms
+🎧 in: 0.000069  ✅ update() entered
+🔁 Audio frame Δt = 11.624ms
