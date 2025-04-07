@@ -41,14 +41,10 @@ impl AudioApp {
             let waveform = self.waveform.update_return(&locked);
             self.waveform.gui().show_plot(ui, &waveform);
             self.frequency.show(ui, &locked);
+            ctx.request_repaint();
 
             // TODO: Add GUI toggles, EQ sliders, visual thresholds, etc.
         });
     }
 }
 
-impl eframe::App for AudioApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.ui(ctx);
-    }
-}

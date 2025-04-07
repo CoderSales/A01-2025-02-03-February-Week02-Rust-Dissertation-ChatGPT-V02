@@ -20,6 +20,7 @@ mod pipeline {
 }
 mod app {
     pub mod main_ui;
+    pub mod app_runner;
 }
 
 use app::main_ui::AudioApp;
