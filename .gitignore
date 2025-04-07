@@ -28,3 +28,4 @@ mwe_project/
 ignored/
 request.txt
 recorded_audio.wav
+*.txt
