@@ -14,7 +14,7 @@ impl WaveformGui {
 
     pub fn display(&self, waveform: &Waveform) {
         // Placeholder: Hook into egui drawing context elsewhere
-        println!("Waveform length: {}", waveform.samples.len());
+        // println!("Waveform length: {}", waveform.samples.len());
     }
 
     pub fn show_plot(&self, ui: &mut Ui, waveform: &Waveform) {
