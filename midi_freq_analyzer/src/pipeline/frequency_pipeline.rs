@@ -20,7 +20,6 @@ impl FrequencyPipeline {
     pub fn update(&mut self, buffer: &AudioBuffer) {
         let bands: FrequencyBands = self.analytics.process(buffer);
         // GUI drawing expected in UI context externally
-        // println!("Freq Bands: L {:.2}, M {:.2}, H {:.2}", bands.low, bands.mid, bands.high);
     }
 
     pub fn show(&self, ui: &mut egui::Ui, buffer: &AudioBuffer) {
