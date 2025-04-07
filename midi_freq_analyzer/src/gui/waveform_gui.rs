@@ -3,6 +3,7 @@
 use eframe::egui::{self, Color32, Ui};
 use crate::analytics::waveform_analytics::Waveform;
 use egui_plot::{Plot, Line, PlotPoints};
+use crate::analytics::note_label::frequency_to_note;
 
 
 pub struct WaveformGui;
@@ -14,7 +15,7 @@ impl WaveformGui {
 
     pub fn display(&self, waveform: &Waveform) {
         // Placeholder: Hook into egui drawing context elsewhere
-    }
+        }
 
     pub fn show_plot(&self, ui: &mut Ui, waveform: &Waveform) {
 
@@ -32,5 +33,8 @@ impl WaveformGui {
         .show(ui, |plot_ui| {
             plot_ui.line(line);
         });
+        let note_text = frequency_to_note(440.0);
+        ui.label(note_text);
+
     }
 }

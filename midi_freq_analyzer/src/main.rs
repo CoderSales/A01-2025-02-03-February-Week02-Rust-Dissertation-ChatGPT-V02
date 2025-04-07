@@ -9,6 +9,7 @@ mod buffer;
 mod analytics {
     pub mod waveform_analytics;
     pub mod frequency_analytics;
+    pub mod note_label;
 }
 mod gui {
     pub mod waveform_gui;
