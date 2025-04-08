@@ -62,14 +62,24 @@ impl WaveformPipeline {
 
     pub fn y_range(&mut self) -> f32 {
         let now = Instant::now();
-        if now.duration_since(self.last_y_update) > Duration::from_secs(2) {
-            let max = self.recent_peaks.iter().copied().fold(0.0, f32::max);
-            self.smoothed_y = (max * 1.2).clamp(0.001, 1.0);
+        let max = self.recent_peaks.iter().copied().fold(0.0, f32::max);
+        let target = (max * 1.2).clamp(0.001, 1.0);
+    
+        let elapsed = now.duration_since(self.last_y_update);
+        let rise_fast = elapsed >= Duration::from_millis(100);
+        let fall_slow = elapsed >= Duration::from_secs(10);
+    
+        if rise_fast && target > self.smoothed_y {
+            self.smoothed_y = target;
+            self.last_y_update = now;
+        } else if fall_slow && target < self.smoothed_y {
+            self.smoothed_y *= 0.95;
             self.last_y_update = now;
         }
+    
         self.smoothed_y
     }
-        
+            
     
     
 }
