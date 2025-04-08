@@ -9,13 +9,16 @@ use crate::analytics::waveform_analytics::Waveform;
 pub struct WaveformPipeline {
     analytics: WaveformAnalytics,
     gui: WaveformGui,
+    recent_peaks: Vec<f32>,
 }
 
 impl WaveformPipeline {
+
     pub fn new() -> Self {
         Self {
             analytics: WaveformAnalytics::new(),
             gui: WaveformGui::new(),
+            recent_peaks: Vec::with_capacity(100),
         }
     }
 
@@ -36,15 +39,27 @@ impl WaveformPipeline {
         self.analytics.process(buffer)
     }
 
-    pub fn latest_peak(&self, buffer: &AudioBuffer) -> f32 {
+    pub fn latest_peak(&mut self, buffer: &AudioBuffer) -> f32 {
         let waveform = self.analytics.process(buffer);
-        waveform
+        let peak = waveform
             .samples
             .iter()
             .copied()
             .map(f32::abs)
-            .fold(0.0, f32::max)
+            .fold(0.0, f32::max);
+        if self.recent_peaks.len() >= 100 {
+            self.recent_peaks.remove(0);
+        }
+        self.recent_peaks.push(peak);
+        peak
     }
+
+    pub fn y_range(&self) -> f32 {
+        let max = self.recent_peaks.iter().copied().fold(0.0, f32::max);
+        (max * 1.2).clamp(0.001, 1.0)
+    }
+    
+    
     
 }
 

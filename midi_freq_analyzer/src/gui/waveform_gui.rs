@@ -8,6 +8,7 @@ use crate::pipeline::waveform_pipeline::WaveformPipeline;
 use crate::buffer::AudioBuffer;
 
 
+
 pub struct WaveformGui;
 
 impl WaveformGui {
@@ -19,8 +20,13 @@ impl WaveformGui {
         // Placeholder: Hook into egui drawing context elsewhere
         }
 
-    pub fn show_plot(&self, ui: &mut Ui, waveform: &Waveform, buffer: &AudioBuffer) {
-
+        pub fn show_plot(
+            &self,
+            ui: &mut Ui,
+            waveform: &Waveform,
+            buffer: &AudioBuffer,
+            pipeline: &WaveformPipeline,
+        ) {        
         let points: PlotPoints = waveform
             .samples
             .iter()
@@ -29,9 +35,12 @@ impl WaveformGui {
             .collect();
 
         let line = Line::new(points).color(Color32::RED);
+        let y = pipeline.y_range();
         Plot::new("Waveform")
-        .include_y(-0.002)
-        .include_y(0.002)
+        .include_y(-y)
+        .include_y(y)
+        .include_x(0.0)
+        .include_x(500.0)
         .show(ui, |plot_ui| {
             plot_ui.line(line);
         });
