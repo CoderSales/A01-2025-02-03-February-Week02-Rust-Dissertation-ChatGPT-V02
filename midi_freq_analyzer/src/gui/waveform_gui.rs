@@ -25,7 +25,8 @@ impl WaveformGui {
             ui: &mut Ui,
             waveform: &Waveform,
             buffer: &AudioBuffer,
-            pipeline: &WaveformPipeline,
+            y: f32,
+            note_text: &str,
         ) {        
         let points: PlotPoints = waveform
             .samples
@@ -35,7 +36,6 @@ impl WaveformGui {
             .collect();
 
         let line = Line::new(points).color(Color32::RED);
-        let y = pipeline.y_range();
         Plot::new("Waveform")
         .include_y(-y)
         .include_y(y)
@@ -44,8 +44,6 @@ impl WaveformGui {
         .show(ui, |plot_ui| {
             plot_ui.line(line);
         });
-        let freq = WaveformPipeline::new().latest_peak(buffer);
-        let note_text = frequency_to_note(freq);
         ui.label(note_text);        
 
     }

@@ -1,9 +1,24 @@
-error[E0599]: `f64` is not an iterator
-   --> src\visualization.rs:155:105
-    |
-155 | ...                   let max_amp = raw_data.iter().cloned().fold(0.0_f64, |a, b| a.max(b.abs())).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(1e-12);
-    |                                                                                                   ^^^^^^ `f64` is not an iterator
-    |
-    = note: the following trait bounds were not satisfied:
-            `f64: Iterator`
-            which is required by `&mut f64: Iterator`
+error[E0425]: cannot find value `pipeline` in this scope
+  --> src\gui\waveform_gui.rs:39:17
+   |
+39 |         let y = pipeline.y_range();
+   |                 ^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `pipeline` in this scope
+  --> src\gui\waveform_gui.rs:48:20
+   |
+48 |         let freq = pipeline.latest_peak(buffer);
+   |                    ^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `frequency_to_note` in this scope
+  --> src\app\main_ui.rs:45:29
+   |
+45 |             let note_text = frequency_to_note(freq);
+   |                             ^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing one of these functions
+   |
+3  + use crate::analytics::note_label::frequency_to_note;
+   |
+3  + use midi_freq_analyzer::notes::frequency_to_note;
+   |

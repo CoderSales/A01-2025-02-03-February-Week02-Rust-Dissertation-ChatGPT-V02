@@ -4,12 +4,16 @@ use crate::buffer::AudioBuffer;
 use crate::analytics::waveform_analytics::WaveformAnalytics;
 use crate::gui::waveform_gui::WaveformGui;
 use crate::analytics::waveform_analytics::Waveform;
+use std::time::{Instant, Duration};
+
 
 
 pub struct WaveformPipeline {
     analytics: WaveformAnalytics,
     gui: WaveformGui,
     recent_peaks: Vec<f32>,
+    last_y_update: Instant,
+    smoothed_y: f32,
 }
 
 impl WaveformPipeline {
@@ -19,6 +23,8 @@ impl WaveformPipeline {
             analytics: WaveformAnalytics::new(),
             gui: WaveformGui::new(),
             recent_peaks: Vec::with_capacity(100),
+            last_y_update: Instant::now(),
+            smoothed_y: 0.01,
         }
     }
 
@@ -54,11 +60,16 @@ impl WaveformPipeline {
         peak
     }
 
-    pub fn y_range(&self) -> f32 {
-        let max = self.recent_peaks.iter().copied().fold(0.0, f32::max);
-        (max * 1.2).clamp(0.001, 1.0)
+    pub fn y_range(&mut self) -> f32 {
+        let now = Instant::now();
+        if now.duration_since(self.last_y_update) > Duration::from_secs(2) {
+            let max = self.recent_peaks.iter().copied().fold(0.0, f32::max);
+            self.smoothed_y = (max * 1.2).clamp(0.001, 1.0);
+            self.last_y_update = now;
+        }
+        self.smoothed_y
     }
-    
+        
     
     
 }

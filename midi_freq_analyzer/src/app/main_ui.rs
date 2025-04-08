@@ -6,6 +6,8 @@ use crate::pipeline::waveform_pipeline::WaveformPipeline;
 use crate::pipeline::frequency_pipeline::FrequencyPipeline;
 use crate::audio::audio_input::start_input_stream;
 use std::sync::{Arc, Mutex};
+use crate::analytics::note_label::frequency_to_note;
+
 
 pub struct AudioApp {
     waveform: WaveformPipeline,
@@ -39,7 +41,15 @@ impl AudioApp {
             self.waveform.update(&locked);
             self.frequency.update(&locked);
             let waveform = self.waveform.update_return(&locked);
-            self.waveform.gui().show_plot(ui, &waveform, &locked, &self.waveform);
+            let waveform = self.waveform.update_return(&locked);
+            let y = self.waveform.y_range();
+            let freq = self.waveform.latest_peak(&locked);
+            let note_text = frequency_to_note(freq);
+            
+            self.waveform
+                .gui()
+                .show_plot(ui, &waveform, &locked, y, &note_text);
+            
             self.frequency.show(ui, &locked);
             ctx.request_repaint();
 
