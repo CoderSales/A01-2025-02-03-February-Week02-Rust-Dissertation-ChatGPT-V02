@@ -4,6 +4,8 @@ use eframe::egui::{self, Color32, Ui};
 use crate::analytics::waveform_analytics::Waveform;
 use egui_plot::{Plot, Line, PlotPoints};
 use crate::analytics::note_label::frequency_to_note;
+use crate::pipeline::waveform_pipeline::WaveformPipeline;
+use crate::buffer::AudioBuffer;
 
 
 pub struct WaveformGui;
@@ -17,7 +19,7 @@ impl WaveformGui {
         // Placeholder: Hook into egui drawing context elsewhere
         }
 
-    pub fn show_plot(&self, ui: &mut Ui, waveform: &Waveform) {
+    pub fn show_plot(&self, ui: &mut Ui, waveform: &Waveform, buffer: &AudioBuffer) {
 
         let points: PlotPoints = waveform
             .samples
@@ -33,8 +35,9 @@ impl WaveformGui {
         .show(ui, |plot_ui| {
             plot_ui.line(line);
         });
-        let note_text = frequency_to_note(440.0);
-        ui.label(note_text);
+        let freq = WaveformPipeline::new().latest_peak(buffer);
+        let note_text = frequency_to_note(freq);
+        ui.label(note_text);        
 
     }
 }

@@ -35,4 +35,17 @@ impl WaveformPipeline {
     pub fn update_return(&self, buffer: &AudioBuffer) -> Waveform {
         self.analytics.process(buffer)
     }
+
+    pub fn latest_peak(&self, buffer: &AudioBuffer) -> f32 {
+        let waveform = self.analytics.process(buffer);
+        waveform
+            .samples
+            .iter()
+            .copied()
+            .map(f32::abs)
+            .fold(0.0, f32::max)
+    }
+    
 }
+
+

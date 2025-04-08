@@ -39,7 +39,7 @@ impl AudioApp {
             self.waveform.update(&locked);
             self.frequency.update(&locked);
             let waveform = self.waveform.update_return(&locked);
-            self.waveform.gui().show_plot(ui, &waveform);
+            self.waveform.gui().show_plot(ui, &waveform, &locked);
             self.frequency.show(ui, &locked);
             ctx.request_repaint();
 
