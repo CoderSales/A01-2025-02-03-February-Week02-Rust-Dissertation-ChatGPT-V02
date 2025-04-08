@@ -30,8 +30,8 @@ impl WaveformGui {
 
         let line = Line::new(points).color(Color32::RED);
         Plot::new("Waveform")
-        .include_y(-1.0)
-        .include_y(1.0)
+        .include_y(-0.002)
+        .include_y(0.002)
         .show(ui, |plot_ui| {
             plot_ui.line(line);
         });
