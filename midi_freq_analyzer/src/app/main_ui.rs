@@ -7,6 +7,7 @@ use crate::pipeline::frequency_pipeline::FrequencyPipeline;
 use crate::audio::audio_input::start_input_stream;
 use std::sync::{Arc, Mutex};
 use crate::analytics::note_label::frequency_to_note;
+use crate::cli_log::log_status;
 
 
 pub struct AudioApp {
@@ -45,6 +46,7 @@ impl AudioApp {
             let y = self.waveform.y_range();
             let freq = self.waveform.latest_peak(&locked);
             let note_text = frequency_to_note(freq);
+            log_status(&format!("smoothed_y: {:.4} | Note: {}", y, note_text));
             
             self.waveform
                 .gui()

@@ -1,4 +1,6 @@
-// src/main2.rs
+// src/main.rs
+
+mod cli_log;
 
 mod audio {
     pub mod audio_input;
