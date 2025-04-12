@@ -249,23 +249,23 @@ impl WaveformPipeline {
             frequency_to_note(third_freq),
         ];
         
-        let chord = if notes.iter().any(|n| n == "C")
-            && notes.iter().any(|n| n == "E")
-            && notes.iter().any(|n| n == "G")
-        {
-            "C Major"
-        } else {
-            "---"
-        };
+        // let chord: &str = if notes.iter().any(|n| n == "C")
+        //     && notes.iter().any(|n| n == "E")
+        //     && notes.iter().any(|n| n == "G")
+        // {
+        //     "C Major"
+        // } else {
+        //     "---"
+        // };
         
-        let chord = if notes.iter().any(|n| n == "C")
-        && notes.iter().any(|n| n == "E")
-        && notes.iter().any(|n| n == "G")
-        {
-            "C Major"
-        } else {
-            "---"
-        };
+        // let chord: &str = if notes.iter().any(|n| n == "C")
+        // && notes.iter().any(|n| n == "E")
+        // && notes.iter().any(|n| n == "G")
+        // {
+        //     "C Major"
+        // } else {
+        //     "---"
+        // };
 
         // log_status(&format!(
         //     "... || Chord: {}",
@@ -286,12 +286,38 @@ impl WaveformPipeline {
         //     third_freq, 
         //     third_note,
         //     chord
-        // ));
+        // ));  
+
+
+        let mut freqs = vec![
+            (freq, frequency_to_note(freq)),
+            (secondary_freq, frequency_to_note(secondary_freq)),
+            (third_freq, frequency_to_note(third_freq)),
+        ];
+
+        // Sort by frequency
+        freqs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+
+        // Extract just note names without (Hz)
+        let just_notes: Vec<String> = freqs
+            .iter()
+            .map(|(_, s)| Self::base_note_name(s).to_string())
+            .collect();
+            
+        // Chord detection
+        let chord = if just_notes.contains(&"C".to_string())
+            && just_notes.contains(&"E".to_string())
+            && just_notes.contains(&"G".to_string())
+        {
+            "C Major"
+        } else {
+            "---"
+        };
 
 
 
         log_status(&format!(
-            "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({}) || 3rd: {:>7.1} Hz ({}) || Chord: {:<8}",
+            "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({}) || 3rd: {:>7.1} Hz ({}) || Chord: {:<8} || Notes: {:?}",
             self.smoothed_y,
             freq,
             frequency_to_note(freq),
@@ -301,9 +327,10 @@ impl WaveformPipeline {
             frequency_to_note(secondary_freq),
             third_freq,
             frequency_to_note(third_freq),
-            chord
+            chord,
+            just_notes
         ));
-        
+                
         // optionally log - End.
         self.avg_freq = 0.9 * self.avg_freq + 0.1 * freq;
         self.avg_bin = 0.9 * self.avg_bin + 0.1 * true_peak;
@@ -313,7 +340,10 @@ impl WaveformPipeline {
         
     }
     
-
+    fn base_note_name(s: &str) -> &str {
+        s.split_whitespace().next().unwrap_or("---")
+    }
+    
     
 }
 
