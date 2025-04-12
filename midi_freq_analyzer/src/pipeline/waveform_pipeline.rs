@@ -6,6 +6,7 @@ use crate::gui::waveform_gui::WaveformGui;
 use crate::analytics::waveform_analytics::Waveform;
 use std::time::{Instant, Duration};
 use rustfft::{FftPlanner, num_complex::Complex};
+use std::io::{stdout, Write};
 
 
 
@@ -82,13 +83,16 @@ impl WaveformPipeline {
     }
             
     
-    pub fn dominant_frequency(&self, buffer: &AudioBuffer) -> f32 {
+    pub fn dominant_frequency(&self, buffer: &AudioBuffer) -> (f32, usize) {
         let samples = &buffer.samples;
         if samples.iter().all(|&x| x.abs() < 1e-6) {
-            return 0.0;
+            return (0.0, 0);
         }
     
-        let len = samples.len().next_power_of_two();
+        // let len = samples.len().next_power_of_two();
+        // let len = 16_384;
+        let len = samples.len().next_power_of_two() * 64 *2;
+
         let mut input: Vec<Complex<f32>> = samples
             .iter()
             .cloned()
@@ -111,10 +115,12 @@ impl WaveformPipeline {
         // Estimate sample rate based on 480 samples at 48kHz → 10ms
         let sample_rate = 48000.0;
         let freq = (peak as f32 * sample_rate) / len as f32;
+        // print!("\rlen: {} | peak_bin: {} | freq: {:.1} Hz    ", len, peak, freq);
+        // stdout().flush().unwrap();
         return if freq < 20.0 || freq > 5000.0 {
-            0.0
+            (0.0, len)
         } else {
-            freq
+            (freq, len)
         };
     }
     

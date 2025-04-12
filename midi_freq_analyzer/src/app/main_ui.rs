@@ -42,12 +42,20 @@ impl AudioApp {
             self.waveform.update(&locked);
             self.frequency.update(&locked);
             let waveform = self.waveform.update_return(&locked);
-            let waveform = self.waveform.update_return(&locked);
-            let y = self.waveform.y_range();
-            let freq = self.waveform.dominant_frequency(&locked);
+            let y: f32 = self.waveform.y_range();
+            let (freq, len) = self.waveform.dominant_frequency(&locked);
+            let bin_width = 48_000.0 / len as f32;
+            let bin_est = (freq / bin_width).round();
             let note_text = frequency_to_note(freq);
-            log_status(&format!("smoothed_y: {:.4} | Note: {}", y, note_text));
+            let note_text_fmt = format!("{:<8}", note_text);
+            let bin_width = 48_000.0 / len as f32;
+            let bin_est = (freq / bin_width).round();
             
+            log_status(&format!(
+                "smoothed_y: {:>7.4} | Note: {} | freq: {:>9.1} Hz | bin est: {:>4} | bin_w: {:>12.8}",
+                y, note_text_fmt, freq, bin_est, bin_width
+            ));
+                                                            
             self.waveform
                 .gui()
                 .show_plot(ui, &waveform, &locked, y, &note_text);
