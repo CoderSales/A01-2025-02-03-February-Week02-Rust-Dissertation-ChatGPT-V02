@@ -44,7 +44,7 @@ impl AudioApp {
             let waveform = self.waveform.update_return(&locked);
             let waveform = self.waveform.update_return(&locked);
             let y = self.waveform.y_range();
-            let freq = self.waveform.latest_peak(&locked);
+            let freq = self.waveform.dominant_frequency(&locked);
             let note_text = frequency_to_note(freq);
             log_status(&format!("smoothed_y: {:.4} | Note: {}", y, note_text));
             
