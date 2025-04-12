@@ -241,20 +241,69 @@ impl WaveformPipeline {
             return (0.0, len);
         }
 
+
+
+        let notes: Vec<String> = vec![
+            frequency_to_note(freq),
+            frequency_to_note(secondary_freq),
+            frequency_to_note(third_freq),
+        ];
+        
+        let chord = if notes.iter().any(|n| n == "C")
+            && notes.iter().any(|n| n == "E")
+            && notes.iter().any(|n| n == "G")
+        {
+            "C Major"
+        } else {
+            "---"
+        };
+        
+        let chord = if notes.iter().any(|n| n == "C")
+        && notes.iter().any(|n| n == "E")
+        && notes.iter().any(|n| n == "G")
+        {
+            "C Major"
+        } else {
+            "---"
+        };
+
+        // log_status(&format!(
+        //     "... || Chord: {}",
+        //     chord
+        // ));
+
+
         // optionally log:
+        // log_status(&format!(
+        //     "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({} || 3rd: {:>7.1} Hz ({}) || Chord: {:<8}",
+        //     self.smoothed_y,
+        //     freq,
+        //     frequency_to_note(freq),
+        //     (freq / (48000.0 / len as f32)).round(),
+        //     48000.0 / len as f32,
+        //     secondary_freq,
+        //     secondary_note, 
+        //     third_freq, 
+        //     third_note,
+        //     chord
+        // ));
+
+
+
         log_status(&format!(
-            "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({} || 3rd: {:>7.1} Hz ({})",
+            "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({}) || 3rd: {:>7.1} Hz ({}) || Chord: {:<8}",
             self.smoothed_y,
             freq,
             frequency_to_note(freq),
-            (freq / (48000.0 / len as f32)).round(),
-            48000.0 / len as f32,
+            (freq / bin_w).round(),
+            bin_w,
             secondary_freq,
-            secondary_note, 
-            third_freq, 
-            third_note
+            frequency_to_note(secondary_freq),
+            third_freq,
+            frequency_to_note(third_freq),
+            chord
         ));
-                        
+        
         // optionally log - End.
         self.avg_freq = 0.9 * self.avg_freq + 0.1 * freq;
         self.avg_bin = 0.9 * self.avg_bin + 0.1 * true_peak;
