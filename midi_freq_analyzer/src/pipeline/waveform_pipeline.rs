@@ -126,9 +126,33 @@ impl WaveformPipeline {
             .unwrap_or(0);
 
         // Zero out ±2 bins around primary
-        for i in primary.saturating_sub(10)..=(primary + 100).min(len / 2 - 1) {
-            mags[i] = 0.0;
-        }        
+        // for i in primary.saturating_sub(10)..=(primary + 100).min(len / 2 - 1) {
+        //     mags[i] = 0.0;
+        // }        
+
+        let sample_rate = 48000.0;
+
+        let bin_w = sample_rate / len as f32;
+
+
+        let primary_freq = primary as f32 * bin_w;
+        let min_gap_hz = 100.0;
+
+        let mags: Vec<f32> = magnitudes
+            .iter()
+            .enumerate()
+            .map(|(i, &m)| {
+                let f = i as f32 * bin_w;
+                if (f - primary_freq).abs() < min_gap_hz {
+                    0.0
+                } else {
+                    m
+                }
+            })
+            .collect();
+
+
+
 
         let secondary = mags
             .iter()
@@ -144,8 +168,6 @@ impl WaveformPipeline {
         let secondary_shift = 0.0; // You can later apply interpolation like primary
         let secondary_bin = secondary as f32 + secondary_shift;
 
-        let sample_rate = 48000.0;
-        let bin_w = sample_rate / len as f32;
 
         let secondary_freq = (secondary_bin * sample_rate) / len as f32;
         let secondary_note = frequency_to_note(secondary_freq);
