@@ -55,10 +55,10 @@ impl AudioApp {
                 format!("{:<14}", "---")
             };
             
-            log_status(&format!(
-                "smoothed_y: {:>7.4} | Note: {} | freq: {:>10.1} Hz | bin est: {:>4} | bin_w: {:>13.8}",
-                y, note_text_fmt, freq, bin_est, bin_width
-            ));
+            // log_status(&format!(
+            //     "smoothed_y: {:>7.4} | Note: {} | freq: {:>10.1} Hz | bin est: {:>4} | bin_w: {:>13.8}",
+            //     y, note_text_fmt, freq, bin_est, bin_width
+            // ));
                                                                                     
             waveform_pipeline
                 .gui()

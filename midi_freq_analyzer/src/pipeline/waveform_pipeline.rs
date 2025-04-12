@@ -7,7 +7,8 @@ use crate::analytics::waveform_analytics::Waveform;
 use std::time::{Instant, Duration};
 use rustfft::{FftPlanner, num_complex::Complex};
 use std::io::{stdout, Write};
-
+use crate::analytics::note_label::frequency_to_note; // frequency_to_note
+use crate::cli_log::log_status; // log_status 
 
 
 pub struct WaveformPipeline {
@@ -112,6 +113,44 @@ impl WaveformPipeline {
         let fft = planner.plan_fft_forward(len);
         fft.process(&mut input);
     
+        // detect second frequency by isolatin window around first:
+        let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
+        
+        let mut mags = magnitudes.clone();
+        let primary = mags
+            .iter()
+            .take(len / 2)
+            .enumerate()
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .map(|(i, _)| i)
+            .unwrap_or(0);
+
+        // Zero out ±2 bins around primary
+        for i in primary.saturating_sub(2)..=(primary + 2).min(len / 2 - 1) {
+            mags[i] = 0.0;
+        }
+
+        let secondary = mags
+            .iter()
+            .take(len / 2)
+            .enumerate()
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .map(|(i, _)| i)
+            .unwrap_or(0);
+
+        // detect second frequency by isolatin window around first - End.
+
+        // convert secondary peak bin to Hz and note name:
+        let secondary_shift = 0.0; // You can later apply interpolation like primary
+        let secondary_bin = secondary as f32 + secondary_shift;
+
+        let sample_rate = 48000.0;
+        let secondary_freq = (secondary_bin * sample_rate) / len as f32;
+        let secondary_note = frequency_to_note(secondary_freq);
+
+        // convert secondary peak bin to Hz and note name - End.
+
+
         let (peak_bin, _) = input
             .iter()
             .take(len / 2)
@@ -135,7 +174,6 @@ impl WaveformPipeline {
     
     
         // Estimate sample rate based on 480 samples at 48kHz → 10ms
-        let sample_rate = 48000.0;
         let freq = (true_peak * sample_rate) / len as f32;
         let noise_threshold = match self.noise_floor_level {
             0 => 1e-5,
@@ -147,6 +185,20 @@ impl WaveformPipeline {
         if freq < 20.0 || freq > 5000.0 || input.iter().all(|x| x.norm() < noise_threshold) {
             return (0.0, len);
         }
+
+        // optionally log:
+        log_status(&format!(
+            "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({})",
+            self.smoothed_y,
+            freq,
+            frequency_to_note(freq),
+            (freq / (48000.0 / len as f32)).round(),
+            48000.0 / len as f32,
+            secondary_freq,
+            secondary_note
+        ));
+                        
+        // optionally log - End.
         self.avg_freq = 0.9 * self.avg_freq + 0.1 * freq;
         self.avg_bin = 0.9 * self.avg_bin + 0.1 * true_peak;
         self.last_cli_update = Instant::now();
