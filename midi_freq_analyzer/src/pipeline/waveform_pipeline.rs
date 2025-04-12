@@ -110,7 +110,12 @@ impl WaveformPipeline {
     
         // Estimate sample rate based on 480 samples at 48kHz → 10ms
         let sample_rate = 48000.0;
-        (peak as f32 * sample_rate) / len as f32
+        let freq = (peak as f32 * sample_rate) / len as f32;
+        return if freq < 20.0 || freq > 5000.0 {
+            0.0
+        } else {
+            freq
+        };
     }
     
 
