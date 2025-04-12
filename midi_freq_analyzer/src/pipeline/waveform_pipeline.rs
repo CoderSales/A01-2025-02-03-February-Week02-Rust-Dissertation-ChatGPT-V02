@@ -126,9 +126,9 @@ impl WaveformPipeline {
             .unwrap_or(0);
 
         // Zero out ±2 bins around primary
-        for i in primary.saturating_sub(2)..=(primary + 2).min(len / 2 - 1) {
+        for i in primary.saturating_sub(10)..=(primary + 100).min(len / 2 - 1) {
             mags[i] = 0.0;
-        }
+        }        
 
         let secondary = mags
             .iter()
@@ -145,6 +145,8 @@ impl WaveformPipeline {
         let secondary_bin = secondary as f32 + secondary_shift;
 
         let sample_rate = 48000.0;
+        let bin_w = sample_rate / len as f32;
+
         let secondary_freq = (secondary_bin * sample_rate) / len as f32;
         let secondary_note = frequency_to_note(secondary_freq);
 
