@@ -174,6 +174,37 @@ impl WaveformPipeline {
 
         // convert secondary peak bin to Hz and note name - End.
 
+        // third frequency Start:
+        // let primary_freq = primary as f32 * bin_w;
+        let secondary_freq_est = secondary as f32 * bin_w;
+
+        let mags3: Vec<f32> = magnitudes
+            .iter()
+            .enumerate()
+            .map(|(i, &m)| {
+                let f = i as f32 * bin_w;
+                if (f - primary_freq).abs() < min_gap_hz || (f - secondary_freq_est).abs() < min_gap_hz {
+                    0.0
+                } else {
+                    m
+                }
+            })
+            .collect();
+        
+        let third = mags3
+            .iter()
+            .take(len / 2)
+            .enumerate()
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .map(|(i, _)| i)
+            .unwrap_or(0);
+        
+        let third_freq = third as f32 * bin_w;
+        let third_note = frequency_to_note(third_freq);
+        
+
+        // third frequency End.
+
 
         let (peak_bin, _) = input
             .iter()
@@ -212,14 +243,16 @@ impl WaveformPipeline {
 
         // optionally log:
         log_status(&format!(
-            "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({})",
+            "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({} || 3rd: {:>7.1} Hz ({})",
             self.smoothed_y,
             freq,
             frequency_to_note(freq),
             (freq / (48000.0 / len as f32)).round(),
             48000.0 / len as f32,
             secondary_freq,
-            secondary_note
+            secondary_note, 
+            third_freq, 
+            third_note
         ));
                         
         // optionally log - End.
