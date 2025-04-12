@@ -36,29 +36,34 @@ impl AudioApp {
                 return;
             };
 
-            let input_level = locked.samples.iter().map(|x| x.abs()).sum::<f32>() / locked.samples.len().max(1) as f32;
+            let input_level: f32 = locked.samples.iter().map(|x| x.abs()).sum::<f32>() / locked.samples.len().max(1) as f32;
+            let amplitude = input_level;
             ui.heading(format!("Audio Visualizer - Input Level: {:.2}", input_level));
 
             self.waveform.update(&locked);
             self.frequency.update(&locked);
             let waveform = self.waveform.update_return(&locked);
             let y: f32 = self.waveform.y_range();
-            let (freq, len) = self.waveform.dominant_frequency(&locked);
+            let waveform_pipeline = &mut self.waveform;
+            let (freq, len) = waveform_pipeline.dominant_frequency(&locked);
             let bin_width = 48_000.0 / len as f32;
             let bin_est = (freq / bin_width).round();
-            let note_text = frequency_to_note(freq);
-            let note_text_fmt = format!("{:<8}", note_text);
-            let bin_width = 48_000.0 / len as f32;
-            let bin_est = (freq / bin_width).round();
+            let note_text: String = frequency_to_note(freq); // for GUI
+            let note_text_fmt = if amplitude > 0.001 { // for CLI
+                format!("{:<14}", frequency_to_note(freq))
+            } else {
+                format!("{:<14}", "---")
+            };
             
             log_status(&format!(
-                "smoothed_y: {:>7.4} | Note: {} | freq: {:>9.1} Hz | bin est: {:>4} | bin_w: {:>12.8}",
+                "smoothed_y: {:>7.4} | Note: {} | freq: {:>10.1} Hz | bin est: {:>4} | bin_w: {:>13.8}",
                 y, note_text_fmt, freq, bin_est, bin_width
             ));
-                                                            
-            self.waveform
+                                                                                    
+            waveform_pipeline
                 .gui()
                 .show_plot(ui, &waveform, &locked, y, &note_text);
+                
             
             self.frequency.show(ui, &locked);
             ctx.request_repaint();
