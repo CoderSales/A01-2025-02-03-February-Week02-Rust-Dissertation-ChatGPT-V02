@@ -108,7 +108,7 @@ impl WaveformPipeline {
                 ));
             }
         }
-        
+                
     
         // ⏳ placeholder: high_res_zoom(buffer, &focused_bins);
         self.high_res_zoom(buffer, &focused_bins);
@@ -534,22 +534,27 @@ impl WaveformPipeline {
             let bin_width = sample_rate / len as f32;
             let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
     
-            let start = (lo / bin_width) as usize;
-            let end = (hi / bin_width).min((len / 2) as f32) as usize;
+            let mut center = (lo + hi) / 2.0;
+            let mut width = hi - lo;
+            let mut best_freq = center;
+            let mut best_amp = 0.0;
 
-    
-            if let Some((i, &mag)) = magnitudes[start..end]
-                .iter()
-                .enumerate()
-                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-            {
-                peak_freq = (start + i) as f32 * bin_width;
-                best_mag = mag;
-                lo = peak_freq - bin_width;
-                hi = peak_freq + bin_width;
-            } else {
-                break;
-            }
+            for j in 0..10 {
+                let f = center - width / 2.0 + width * (j as f32 / 10.0);
+                let bin = (f / bin_width).round() as usize;
+                if bin < magnitudes.len() {
+                    let amp = magnitudes[bin];
+                    if amp > best_amp {
+                        best_amp = amp;
+                        best_freq = f;
+                    }
+                }
+            }            
+            peak_freq = best_freq;
+            best_mag = best_amp;
+            lo = best_freq - width / 10.0;
+            hi = best_freq + width / 10.0;
+
         }
     
         if best_mag > 0.01 {
