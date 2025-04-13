@@ -101,11 +101,14 @@ impl WaveformPipeline {
         let focused_bins = Self::top_25_percent_bins(&bins);
     
         for b in &focused_bins {
-            log_status(&format!(
-                "🎯 Zoom target: {:.0}-{:.0} Hz | energy {:.3}",
-                b.start_hz, b.end_hz, b.energy
-            ));
+            if b.energy > 0.001 {
+                log_status(&format!(
+                    "🎯 {:.0}-{:.0} Hz | amp {:.3}",
+                    b.start_hz, b.end_hz, b.energy.abs()
+                ));
+            }
         }
+        
     
         // ⏳ placeholder: high_res_zoom(buffer, &focused_bins);
         self.high_res_zoom(buffer, &focused_bins);
@@ -172,7 +175,17 @@ impl WaveformPipeline {
     
         let freq = peak_bin as f32 * bin_width;
         let note = frequency_to_note(freq);
-        
+        let rounded = (freq * 1000.0).round() / 1000.0;
+        let tolerance = 0.5; // Hz
+        log_status(&format!(
+            "🎯 Final sweep {:.1}–{:.1} Hz → {:.3} Hz ±{:.1} Hz = {}",
+            freq - tolerance,
+            freq + tolerance,
+            rounded,
+            tolerance,
+            note
+        ));
+                
         let note_str = Self::base_note_name(&note).to_string();
         self.note_history.push(note_str.clone());
         self.confirmed_notes.push(note_str.clone());
@@ -302,67 +315,65 @@ impl WaveformPipeline {
     // user guided frequency zoom - Start 3.0
     pub fn guided_frequency_discovery(&mut self, buffer: &AudioBuffer) -> BTreeMap<String, f32> {
         let mut confirmed_freqs = BTreeMap::new();
-
+    
         let samples = &buffer.samples;
         let len = samples.len().next_power_of_two() * 64;
         let sample_rate = 48000.0;
-
+    
         let mut input: Vec<Complex<f32>> = samples
             .iter().cloned()
             .map(|x| Complex { re: x, im: 0.0 })
             .collect();
         input.resize(len, Complex { re: 0.0, im: 0.0 });
-
+    
         let mut planner = FftPlanner::<f32>::new();
         let fft = planner.plan_fft_forward(len);
         Self::apply_hanning(&mut input);
         fft.process(&mut input);
-
+    
         let bin_width = sample_rate / len as f32;
         let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
-
-        let mut start_hz = 100.0;
+    
+        let bands = 20;
+        let min_hz = 5.0;
+        let max_hz = 22000.0;
+        let step = (max_hz as f32 / min_hz).powf(1.0 / bands as f32);
         let mut region = 1;
-
-        while start_hz + 50.0 <= 500.0 {
-            let start = (start_hz / bin_width) as usize;
-            let end = ((start_hz + 50.0) / bin_width) as usize;
+    
+        let mut lo = min_hz;
+        for _ in 0..bands {
+            let hi = lo * step;
+            let start = (lo / bin_width) as usize;
+            let end = (hi / bin_width).min(len as f32 / 2.0) as usize;
+    
             let max_amp = magnitudes[start..end].iter().copied().fold(0.0, f32::max);
-
-            if max_amp > 0.1 {
-                println!("\nLikely tone in {:.0}–{:.0} Hz (amp={:.2}). Zoom in? (y/n)", start_hz, start_hz + 50.0, max_amp);
-                let mut input = String::new();
-                let _ = io::stdin().read_line(&mut input);
-
-                if input.trim().to_lowercase() == "y" {
-                    // Zoom in: scan 5 finer chunks (10 Hz steps)
-                    for sub in 0..5 {
-                        let fine_start_hz = start_hz + sub as f32 * 10.0;
-                        let fine_start = (fine_start_hz / bin_width) as usize;
-                        let fine_end = ((fine_start_hz + 10.0) / bin_width) as usize;
-                        let amp = magnitudes[fine_start..fine_end].iter().copied().fold(0.0, f32::max);
-                        println!("  {:.0}–{:.0} Hz amp={:.2}", fine_start_hz, fine_start_hz + 10.0, amp);
-
-                        if amp > 0.1 {
-                            println!("  → Store {:.1} Hz as relevant? (y/n)", fine_start_hz + 5.0);
-                            let mut confirm = String::new();
-                            let _ = io::stdin().read_line(&mut confirm);
-
-                            if confirm.trim().to_lowercase() == "y" {
-                                let label = format!("{}st", region);
-                                confirmed_freqs.insert(label, fine_start_hz + 5.0);
-                                region += 1;
-                            }
-                        }
+            if max_amp > 0.001 {
+                let mut best_freq = 0.0;
+                let mut best_amp = 0.0;
+                let steps = 10;
+                for s in 0..steps {
+                    let sub_lo = lo + (hi - lo) * (s as f32 / steps as f32);
+                    let sub_hi = lo + (hi - lo) * ((s + 1) as f32 / steps as f32);
+                    let sub_start = (sub_lo / bin_width) as usize;
+                    let sub_end = (sub_hi / bin_width) as usize;
+                    let amp = magnitudes[sub_start..sub_end].iter().copied().fold(0.0, f32::max);
+                    if amp > best_amp {
+                        best_amp = amp;
+                        best_freq = (sub_lo + sub_hi) / 2.0;
                     }
                 }
+                if best_amp > 0.1 {
+                    let label = format!("{}st", region);
+                    confirmed_freqs.insert(label, best_freq);
+                    region += 1;
+                }
             }
-
-            start_hz += 50.0;
+            lo = hi;
         }
-
+    
         confirmed_freqs
     }
+    
 
     // user guided frequency zoom - End  3.0
 
