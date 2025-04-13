@@ -9,6 +9,8 @@ use rustfft::{FftPlanner, num_complex::Complex};
 use std::io::{stdout, Write};
 use crate::analytics::note_label::frequency_to_note; // frequency_to_note
 use crate::cli_log::log_status; // log_status 
+use cpal::traits::{HostTrait, DeviceTrait};
+use std::collections::HashSet;
 
 
 pub struct WaveformPipeline {
@@ -21,7 +23,20 @@ pub struct WaveformPipeline {
     avg_bin: f32,
     last_cli_update: Instant,
     noise_floor_level: u8, // 0 = low, 1 = med, 2 = high
+    chord_detected: bool,
+    note_history: Vec<String>, // add in struct
+
 }
+
+#[derive(Clone)]
+struct BinActivity {
+    start_hz: f32,
+    end_hz: f32,
+    energy: f32,
+    active: bool,
+}
+
+
 
 impl WaveformPipeline {
 
@@ -36,14 +51,19 @@ impl WaveformPipeline {
             avg_bin: 0.0,
             last_cli_update: Instant::now(),
             noise_floor_level: 1,
+            chord_detected: false,
+            note_history: Vec::with_capacity(5),
+
+
         }
     }
 
     pub fn update(&mut self, buffer: &AudioBuffer) {
         let waveform = self.analytics.process(buffer);
         self.gui.display(&waveform);
+        self.detect_chord(buffer); // ← lightweight chord sweep
     }
-
+    
     pub fn gui(&self) -> &WaveformGui {
         &self.gui
     }
@@ -71,6 +91,75 @@ impl WaveformPipeline {
         peak
     }
 
+    pub fn detect_chord(&mut self, buffer: &AudioBuffer) {
+        let bins = self.low_res_sweep(buffer);
+        let focused_bins = Self::top_25_percent_bins(&bins);
+    
+        for b in &focused_bins {
+            log_status(&format!(
+                "🎯 Zoom target: {:.0}-{:.0} Hz | energy {:.3}",
+                b.start_hz, b.end_hz, b.energy
+            ));
+        }
+    
+        // ⏳ placeholder: high_res_zoom(buffer, &focused_bins);
+        self.high_res_zoom(buffer, &focused_bins);
+        self.final_confirm_sweep(buffer);
+    }
+    
+
+    // sweep three:
+    pub fn final_confirm_sweep(&mut self, buffer: &AudioBuffer) {
+        let samples = &buffer.samples;
+        let len = samples.len().next_power_of_two() * 512;
+        let sample_rate = 48000.0;
+    
+        let mut input: Vec<Complex<f32>> = samples
+            .iter()
+            .cloned()
+            .map(|x| Complex { re: x, im: 0.0 })
+            .collect();
+        input.resize(len, Complex { re: 0.0, im: 0.0 });
+    
+        let mut planner = FftPlanner::<f32>::new();
+        let fft = planner.plan_fft_forward(len);
+        fft.process(&mut input);
+    
+        let bin_width = sample_rate / len as f32;
+        let start = (250.0 / bin_width) as usize;
+        let end = (400.0 / bin_width) as usize;
+    
+        let peak_bin = input[start..end]
+            .iter()
+            .enumerate()
+            .max_by(|a, b| a.1.norm().partial_cmp(&b.1.norm()).unwrap())
+            .map(|(i, _)| i + start)
+            .unwrap_or(0);
+
+    
+        let freq = peak_bin as f32 * bin_width;
+        let note = frequency_to_note(freq);
+        
+        let note_str = Self::base_note_name(&note).to_string();
+        self.note_history.push(note_str.clone());
+        if self.note_history.len() > 7 { self.note_history.remove(0); }
+
+        // test-only:
+        self.note_history = vec!["C".into(), "E".into(), "G".into(), "X".into(), "Y".into(), "Z".into(), "F#".into()];
+
+        let uniq: HashSet<&str> = self.note_history.iter().map(|s| s.as_str()).collect();
+        if uniq.contains("C") && uniq.contains("E") && uniq.contains("G") {
+            log_status("🎶 Buffered Match: C Major");
+        }
+
+        log_status(&format!("🧪 note_history = {:?}", self.note_history));
+        log_status(&format!("🎯 Final sweep 250–400 Hz → {:.1} Hz = {}", freq, note));
+
+    }
+    
+    // sweep three end.
+
+
     pub fn y_range(&mut self) -> f32 {
         let now = Instant::now();
         let max = self.recent_peaks.iter().copied().fold(0.0, f32::max);
@@ -90,9 +179,99 @@ impl WaveformPipeline {
     
         self.smoothed_y
     }
-            
     
+    
+    pub fn low_res_sweep(&mut self, buffer: &AudioBuffer) -> Vec<BinActivity> {
+        let samples = &buffer.samples;
+        let len = samples.len().next_power_of_two() * 64;
+        let sample_rate = 48000.0;
+    
+        let mut input: Vec<Complex<f32>> = samples
+            .iter()
+            .cloned()
+            .map(|x| Complex { re: x, im: 0.0 })
+            .collect();
+        input.resize(len, Complex { re: 0.0, im: 0.0 });
+    
+        let mut planner = FftPlanner::<f32>::new();
+        let fft = planner.plan_fft_forward(len);
+        fft.process(&mut input);
+    
+        let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
+        let bin_width = sample_rate / len as f32;
+        let bin_group_hz = 5000.0 / 100.0;
+    
+        let mut bins = Vec::with_capacity(100);
+        for i in 0..100 {
+            let start = (i as f32 * bin_group_hz / bin_width) as usize;
+            let end = ((i + 1) as f32 * bin_group_hz / bin_width) as usize;
+    
+            let energy: f32 = magnitudes[start..end.min(magnitudes.len())]
+                .iter()
+                .copied()
+                .sum::<f32>()
+                / (end - start).max(1) as f32;
+    
+            bins.push(BinActivity {
+                start_hz: i as f32 * bin_group_hz,
+                end_hz: (i + 1) as f32 * bin_group_hz,
+                energy,
+                active: energy > 0.01,
+            });
+        }
+    
+        bins
+    }
+    
+    fn top_25_percent_bins(bins: &[BinActivity]) -> Vec<BinActivity> {
+        let mut sorted = bins.to_vec();
+        sorted.sort_by(|a, b| b.energy.partial_cmp(&a.energy).unwrap());
+    
+        let top_n = (sorted.len() as f32 * 0.25).ceil() as usize;
+        sorted.into_iter().take(top_n).collect()
+    }
+
+
+    fn high_res_zoom(&mut self, buffer: &AudioBuffer, bins: &[BinActivity]) {
+        let samples = &buffer.samples;
+        let len = samples.len().next_power_of_two() * 256;
+        let sample_rate = 48000.0;
+    
+        let mut input: Vec<Complex<f32>> = samples
+            .iter()
+            .cloned()
+            .map(|x| Complex { re: x, im: 0.0 })
+            .collect();
+        input.resize(len, Complex { re: 0.0, im: 0.0 });
+    
+        let mut planner = FftPlanner::<f32>::new();
+        let fft = planner.plan_fft_forward(len);
+        fft.process(&mut input);
+    
+        let bin_width = sample_rate / len as f32;
+    
+        for b in bins {
+            let start = (b.start_hz / bin_width) as usize;
+            let end = (b.end_hz / bin_width) as usize;
+    
+            let (peak_bin, peak_mag) = input[start..end]
+                .iter()
+                .enumerate()
+                .max_by(|a, b| a.1.norm().partial_cmp(&b.1.norm()).unwrap())
+                .map(|(i, c)| (i + start, c.norm()))
+                .unwrap_or((0, 0.0));
+    
+            let freq = peak_bin as f32 * bin_width;
+            let note = frequency_to_note(freq);
+    
+            log_status(&format!("🔍 Zoomed bin {:.0}-{:.0} Hz → {:.1} Hz = {}", b.start_hz, b.end_hz, freq, note));
+        }
+    }
+    
+
     pub fn dominant_frequency(&mut self, buffer: &AudioBuffer) -> (f32, usize) {
+        Self::list_input_sample_rates(); // print available rates
+
         let samples = &buffer.samples;
         if samples.iter().all(|&x| x.abs() < 1e-6) {
             return (0.0, 0);
@@ -100,7 +279,7 @@ impl WaveformPipeline {
     
         // let len = samples.len().next_power_of_two();
         // let len = 16_384;
-        let len = samples.len().next_power_of_two() * 64 *2;
+        let len = samples.len().next_power_of_two() * 64 * 2;
 
         let mut input: Vec<Complex<f32>> = samples
             .iter()
@@ -125,33 +304,58 @@ impl WaveformPipeline {
             .map(|(i, _)| i)
             .unwrap_or(0);
 
-        // Zero out ±2 bins around primary
-        // for i in primary.saturating_sub(10)..=(primary + 100).min(len / 2 - 1) {
-        //     mags[i] = 0.0;
-        // }        
 
         let sample_rate = 48000.0;
 
         let bin_w = sample_rate / len as f32;
 
+        
+        let top_n = 150;
+        let mut raw_peaks: Vec<(usize, f32)> = magnitudes
+            .iter()
+            .copied()
+            .enumerate()
+            .take(len / 2)
+            .collect();
+        
+        raw_peaks.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        
+        let mut top_peaks = Vec::new();
+        for (i, mag) in raw_peaks {
+            let freq = i as f32 * bin_w;
+            if !top_peaks.iter().any(|(j, _)| ((j * bin_w as usize) as f32 - freq).abs() < 30.0) {
+                top_peaks.push((i, mag));
+                if top_peaks.len() >= 5 {
+                    break;
+                }
+            }
+        }
+        
+        // replace lines 153 to 186:
+        // Convert top bins to base note names
+        
 
-        let primary_freq = primary as f32 * bin_w;
-        let min_gap_hz = 100.0;
+
+                
+        // end of most of replacement of lines 153 to 186:
+    
+        
+
+
+
+        let min_gap_hz = 40.0;
+        let primary_freq: f32 = primary as f32 * bin_w;
 
         let mags: Vec<f32> = magnitudes
-            .iter()
-            .enumerate()
-            .map(|(i, &m)| {
-                let f = i as f32 * bin_w;
-                if (f - primary_freq).abs() < min_gap_hz {
-                    0.0
-                } else {
-                    m
-                }
-            })
-            .collect();
+        .iter()
+        .enumerate()
+        .map(|(i, &m)| {
+            let f = i as f32 * bin_w;
+            m // No suppression — just pass through the magnitude
+        })
+        .collect();
 
-
+        
 
 
         let secondary = mags
@@ -205,6 +409,18 @@ impl WaveformPipeline {
 
         // third frequency End.
 
+        let primary_note = frequency_to_note(primary_freq);
+        let secondary_note = frequency_to_note(secondary_freq);
+        let third_note = frequency_to_note(third_freq);
+        
+        let just_notes = vec![
+            Self::base_note_name(&primary_note).to_string(),
+            Self::base_note_name(&secondary_note).to_string(),
+            Self::base_note_name(&third_note).to_string(),
+        ];
+        
+        
+
 
         let (peak_bin, _) = input
             .iter()
@@ -242,109 +458,104 @@ impl WaveformPipeline {
         }
 
 
+        let primary_mag = magnitudes[primary];
+        let secondary_mag = magnitudes[secondary];
+        let third_mag = magnitudes[third];
 
-        let notes: Vec<String> = vec![
-            frequency_to_note(freq),
-            frequency_to_note(secondary_freq),
-            frequency_to_note(third_freq),
-        ];
+        let mag_thresh = 0.01;
+        if primary_mag < mag_thresh || secondary_mag < mag_thresh || third_mag < mag_thresh {
+            return (0.0, len);
+        }
+
+        // line 303.            
+        // // Chord detection
+
+
+        let unique_notes: HashSet<String> = just_notes.clone().into_iter().collect();
+        let note_refs: Vec<&str> = unique_notes.iter().map(|s| s.as_str()).collect();
         
-        // let chord: &str = if notes.iter().any(|n| n == "C")
-        //     && notes.iter().any(|n| n == "E")
-        //     && notes.iter().any(|n| n == "G")
-        // {
+        if note_refs.contains(&"C") && note_refs.contains(&"E") && note_refs.contains(&"G") {
+            log_status("🔔 Detected: C + E + G");
+        }
+        
+        
+        // let chord = if Self::matches_note("C", &note_refs)
+        // && Self::matches_note("E", &note_refs)
+        // && Self::matches_note("G", &note_refs)
+        // {            
         //     "C Major"
         // } else {
         //     "---"
         // };
-        
-        // let chord: &str = if notes.iter().any(|n| n == "C")
-        // && notes.iter().any(|n| n == "E")
-        // && notes.iter().any(|n| n == "G")
-        // {
-        //     "C Major"
-        // } else {
-        //     "---"
-        // };
 
-        // log_status(&format!(
-        //     "... || Chord: {}",
-        //     chord
-        // ));
-
-
-        // optionally log:
-        // log_status(&format!(
-        //     "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({} || 3rd: {:>7.1} Hz ({}) || Chord: {:<8}",
-        //     self.smoothed_y,
-        //     freq,
-        //     frequency_to_note(freq),
-        //     (freq / (48000.0 / len as f32)).round(),
-        //     48000.0 / len as f32,
-        //     secondary_freq,
-        //     secondary_note, 
-        //     third_freq, 
-        //     third_note,
-        //     chord
-        // ));  
-
-
-        let mut freqs = vec![
-            (freq, frequency_to_note(freq)),
-            (secondary_freq, frequency_to_note(secondary_freq)),
-            (third_freq, frequency_to_note(third_freq)),
-        ];
-
-        // Sort by frequency
-        freqs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
-
-        // Extract just note names without (Hz)
-        let just_notes: Vec<String> = freqs
-            .iter()
-            .map(|(_, s)| Self::base_note_name(s).to_string())
-            .collect();
-            
-        // Chord detection
-        let chord = if just_notes.contains(&"C".to_string())
-            && just_notes.contains(&"E".to_string())
-            && just_notes.contains(&"G".to_string())
+        let chord = if Self::matches_note("C", &note_refs)
+        && Self::matches_note("E", &note_refs)
+        && Self::matches_note("G", &note_refs)
         {
             "C Major"
         } else {
             "---"
         };
+    
 
+        let now = Instant::now();
+        if now.duration_since(self.last_cli_update) >= Duration::from_millis(200) {
+            self.last_cli_update = now;
 
-
-        log_status(&format!(
-            "smoothed_y: {:>7.4} | freq: {:>7.1} Hz | Note: {:<14} | bin est: {:>4} | bin_w: {:>11.8} || 2nd: {:>7.1} Hz ({}) || 3rd: {:>7.1} Hz ({}) || Chord: {:<8} || Notes: {:?}",
-            self.smoothed_y,
-            freq,
-            frequency_to_note(freq),
-            (freq / bin_w).round(),
-            bin_w,
-            secondary_freq,
-            frequency_to_note(secondary_freq),
-            third_freq,
-            frequency_to_note(third_freq),
-            chord,
-            just_notes
-        ));
+            log_status(&format!(
+                "Primary: {:.1} Hz, Secondary: {:.1} Hz, Third: {:.1} Hz || Notes: {:?}
+                ...|| Chord: {:<8} || Notes: {:?}",
+                primary_freq, secondary_freq, third_freq, just_notes,
+                chord, note_refs
+            ));
+                        
+        }
                 
         // optionally log - End.
         self.avg_freq = 0.9 * self.avg_freq + 0.1 * freq;
         self.avg_bin = 0.9 * self.avg_bin + 0.1 * true_peak;
-        self.last_cli_update = Instant::now();
+        // self.last_cli_update = Instant::now();
         
         return (self.avg_freq, len);
         
     }
     
     fn base_note_name(s: &str) -> &str {
-        s.split_whitespace().next().unwrap_or("---")
+        if s.len() >= 2 && s.chars().nth(1).unwrap() == '#' {
+            &s[..2] // Keep sharp: e.g. "C#" from "C#4"
+        } else if s.len() >= 1 {
+            &s[..1] // e.g. "C" from "C4"
+        } else {
+            "---"
+        }
+    }
+    
+    
+    
+    pub fn list_input_sample_rates() {
+        let host = cpal::default_host();
+        let device = host
+            .default_input_device()
+            .expect("No input device available");
+    
+        let config_range = device
+            .supported_input_configs()
+            .expect("Error querying configs");
+    
+        for config in config_range {
+            // println!(
+            //     "Supported: {:?} - {:?} Hz @ {:?}",
+            //     config.min_sample_rate().0,
+            //     config.max_sample_rate().0,
+            //     config.sample_format()
+            // );
+        }
+    }
+    
+    pub fn matches_note(note: &str, targets: &[&str]) -> bool {
+        targets.iter().any(|t| t == &note)
     }
     
     
 }
-
 
