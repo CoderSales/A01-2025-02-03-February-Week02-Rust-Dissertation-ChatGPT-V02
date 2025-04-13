@@ -61,13 +61,19 @@ impl AudioApp {
             // ));
                                                                                     
             waveform_pipeline
-                .gui()
-                .show_plot(ui, &waveform, &locked, y, &note_text);
-                
+            .gui()
+            .show_plot(ui, &waveform, &locked, y, &note_text);
+        
+            egui::Grid::new("confirmed_notes").show(ui, |ui| {
+                ui.label("🎵 Confirmed:");
+                for note in waveform_pipeline.confirmed_notes() {
+                    ui.label(note);
+                }
+            });
             
             self.frequency.show(ui, &locked);
             ctx.request_repaint();
-
+        
             // TODO: Add GUI toggles, EQ sliders, visual thresholds, etc.
         });
     }

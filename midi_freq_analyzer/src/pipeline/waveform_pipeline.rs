@@ -6,11 +6,14 @@ use crate::gui::waveform_gui::WaveformGui;
 use crate::analytics::waveform_analytics::Waveform;
 use std::time::{Instant, Duration};
 use rustfft::{FftPlanner, num_complex::Complex};
-use std::io::{stdout, Write};
+use std::io::{self, stdout, Write};
 use crate::analytics::note_label::frequency_to_note; // frequency_to_note
 use crate::cli_log::log_status; // log_status 
 use cpal::traits::{HostTrait, DeviceTrait};
 use std::collections::HashSet;
+use std::collections::HashMap;
+use std::collections::BTreeMap;
+
 
 
 pub struct WaveformPipeline {
@@ -25,6 +28,7 @@ pub struct WaveformPipeline {
     noise_floor_level: u8, // 0 = low, 1 = med, 2 = high
     chord_detected: bool,
     note_history: Vec<String>, // add in struct
+    confirmed_notes: Vec<String>,
 
 }
 
@@ -53,6 +57,7 @@ impl WaveformPipeline {
             noise_floor_level: 1,
             chord_detected: false,
             note_history: Vec::with_capacity(5),
+            confirmed_notes: Vec::new(),
 
 
         }
@@ -67,7 +72,7 @@ impl WaveformPipeline {
     pub fn gui(&self) -> &WaveformGui {
         &self.gui
     }
-
+        
     pub fn analytics(&self) -> &WaveformAnalytics {
         &self.analytics
     }
@@ -105,6 +110,33 @@ impl WaveformPipeline {
         // ⏳ placeholder: high_res_zoom(buffer, &focused_bins);
         self.high_res_zoom(buffer, &focused_bins);
         self.final_confirm_sweep(buffer);
+        self.interactive_scan_step1(buffer); // <-- Add here // Step 1.
+
+        // overlapping bins amp probabilistic step wise 2.0
+        let prob_bins = self.probabilistic_overlap_scan(buffer);
+        let mut sorted: Vec<_> = prob_bins.iter().filter(|(_, &v)| v > 0.2).collect();
+        sorted.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());
+        
+        print!("\r");
+        for (label, amp) in sorted.iter().take(6) {
+            print!("{} {:.2}  ", label, amp);
+        }
+        stdout().flush().unwrap();
+        println!("\n⏸ Press Enter to continue...");
+        let _ = io::stdin().read_line(&mut String::new());
+        // overlapping bins amp probabilistic step wise 2.0
+        
+        let found = self.guided_frequency_discovery(buffer);
+
+        // rerun zoom from previous results - Start:
+        let found = self.guided_frequency_discovery(buffer);
+        self.rerun_zoom_from_previous_results(buffer, &found);
+        // rerun zoom from previous results - End.
+        
+
+        println!("📌 Confirmed freqs: {:?}", found);
+
+
     }
     
 
@@ -123,6 +155,7 @@ impl WaveformPipeline {
     
         let mut planner = FftPlanner::<f32>::new();
         let fft = planner.plan_fft_forward(len);
+        Self::apply_hanning(&mut input);
         fft.process(&mut input);
     
         let bin_width = sample_rate / len as f32;
@@ -142,15 +175,29 @@ impl WaveformPipeline {
         
         let note_str = Self::base_note_name(&note).to_string();
         self.note_history.push(note_str.clone());
+        self.confirmed_notes.push(note_str.clone());
         if self.note_history.len() > 7 { self.note_history.remove(0); }
 
-        // test-only:
-        self.note_history = vec!["C".into(), "E".into(), "G".into(), "X".into(), "Y".into(), "Z".into(), "F#".into()];
 
-        let uniq: HashSet<&str> = self.note_history.iter().map(|s| s.as_str()).collect();
-        if uniq.contains("C") && uniq.contains("E") && uniq.contains("G") {
-            log_status("🎶 Buffered Match: C Major");
-        }
+        // iterative zoom scan: Start:
+        if let Some((freq, note)) = self.iterative_zoom_scan(buffer, (240.0, 400.0)) {
+            let note_str = note.clone();
+        
+            let mut temp = self.note_history.clone();
+            temp.push(note_str.clone());
+            let uniq: HashSet<&str> = temp.iter().map(|s| s.as_str()).collect();
+        
+        
+            self.note_history.push(note_str);
+            if self.note_history.len() > 7 {
+                self.note_history.remove(0);
+            }
+        
+            log_status(&format!("🧪 note_history = {:?}", self.note_history));
+            log_status(&format!("🎯 Final sweep 250–400 Hz → {:.3} Hz = {}", freq, note));
+        }        
+        // iterative zoom scan: End.
+
 
         log_status(&format!("🧪 note_history = {:?}", self.note_history));
         log_status(&format!("🎯 Final sweep 250–400 Hz → {:.1} Hz = {}", freq, note));
@@ -159,6 +206,181 @@ impl WaveformPipeline {
     
     // sweep three end.
 
+    // prompt driven cli phased frequency scan
+
+    pub fn interactive_scan_step1(&mut self, buffer: &AudioBuffer) {
+        let samples = &buffer.samples;
+        let len = samples.len().next_power_of_two() * 64;
+        let sample_rate = 48000.0;
+    
+        let mut input: Vec<Complex<f32>> = samples
+            .iter()
+            .cloned()
+            .map(|x| Complex { re: x, im: 0.0 })
+            .collect();
+        input.resize(len, Complex { re: 0.0, im: 0.0 });
+    
+        let mut planner = FftPlanner::<f32>::new();
+        let fft = planner.plan_fft_forward(len);
+        Self::apply_hanning(&mut input);
+        fft.process(&mut input);
+    
+        let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
+        let bin_width = sample_rate / len as f32;
+    
+        let ranges = (0..10).map(|i| (100.0 + i as f32 * 40.0, 100.0 + (i + 1) as f32 * 40.0));
+    
+        print!("\r");
+        for (start_hz, end_hz) in ranges {
+            let start = (start_hz / bin_width) as usize;
+            let end = (end_hz / bin_width) as usize;
+            let amp: f32 = magnitudes[start..end].iter().copied().fold(0.0, f32::max);
+            if amp >= 0.01 {
+                print!("{:.0}-{:.0} {:.2}  ", start_hz, end_hz, amp);
+            }            
+        }
+        io::stdout().flush().unwrap();
+    
+        // Pause
+        println!("\n⏸ Press Enter to continue...");
+        let _ = io::stdin().read_line(&mut String::new());
+    }
+    
+
+    // prompt driven cli phased frequency scan- End.
+
+    // overlapping bins amp probabilistic step wise 2.0
+
+    pub fn probabilistic_overlap_scan(&mut self, buffer: &AudioBuffer) -> HashMap<String, f32> {
+        let samples = &buffer.samples;
+        let len = samples.len().next_power_of_two() * 64;
+        let sample_rate = 48000.0;
+
+        let mut input: Vec<Complex<f32>> = samples
+            .iter()
+            .cloned()
+            .map(|x| Complex { re: x, im: 0.0 })
+            .collect();
+        input.resize(len, Complex { re: 0.0, im: 0.0 });
+
+        let mut planner = FftPlanner::<f32>::new();
+        let fft = planner.plan_fft_forward(len);
+        Self::apply_hanning(&mut input);
+        fft.process(&mut input);
+
+        let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
+        let bin_width = sample_rate / len as f32;
+
+        let mut results = HashMap::new();
+        let step_hz = 50.0;
+        let window_hz = 100.0;
+        let start_hz = 100.0;
+        let end_hz = 500.0;
+
+        let mut cursor = start_hz;
+        while cursor + window_hz <= end_hz {
+            let start_idx = (cursor / bin_width) as usize;
+            let end_idx = ((cursor + window_hz) / bin_width) as usize;
+
+            let max_amp = magnitudes[start_idx..end_idx]
+                .iter()
+                .copied()
+                .fold(0.0, f32::max);
+
+            let label = format!("{}_{:.0}", cursor as usize, cursor + window_hz);
+            results.insert(label, max_amp);
+
+            cursor += step_hz;
+        }
+
+        results
+    }
+
+
+    // overlapping bins amp probabilistic step wise 2.0 - End.
+
+    // user guided frequency zoom - Start 3.0
+    pub fn guided_frequency_discovery(&mut self, buffer: &AudioBuffer) -> BTreeMap<String, f32> {
+        let mut confirmed_freqs = BTreeMap::new();
+
+        let samples = &buffer.samples;
+        let len = samples.len().next_power_of_two() * 64;
+        let sample_rate = 48000.0;
+
+        let mut input: Vec<Complex<f32>> = samples
+            .iter().cloned()
+            .map(|x| Complex { re: x, im: 0.0 })
+            .collect();
+        input.resize(len, Complex { re: 0.0, im: 0.0 });
+
+        let mut planner = FftPlanner::<f32>::new();
+        let fft = planner.plan_fft_forward(len);
+        Self::apply_hanning(&mut input);
+        fft.process(&mut input);
+
+        let bin_width = sample_rate / len as f32;
+        let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
+
+        let mut start_hz = 100.0;
+        let mut region = 1;
+
+        while start_hz + 50.0 <= 500.0 {
+            let start = (start_hz / bin_width) as usize;
+            let end = ((start_hz + 50.0) / bin_width) as usize;
+            let max_amp = magnitudes[start..end].iter().copied().fold(0.0, f32::max);
+
+            if max_amp > 0.1 {
+                println!("\nLikely tone in {:.0}–{:.0} Hz (amp={:.2}). Zoom in? (y/n)", start_hz, start_hz + 50.0, max_amp);
+                let mut input = String::new();
+                let _ = io::stdin().read_line(&mut input);
+
+                if input.trim().to_lowercase() == "y" {
+                    // Zoom in: scan 5 finer chunks (10 Hz steps)
+                    for sub in 0..5 {
+                        let fine_start_hz = start_hz + sub as f32 * 10.0;
+                        let fine_start = (fine_start_hz / bin_width) as usize;
+                        let fine_end = ((fine_start_hz + 10.0) / bin_width) as usize;
+                        let amp = magnitudes[fine_start..fine_end].iter().copied().fold(0.0, f32::max);
+                        println!("  {:.0}–{:.0} Hz amp={:.2}", fine_start_hz, fine_start_hz + 10.0, amp);
+
+                        if amp > 0.1 {
+                            println!("  → Store {:.1} Hz as relevant? (y/n)", fine_start_hz + 5.0);
+                            let mut confirm = String::new();
+                            let _ = io::stdin().read_line(&mut confirm);
+
+                            if confirm.trim().to_lowercase() == "y" {
+                                let label = format!("{}st", region);
+                                confirmed_freqs.insert(label, fine_start_hz + 5.0);
+                                region += 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            start_hz += 50.0;
+        }
+
+        confirmed_freqs
+    }
+
+    // user guided frequency zoom - End  3.0
+
+    // Hanning window to reduce spectral leakage during FFT - 3.1 - Start:
+    fn apply_hanning(input: &mut [Complex<f32>]) {
+        let n = input.len();
+        for (i, val) in input.iter_mut().enumerate() {
+            let w = 0.5 * (1.0 - (2.0 * std::f32::consts::PI * i as f32 / (n as f32 - 1.0)).cos());
+            val.re *= w;
+        }
+    }    
+    // Hanning window to reduce spectral leakage during FFT - 3.1 - End.
+
+    // make confirmed_notes public - Start:
+    pub fn confirmed_notes(&self) -> &[String] {
+        &self.confirmed_notes
+    }
+    // make confirmed_notes public - End.
 
     pub fn y_range(&mut self) -> f32 {
         let now = Instant::now();
@@ -195,8 +417,9 @@ impl WaveformPipeline {
     
         let mut planner = FftPlanner::<f32>::new();
         let fft = planner.plan_fft_forward(len);
+        Self::apply_hanning(&mut input);
         fft.process(&mut input);
-    
+            
         let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
         let bin_width = sample_rate / len as f32;
         let bin_group_hz = 5000.0 / 100.0;
@@ -246,8 +469,9 @@ impl WaveformPipeline {
     
         let mut planner = FftPlanner::<f32>::new();
         let fft = planner.plan_fft_forward(len);
+        Self::apply_hanning(&mut input);
         fft.process(&mut input);
-    
+            
         let bin_width = sample_rate / len as f32;
     
         for b in bins {
@@ -262,12 +486,92 @@ impl WaveformPipeline {
                 .unwrap_or((0, 0.0));
     
             let freq = peak_bin as f32 * bin_width;
-            let note = frequency_to_note(freq);
-    
-            log_status(&format!("🔍 Zoomed bin {:.0}-{:.0} Hz → {:.1} Hz = {}", b.start_hz, b.end_hz, freq, note));
+            if peak_mag >= 0.01 {
+                let note = frequency_to_note(freq);
+                let note_label = Self::base_note_name(&note);
+                if note_label != "---" {
+                    let prob = (peak_mag * 50.0).clamp(1.0, 100.0).round();
+                    log_status(&format!(
+                        "🔍 Zoomed bin {:.0}-{:.0} Hz → {:.1} Hz = {}  amp={:.2} prob={:.0}%",
+                        b.start_hz, b.end_hz, freq, note, peak_mag, prob
+                    ));
+                }
+            }
         }
     }
     
+    // iterative zoom scan: Start:
+    fn iterative_zoom_scan(&self, buffer: &AudioBuffer, range: (f32, f32)) -> Option<(f32, String)> {
+        let (mut lo, mut hi) = range;
+        let sample_rate = 48000.0;
+        let mut peak_freq = 0.0;
+        let mut best_mag = 0.0;
+    
+        for _ in 0..5 { // 5 iterations of narrowing
+            let len = buffer.samples.len().next_power_of_two() * 512;
+            let mut input: Vec<Complex<f32>> = buffer.samples
+                .iter().cloned()
+                .map(|x| Complex { re: x, im: 0.0 })
+                .collect();
+            input.resize(len, Complex { re: 0.0, im: 0.0 });
+    
+            Self::apply_hanning(&mut input);
+            let mut planner = FftPlanner::<f32>::new();
+            let fft = planner.plan_fft_forward(len);
+            fft.process(&mut input);
+    
+            let bin_width = sample_rate / len as f32;
+            let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
+    
+            let start = (lo / bin_width) as usize;
+            let end = (hi / bin_width).min((len / 2) as f32) as usize;
+
+    
+            if let Some((i, &mag)) = magnitudes[start..end]
+                .iter()
+                .enumerate()
+                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            {
+                peak_freq = (start + i) as f32 * bin_width;
+                best_mag = mag;
+                lo = peak_freq - bin_width;
+                hi = peak_freq + bin_width;
+            } else {
+                break;
+            }
+        }
+    
+        if best_mag > 0.01 {
+            let note = frequency_to_note(peak_freq);
+            Some((peak_freq, Self::base_note_name(&note).to_string()))
+        } else {
+            None
+        }
+    }
+    
+    // iterative zoom scan: End.
+
+
+    // rerun zoom from previous results - Start:
+    pub fn rerun_zoom_from_previous_results(&mut self, buffer: &AudioBuffer, previous: &BTreeMap<String, f32>) {
+        for (label, center_freq) in previous {
+            let lo = center_freq - 50.0;
+            let hi = center_freq + 50.0;
+    
+            if let Some((freq, note)) = self.iterative_zoom_scan(buffer, (lo, hi)) {
+                let note_str = note.clone();
+            
+                if self.note_history.len() >= 7 {
+                    self.note_history.remove(0);
+                }
+                self.note_history.push(note_str.clone());
+                self.confirmed_notes.push(note_str.clone());
+            
+                log_status(&format!("🔁 Rescan {} → {:.3} Hz = {}", label, freq, note));
+            }
+        }    
+    }
+    // rerun zoom from previous results - End.
 
     pub fn dominant_frequency(&mut self, buffer: &AudioBuffer) -> (f32, usize) {
         Self::list_input_sample_rates(); // print available rates
@@ -290,8 +594,9 @@ impl WaveformPipeline {
     
         let mut planner = FftPlanner::<f32>::new();
         let fft = planner.plan_fft_forward(len);
+        Self::apply_hanning(&mut input);
         fft.process(&mut input);
-    
+            
         // detect second frequency by isolatin window around first:
         let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
         
