@@ -509,7 +509,7 @@ impl WaveformPipeline {
     }
     
     // iterative zoom scan: Start:
-    fn iterative_zoom_scan(&self, buffer: &AudioBuffer, range: (f32, f32)) -> Option<(f32, String)> {
+    fn iterative_zoom_scan(&mut self, buffer: &AudioBuffer, range: (f32, f32)) -> Option<(f32, String)> {
         let (mut lo, mut hi) = range;
         let sample_rate = 48000.0;
         let mut peak_freq = 0.0;
@@ -550,24 +550,13 @@ impl WaveformPipeline {
 
         if best_mag > 0.01 {
             let note = frequency_to_note(peak_freq);
-            let label = Self::base_note_name(&note).to_string();
-            println!(
-                "🎯 Final sweep {:.1}–{:.1} Hz → {:.3} Hz ±0.5 Hz = {} ({:.1} Hz)",
-                lo,
-                hi,
-                peak_freq,
-                label,
-                peak_freq
-            );
-
-            println!("Add {} to note history? (y/n)", label);
-            let mut input = String::new();
-            let _ = io::stdin().read_line(&mut input);
-            if input.trim().to_lowercase() == "y" {
-                Some((peak_freq, label))
-            } else {
-                None
+            println!("→ Add {:.3} Hz = {} to note history? (y/n)", peak_freq, note);
+            let mut confirm = String::new();
+            let _ = io::stdin().read_line(&mut confirm);
+            if confirm.trim().to_lowercase() == "y" {
+                self.note_history.push(Self::base_note_name(&note).to_string());
             }
+            Some((peak_freq, Self::base_note_name(&note).to_string()))
         } else {
             None
         }
