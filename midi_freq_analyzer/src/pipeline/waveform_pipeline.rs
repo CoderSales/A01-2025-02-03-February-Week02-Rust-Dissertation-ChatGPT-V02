@@ -10,10 +10,7 @@ use std::io::{self, stdout, Write};
 use crate::analytics::note_label::frequency_to_note; // frequency_to_note
 use crate::cli_log::log_status; // log_status 
 use cpal::traits::{HostTrait, DeviceTrait};
-use std::collections::HashSet;
-use std::collections::HashMap;
-use std::collections::BTreeMap;
-
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 
 pub struct WaveformPipeline {
@@ -517,54 +514,64 @@ impl WaveformPipeline {
         let sample_rate = 48000.0;
         let mut peak_freq = 0.0;
         let mut best_mag = 0.0;
-    
-        for _ in 0..5 { // 5 iterations of narrowing
+
+        for _ in 0..5 {
             let len = buffer.samples.len().next_power_of_two() * 512;
             let mut input: Vec<Complex<f32>> = buffer.samples
                 .iter().cloned()
                 .map(|x| Complex { re: x, im: 0.0 })
                 .collect();
             input.resize(len, Complex { re: 0.0, im: 0.0 });
-    
+
             Self::apply_hanning(&mut input);
             let mut planner = FftPlanner::<f32>::new();
             let fft = planner.plan_fft_forward(len);
             fft.process(&mut input);
-    
+
             let bin_width = sample_rate / len as f32;
             let magnitudes: Vec<f32> = input.iter().map(|c| c.norm()).collect();
-    
-            let mut center = (lo + hi) / 2.0;
-            let mut width = hi - lo;
-            let mut best_freq = center;
-            let mut best_amp = 0.0;
 
-            for j in 0..10 {
-                let f = center - width / 2.0 + width * (j as f32 / 10.0);
-                let bin = (f / bin_width).round() as usize;
-                if bin < magnitudes.len() {
-                    let amp = magnitudes[bin];
-                    if amp > best_amp {
-                        best_amp = amp;
-                        best_freq = f;
-                    }
-                }
-            }            
-            peak_freq = best_freq;
-            best_mag = best_amp;
-            lo = best_freq - width / 10.0;
-            hi = best_freq + width / 10.0;
+            let start = (lo / bin_width) as usize;
+            let end = (hi / bin_width).min((len / 2) as f32) as usize;
 
+            if let Some((i, &mag)) = magnitudes[start..end]
+                .iter()
+                .enumerate()
+                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            {
+                peak_freq = (start + i) as f32 * bin_width;
+                best_mag = mag;
+                lo = peak_freq - bin_width;
+                hi = peak_freq + bin_width;
+            } else {
+                break;
+            }
         }
-    
+
         if best_mag > 0.01 {
             let note = frequency_to_note(peak_freq);
-            Some((peak_freq, Self::base_note_name(&note).to_string()))
+            let label = Self::base_note_name(&note).to_string();
+            println!(
+                "🎯 Final sweep {:.1}–{:.1} Hz → {:.3} Hz ±0.5 Hz = {} ({:.1} Hz)",
+                lo,
+                hi,
+                peak_freq,
+                label,
+                peak_freq
+            );
+
+            println!("Add {} to note history? (y/n)", label);
+            let mut input = String::new();
+            let _ = io::stdin().read_line(&mut input);
+            if input.trim().to_lowercase() == "y" {
+                Some((peak_freq, label))
+            } else {
+                None
+            }
         } else {
             None
         }
-    }
-    
+    }    
     // iterative zoom scan: End.
 
 
