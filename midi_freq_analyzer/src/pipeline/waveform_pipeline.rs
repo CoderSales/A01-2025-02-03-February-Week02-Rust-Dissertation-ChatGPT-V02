@@ -159,9 +159,23 @@ impl WaveformPipeline {
         fft.process(&mut input);
     
         let bin_width = sample_rate / len as f32;
-        let start = (250.0 / bin_width) as usize;
-        let end = (400.0 / bin_width) as usize;
+        let start = (260.0 / bin_width) as usize;
+        let end = (265.0 / bin_width) as usize;        
     
+        // iterative_zoom_scan(buffer, (260.0, 265.0))
+        if let Some((freq, note)) = self.iterative_zoom_scan(buffer, (260.0, 265.0)) {
+            let note_str = note.clone();
+            self.note_history.push(note_str.clone());
+            self.confirmed_notes.push(note_str.clone());
+            if self.note_history.len() > 7 {
+                self.note_history.remove(0);
+            }
+            
+            log_status(&format!("🎯 Focused confirm 260–265 Hz → {:.3} Hz = {}", freq, note));
+        }
+        // iterative_zoom_scan(buffer, (260.0, 265.0)) End
+        
+
         let peak_bin = input[start..end]
             .iter()
             .enumerate()
@@ -390,6 +404,38 @@ impl WaveformPipeline {
     }
     // make confirmed_notes public - End.
 
+
+    // scan all keys exact
+    pub fn scan_all_keys_exact(&mut self, buffer: &AudioBuffer) {
+        use std::collections::HashMap;
+        let keys = Self::generate_piano_keys(); // (e.g., "C_4", 261.63)
+        let mut found_map: HashMap<String, u8> = HashMap::new();
+
+        for (i, (note, freq)) in keys.iter().enumerate() {
+            let lo = freq / 2f32.powf(1.0 / 12.0);
+            let hi = freq * 2f32.powf(1.0 / 12.0);
+
+            print!("\rKey {}/88 {:<4}... ", i + 1, note);
+            std::io::stdout().flush().unwrap();
+
+            if let Some((_f, _label)) = self.iterative_zoom_scan(buffer, (lo, hi)) {
+                found_map.insert(note.clone(), 1);
+            } else {
+                found_map.insert(note.clone(), 0);
+            }
+        }
+
+        print!("\nnotes playing: ");
+        for (note, val) in &found_map {
+            if *val == 1 {
+                print!("{} ", note.replace("_", ""));
+            }
+        }
+        println!();
+    }
+    // scan all keys exact - End.
+    
+
     pub fn y_range(&mut self) -> f32 {
         let now = Instant::now();
         let max = self.recent_peaks.iter().copied().fold(0.0, f32::max);
@@ -509,7 +555,7 @@ impl WaveformPipeline {
     }
     
     // iterative zoom scan: Start:
-    fn iterative_zoom_scan(&mut self, buffer: &AudioBuffer, range: (f32, f32)) -> Option<(f32, String)> {
+    pub fn iterative_zoom_scan(&mut self, buffer: &AudioBuffer, range: (f32, f32)) -> Option<(f32, String)> {
         let (mut lo, mut hi) = range;
         let sample_rate = 48000.0;
         let mut peak_freq = 0.0;
@@ -550,17 +596,24 @@ impl WaveformPipeline {
 
         if best_mag > 0.01 {
             let note = frequency_to_note(peak_freq);
+            let note_str = Self::base_note_name(&note).to_string();
+
             println!("→ Add {:.3} Hz = {} to note history? (y/n)", peak_freq, note);
             let mut confirm = String::new();
-            let _ = io::stdin().read_line(&mut confirm);
+            io::stdin().read_line(&mut confirm).unwrap();
             if confirm.trim().to_lowercase() == "y" {
-                self.note_history.push(Self::base_note_name(&note).to_string());
+                if self.note_history.len() >= 7 {
+                    self.note_history.remove(0);
+                }
+                self.note_history.push(note_str.clone());
+                self.confirmed_notes.push(note_str.clone());
             }
-            Some((peak_freq, Self::base_note_name(&note).to_string()))
+
+            Some((peak_freq, note_str))
         } else {
             None
         }
-    }    
+    }
     // iterative zoom scan: End.
 
 
@@ -873,6 +926,19 @@ impl WaveformPipeline {
         targets.iter().any(|t| t == &note)
     }
     
+    // Fast patch
+    fn generate_piano_keys() -> Vec<(String, f32)> {
+        let note_names = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
+        let mut keys = Vec::new();
+        for n in 0..88 {
+            let midi = n + 21; // MIDI 21 = A0
+            let freq = 440.0 * 2f32.powf((midi as f32 - 69.0) / 12.0);
+            let note = format!("{}_{}", note_names[midi % 12], (midi / 12) - 1);
+            keys.push((note, freq));
+        }
+        keys
+    }
+    // Fast patch - End.
     
 }
 
