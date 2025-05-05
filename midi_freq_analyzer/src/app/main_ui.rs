@@ -8,74 +8,147 @@ use crate::audio::audio_input::start_input_stream;
 use std::sync::{Arc, Mutex};
 use crate::analytics::note_label::frequency_to_note;
 use crate::cli_log::log_status;
+use crate::audio::audio_input::start_device_scanner_thread;
+use cpal::traits::{HostTrait, DeviceTrait, StreamTrait};
+use std::io::{stdout, Write};
+static FIRST_UI: OnceLock<std::time::Instant> = OnceLock::new();
+use std::sync::OnceLock;
+static mut LAST_SWITCH: Option<String> = None;
+static mut LAST_UI_PRINT: Option<std::time::Instant> = None;
+
+
+
 
 
 pub struct AudioApp {
     waveform: WaveformPipeline,
     frequency: FrequencyPipeline,
     buffer: Arc<Mutex<AudioBuffer>>,
-    _stream: cpal::Stream,
+    stream_handle: Arc<Mutex<Option<cpal::Stream>>>,
+    live_candidates: Arc<Mutex<Vec<(String, f32, cpal::Device)>>>,
 }
 
 impl AudioApp {
     pub fn new() -> Self {
+        crate::audio::audio_input::list_input_devices();
         let buffer = Arc::new(Mutex::new(AudioBuffer::default()));
-        let stream = start_input_stream(buffer.clone());
+        let buffer_clone = buffer.clone();
+
+        let stream = Self::dummy_stream();
+
+        let live_candidates = Arc::new(Mutex::new(vec![]));
+        start_device_scanner_thread(live_candidates.clone());
+
+
         Self {
             waveform: WaveformPipeline::new(),
             frequency: FrequencyPipeline::new(),
             buffer,
-            _stream: stream,
+            stream_handle: Arc::new(Mutex::new(None)),
+            live_candidates,
         }
     }
 
     pub fn ui(&mut self, ctx: &egui::Context) {
+        static mut LAST_UI_PRINT: Option<std::time::Instant> = None;
+        let now = std::time::Instant::now();
+        let first = FIRST_UI.get_or_init(|| now);
+        let elapsed = now.duration_since(*first);
+        let secs = elapsed.as_secs();
+        let millis = elapsed.subsec_millis();
+        let h = secs / 3600;
+        let m = (secs % 3600) / 60;
+        let s = secs % 60;
+        
+        let since = format!("⏱ {:02}:{:02}:{:02}.{:03} since ui()", h, m, s, millis);
+        let last = unsafe { LAST_SWITCH.clone().unwrap_or_default() };
+        
+        let status = format!("{}   {}", since, last);
+        let padded = format!("{:<240}", status);
+        
+        unsafe {
+            if LAST_UI_PRINT.map_or(true, |last| now.duration_since(last).as_secs_f32() > 1.0) {
+                // overwrite old line fully
+                print!("\r{: <240}\r", ""); // clear with 240 spaces first
+                stdout().flush().unwrap();
+            
+                print!("{}", padded); // then print new
+                stdout().flush().unwrap();
+            
+                LAST_UI_PRINT = Some(now);
+            }
+        }
+        
         CentralPanel::default().show(ctx, |ui| {
-            let Ok(locked) = self.buffer.lock() else {
-                ui.label("Failed to lock buffer");
-                return;
-            };
+            ui.heading("🎹 MIDI Frequency Analyzer");
+            ui.label("✅ GUI working without sweeps or audio input.");
+            if let Ok(buffer) = self.buffer.lock() {
+                ui.label(format!("🧪 Samples: {}", buffer.samples.len()));
+                let peak = buffer.samples.iter().copied().map(f32::abs).fold(0.0, f32::max);
+                ui.label(format!("📈 Peak amplitude: {:.5}", peak));
+                let freq = self.waveform.dominant_frequency(&buffer).0;
+                ui.label(format!("🎯 Frequency: {:.2} Hz", freq));
+                ctx.request_repaint();
+                ui.separator();
+                ui.heading("🧪 GUI is alive!");
+                if let Ok(candidates) = self.live_candidates.lock() {
+                    ui.separator();
+                    ui.heading("🎛 Input Devices:");
 
-            let input_level: f32 = locked.samples.iter().map(|x| x.abs()).sum::<f32>() / locked.samples.len().max(1) as f32;
-            let amplitude = input_level;
-            ui.heading(format!("Audio Visualizer - Input Level: {:.2}", input_level));
+                    for (name, peak, device) in candidates.iter() {
+                        ui.horizontal(|row| {
+                            row.label(format!("• {} — peak: {:.5}", name, peak));
+                            if row.button("Switch").clicked() {
+                                let elapsed = now.duration_since(*FIRST_UI.get_or_init(|| now));
+                                let secs = elapsed.as_secs();
+                                let millis = elapsed.subsec_millis();
+                                let h = secs / 3600;
+                                let m = (secs % 3600) / 60;
+                                let s = secs % 60;
+                            
+                                let msg = format!(
+                                    "🔀 Switching to: {}  ⏱ {:02}:{:02}:{:02}.{:03}",
+                                    name, h, m, s, millis
+                                );
+                            
+                                let padded = format!("{:<240}", msg);
+                                log_status(&padded);
+                                let device_clone = device.clone();
+                                
+                                crate::audio::audio_input::switch_input_stream(
+                                    device_clone,
+                                    self.buffer.clone(),
+                                    self.stream_handle.clone()
+                                );
 
-            self.waveform.update(&locked);
-            self.frequency.update(&locked);
-            let waveform = self.waveform.update_return(&locked);
-            let y: f32 = self.waveform.y_range();
-            let waveform_pipeline = &mut self.waveform;
-            let (freq, len) = waveform_pipeline.dominant_frequency(&locked);
-            let bin_width = 48_000.0 / len as f32;
-            let bin_est = (freq / bin_width).round();
-            let note_text: String = frequency_to_note(freq); // for GUI
-            let note_text_fmt = if amplitude > 0.001 { // for CLI
-                format!("{:<14}", frequency_to_note(freq))
-            } else {
-                format!("{:<14}", "---")
-            };
-            
-            // log_status(&format!(
-            //     "smoothed_y: {:>7.4} | Note: {} | freq: {:>10.1} Hz | bin est: {:>4} | bin_w: {:>13.8}",
-            //     y, note_text_fmt, freq, bin_est, bin_width
-            // ));
-                                                                                    
-            waveform_pipeline
-            .gui()
-            .show_plot(ui, &waveform, &locked, y, &note_text);
-        
-            egui::Grid::new("confirmed_notes").show(ui, |ui| {
-                ui.label("🎵 Confirmed:");
-                for note in waveform_pipeline.confirmed_notes() {
-                    ui.label(note);
+                                unsafe {
+                                    LAST_SWITCH = Some(format!("🔀 {}", name));
+                                }
+                            }
+                        });
+                    }
+                    
                 }
-            });
-            
-            self.frequency.show(ui, &locked);
-            ctx.request_repaint();
-        
-            // TODO: Add GUI toggles, EQ sliders, visual thresholds, etc.
+            }
         });
+    }
+
+    fn dummy_stream() -> cpal::Stream {
+        let host = cpal::default_host();
+        host.default_input_device()
+            .unwrap()
+            .build_input_stream_raw(
+                &cpal::StreamConfig {
+                    channels: 1,
+                    sample_rate: cpal::SampleRate(44100),
+                    buffer_size: cpal::BufferSize::Default,
+                },
+                cpal::SampleFormat::F32,
+                |_data, _| {},
+                |_err| {},
+                None,
+            )
+            .unwrap()
     }
 }
 

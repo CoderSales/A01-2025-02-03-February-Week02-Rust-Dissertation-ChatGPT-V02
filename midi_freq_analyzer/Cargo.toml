@@ -22,3 +22,6 @@ egui = "0.31"
 egui_plot = "0.31"
 num-traits = "0.2"
 
+[[bin]]
+name = "midi_freq_analyzer"
+path = "src/main.rs"

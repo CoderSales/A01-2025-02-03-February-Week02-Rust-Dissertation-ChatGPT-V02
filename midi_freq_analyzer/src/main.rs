@@ -30,10 +30,11 @@ use app::main_ui::AudioApp;
 use eframe::NativeOptions;
 
 fn main() -> eframe::Result<()> {
-    let options = NativeOptions::default();
+    let options = eframe::NativeOptions::default();
+    println!("🚀 Launching GUI");
     eframe::run_native(
         "Rust Audio Visualizer",
         options,
-        Box::new(|_cc| Ok::<Box<dyn eframe::App>, Box<dyn std::error::Error + Send + Sync>>(Box::new(AudioApp::new())))
+        Box::new(|_cc| Ok::<Box<dyn eframe::App>, _>(Box::new(AudioApp::new())))
     )
 }
