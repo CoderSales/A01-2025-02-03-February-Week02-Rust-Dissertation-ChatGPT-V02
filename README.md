@@ -2,7 +2,7 @@
 
 ## Acknowledgements
 
-Thanks to Supervisor Prof J. J. Collins and Secondary Reader Prof Tabea DeWille.
+Thanks to my Supervisor Prof J. J. Collins and Secondary Reader Prof Tabea DeWille.
 
 ## Description
 
