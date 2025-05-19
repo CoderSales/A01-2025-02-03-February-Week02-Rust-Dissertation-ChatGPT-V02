@@ -4,10 +4,15 @@
 
 Thanks to my Supervisor Prof J. J. Collins and Secondary Reader Prof Tabea DeWille in the [Department of Computer Science and Information Systems](https://www.ul.ie/scieng/schools-and-departments/department-computer-science-and-information-systems) in the Faculty of Science and Engineering at the University of Limerick. 
 
+## Note on Repository
+
+This Repository is Version 02, cloned from orignal Version (01) A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT developed as part of my Dissertation.
+
 ## Description
 
-A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT
+Using Rust to do simple Audio Processing, using Full AI.
 
+## Content
 
 
 ![alt text](image.png)
