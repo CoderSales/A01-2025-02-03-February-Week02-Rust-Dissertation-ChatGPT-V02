@@ -6,7 +6,7 @@ Thanks to my Supervisor Prof J. J. Collins and Secondary Reader Prof Tabea DeWil
 
 ## Note on Repository
 
-This Repository is Version 02, cloned from orignal Version (01) [A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT](https://github.com/CoderSales/A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT/settings) developed as part of my Dissertation.
+This Repository is Version 02, cloned from original Version (01) [A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT](https://github.com/CoderSales/A01-2025-02-03-February-Week02-Rust-Dissertation-ChatGPT/settings) developed as part of my Dissertation.
 
 ## Description
 
