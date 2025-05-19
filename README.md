@@ -2,7 +2,7 @@
 
 ## Acknowledgements
 
-Thanks to my Supervisor Prof J. J. Collins and Secondary Reader Prof Tabea DeWille.
+Thanks to my Supervisor Prof J. J. Collins and Secondary Reader Prof Tabea DeWille in the [Department of Computer Science and Information Systems](https://www.ul.ie/scieng/schools-and-departments/department-computer-science-and-information-systems) in the Facculty of Science and Engineering at the University of Limerick. 
 
 ## Description
 
